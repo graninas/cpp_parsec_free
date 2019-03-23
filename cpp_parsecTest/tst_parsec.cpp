@@ -26,6 +26,9 @@ private Q_SLOTS:
     void bothTVarsCombinatorTest();
     void bothVoidedCombinatorTest();
     void modifyTVarTest();
+
+
+    void digitParserTest();
 };
 
 PSTest::PSTest()
@@ -205,6 +208,45 @@ void PSTest::modifyTVarTest()
     Context ctx;
     auto result = atomically(ctx, mResult);
     QVERIFY(result == 15);
+}
+
+template <typename E, typename T>
+using Either = std::vector<E, T>;
+
+template <typename E, typename T>
+bool isRight(const Either<E,T>& e)
+{
+    return std::holds_alternative<T>(e);
+}
+
+struct ParseError
+{
+
+};
+
+struct Parser
+{
+
+};
+
+const auto digit = Parser();
+
+template<typename T>
+Either<T, ParseError> parse(const Parser& parser, const std::string& s)
+{
+    return { ParseError {} };
+}
+
+void PSTest::digitParserTest()
+{
+    using namespace ps;
+
+    const std::string s = "1";
+
+
+    auto result = parse<int>(digit, s);
+
+    QVERIFY(isRight(result));
 }
 
 QTEST_APPLESS_MAIN(PSTest)

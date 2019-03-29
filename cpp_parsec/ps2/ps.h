@@ -1,7 +1,7 @@
 #ifndef PS_H
 #define PS_H
 
-#include "church/parser.h"
+#include "church/ps.h"
 
 namespace ps {
 

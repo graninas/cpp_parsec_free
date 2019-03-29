@@ -5,12 +5,14 @@
 #include <variant>
 #include <any>
 
+#include "tvar.h"
+
 namespace ps
 {
 
 // Short definitions
 using Any = std::any;
-using S = std::string;
+using TVarAny = TVar<std::any>;
 
 struct Unit
 {

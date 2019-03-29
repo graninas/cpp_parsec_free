@@ -7,66 +7,64 @@
 #include <optional>
 #include <atomic>
 
-#include "tvar.h"
-
 namespace ps
 {
 
-using UStamp = Id;
+//using UStamp = Id;
 
-struct TVarHandle
-{
-    UStamp ustamp;
-    std::any data;
-    bool modified;
-};
+//struct TVarHandle
+//{
+//    UStamp ustamp;
+//    std::any data;
+//    bool modified;
+//};
 
-using TVars = std::map<TVarId, TVarHandle>;
+//using TVars = std::map<TVarId, TVarHandle>;
 
-class Context
-{
-private:
+//class Context
+//{
+//private:
 
-    std::atomic<Id> _id;
-    TVars _tvars;
+//    std::atomic<Id> _id;
+//    TVars _tvars;
 
-    std::mutex _lock;
+//    std::mutex _lock;
 
-public:
-    Context();
+//public:
+//    Context();
 
-    bool tryCommit(const UStamp& ustamp, const TVars& stagedTvars);
+//    bool tryCommit(const UStamp& ustamp, const TVars& stagedTvars);
 
-    Id newId();
-    TVars takeSnapshot();
-};
+//    Id newId();
+//    TVars takeSnapshot();
+//};
 
-class AtomicRuntime
-{
-private:
-    Context& _context;
+//class AtomicRuntime
+//{
+//private:
+//    Context& _context;
 
-    UStamp _ustamp;
-    TVars _localTVars;
+//    UStamp _ustamp;
+//    TVars _localTVars;
 
-public:
-    AtomicRuntime(Context& context, const UStamp& ustamp, const TVars& tvars);
+//public:
+//    AtomicRuntime(Context& context, const UStamp& ustamp, const TVars& tvars);
 
-    TVarId newId();
-    UStamp getUStamp() const;
-    TVars getStagedTVars() const;
+//    TVarId newId();
+//    UStamp getUStamp() const;
+//    TVars getStagedTVars() const;
 
-    void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
-    TVarHandle getTVarHandle(const TVarId& tvarId) const;
-    void setTVarHandleData(const TVarId& tvarId, const std::any& data);
-};
+//    void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
+//    TVarHandle getTVarHandle(const TVarId& tvarId) const;
+//    void setTVarHandleData(const TVarId& tvarId, const std::any& data);
+//};
 
-template <typename A>
-struct RunResult
-{
-    bool retry;
-    std::optional<A> result;
-};
+//template <typename A>
+//struct RunResult
+//{
+//    bool retry;
+//    std::optional<A> result;
+//};
 
 } // namespace ps
 

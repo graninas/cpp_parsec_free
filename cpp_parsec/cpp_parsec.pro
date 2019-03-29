@@ -10,17 +10,27 @@ SOURCES += \
     ps/context.cpp
 
 HEADERS += \
-    ps/tvar.h \
     ps/context.h \
     ps/psf/functor.h \
-    ps/psf/psf.h \
     ps/impl/runtime.h \
     ps/types.h \
-    ps/church/psl.h \
     ps/church/interpreter.h \
     ps/church/functor.h \
-    ps/church/ps.h \
-    ps/ps.h
+    ps/ps.h \
+    ps2/tvar.h \
+    ps2/context.h \
+    ps2/psf/functor.h \
+    ps2/psf/psf.h \
+    ps2/impl/runtime.h \
+    ps2/types.h \
+    ps2/church/psl.h \
+    ps2/church/interpreter.h \
+    ps2/church/functor.h \
+    ps2/church/ps.h \
+    ps2/ps.h \
+    ps/church/parserl.h \
+    ps/church/parser.h \
+    ps/psf/parserf.h
 
 unix {
     target.path = /usr/lib

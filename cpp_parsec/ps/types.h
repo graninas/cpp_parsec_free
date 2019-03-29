@@ -11,6 +11,7 @@ namespace ps
 // Short definitions
 using Any = std::any;
 using S = std::string;
+using Digit = std::uint8_t;
 
 struct Unit
 {

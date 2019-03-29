@@ -208,7 +208,7 @@ PSTest::PSTest()
 //}
 
 template <typename E, typename T>
-using Either = std::vector<E, T>;
+using Either = std::variant<E, T>;
 
 template <typename E, typename T>
 bool isRight(const Either<E,T>& e)
@@ -219,6 +219,16 @@ bool isRight(const Either<E,T>& e)
 struct ParseError
 {
 };
+
+template <typename T>
+struct ParserResult
+{
+    T parsed;
+    std::string rest;
+};
+
+template <typename T>
+using ParseResult = Either<ParseError, ParserResult<T>>;
 
 template<typename T>
 Either<T, ParseError> parse(const ps::ParserL<T>& parser, const std::string& s)
@@ -232,9 +242,12 @@ void PSTest::digitParserTest()
 
     const std::string s = "1";
 
-    const ParserL<int> digit = ParserL<int>();
+//    const ParserL<std::list<uint8_t>> digits = []()
+//    {
+//        return many(digit);
+//    };
 
-    auto result = parse<int>(digit, s);
+    auto result = parse<uint8_t>(ps::digit, s);
 
     QVERIFY(isRight(result));
 }

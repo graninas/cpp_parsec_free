@@ -18,7 +18,7 @@ ParserL<B> bind(const ParserL<A>& ma,
 {
     ParserL<B> n;
     n.runF = [=](const std::function<S(B)>& p,
-                 const std::function<S(psf::PSF<S>)>& r)
+                 const std::function<S(psf::ParserF<S>)>& r)
     {
         auto fst = [=](const A& a)
         {
@@ -31,59 +31,50 @@ ParserL<B> bind(const ParserL<A>& ma,
     return n;
 }
 
-//template <typename A>
-//ParserL<A> join(const ParserL<ParserL<A>>& mma)
-//{
-//    return bind<ParserL<A>, A>(mma, [](const ParserL<A>& ma) { return ma; });
-//}
+template <typename A>
+ParserL<A> join(const ParserL<ParserL<A>>& mma)
+{
+    return bind<ParserL<A>, A>(mma, [](const ParserL<A>& ma) { return ma; });
+}
 
-//template <typename A>
-//ParserL<A> pure(const A& a)
-//{
-//    ParserL<A> n;
-//    n.runF = [=](const std::function<Any(A)>& p,
-//                 const std::function<Any(psf::PSF<Any>)>&)
-//    {
-//        return p(a);
-//    };
-//    return n;
-//}
+template <typename A>
+ParserL<A> pure(const A& a)
+{
+    ParserL<A> n;
+    n.runF = [=](const std::function<Any(A)>& p,
+                 const std::function<Any(psf::ParserF<Any>)>&)
+    {
+        return p(a);
+    };
+    return n;
+}
 
-//template <typename A, template <typename, typename> class Method>
-//ParserL<A> wrap(const Method<Any, A>& method)
-//{
-//    ParserL<A> n;
+template <typename A, template <typename, typename> class Method>
+ParserL<A> wrap(const Method<Any, A>& method)
+{
+    ParserL<A> n;
 
-//    n.runF = [=](const std::function<Any(A)>& p,
-//                 const std::function<Any(psf::PSF<Any>)>& r)
-//    {
-//        psf::PSF<A> f { method };
-//        psf::PSF<Any> mapped = psf::fmap<A, Any>(p, f);
-//        return r(mapped);
-//    };
+    n.runF = [=](const std::function<Any(A)>& p,
+                 const std::function<Any(psf::ParserF<Any>)>& r)
+    {
+        psf::ParserF<A> f { method };
+        psf::ParserF<Any> mapped = psf::fmap<A, Any>(p, f);
+        return r(mapped);
+    };
 
-//    return n;
-//}
+    return n;
+}
 
-//template <typename A>
-//ParserL<A> retry()
-//{
-//    return wrap(psf::RetryA<A> {});
-//}
+ParserL<Digit> digit()
+{
+    auto r = psf::NewTVar<A, TVar<A>>::toAny(
+                val,
+                name,
+                [](const TVar<A>& tvar) { return tvar; }
+                );
 
-//template <typename A>
-//ParserL<TVar<A>> newTVar(
-//        const A& val,
-//        const std::string& name = "")
-//{
-//    auto r = psf::NewTVar<A, TVar<A>>::toAny(
-//                val,
-//                name,
-//                [](const TVar<A>& tvar) { return tvar; }
-//                );
-
-//    return wrap(r);
-//}
+    return wrap(r);
+}
 
 //template <typename A>
 //ParserL<A> readTVar(const TVar<A>& tvar)

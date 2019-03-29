@@ -15,11 +15,25 @@ template <typename A, typename B>
 struct PSFFunctorVisitor
 {
     MapFunc<A,B> fTemplate;
-    PSF<B> result;
+    ParserF<B> result;
 
     PSFFunctorVisitor(const MapFunc<A,B>& func)
         : fTemplate(func)
     {}
+
+    void operator()(const ParseDigit<A>& fa)
+    {
+        MapFunc<A,B> g = fTemplate;
+        ParseDigit<B> fb;
+        fb.ch = fa.ch;
+
+        // This is probably not needed.
+        fb.next = [=](const Digit& dAny)
+        {
+            return g(fa.next(dAny));
+        };
+        result.psf = fb;
+    }
 
     void operator()(const ParseChar<A>& fa)
     {

@@ -16,7 +16,7 @@ template <typename A>
 using ParserFunc = std::function<
         S(
             std::function<S(A)>,
-            std::function<S(psf::PSF<S>)>
+            std::function<S(psf::ParserF<S>)>
         )>;
 
 template <typename A>

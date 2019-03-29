@@ -3,16 +3,67 @@
 
 #include "../types.h"
 
-#ifdef PS_DEBUG
-#include <iostream>
-#endif
-
 namespace ps
 {
 namespace psf
 {
 
 // PS methods
+
+template <typename Next>
+struct ParseDigit
+{
+    std::function<Next(S)> next;
+
+    static ParseDigit<Next> toAny(
+            const std::function<Next(Digit)>& next)
+    {
+        std::function<Next(Digit)> nextCopy = next;
+        ParseDigit<Next> m;
+
+        // This is not needed: no toAny / fromAny conversion
+        m.next = [=](const Digit& dAny)
+        {
+            return nextCopy(dAny);
+        };
+        return m;
+    }
+
+    ~ParseDigit(){}
+    ParseDigit(){}
+
+    explicit ParseDigit(const Digit& d,
+                     const std::function<Next(Digit)>& next)
+        : d(d)
+        , next(next)
+    {}
+
+    ParseDigit(const ParseDigit<Next>& other)
+        : d(other.d)
+        , next(other.next)
+    {
+    }
+
+    ParseDigit(const ParseDigit<Next>&& other)
+        : d(other.d)
+        , next(other.next)
+    {
+    }
+
+    ParseDigit<Next>& operator=(ParseDigit<Next> other)
+    {
+        std::swap(d, other.d);
+        std::swap(next, other.next);
+        return *this;
+    }
+
+    ParseDigit<Next>& operator=(ParseDigit<Next>&& other)
+    {
+        std::swap(d, other.d);
+        std::swap(next, other.next);
+        return *this;
+    }
+};
 
 template <typename Next>
 struct ParseChar
@@ -37,54 +88,29 @@ struct ParseChar
         return m;
     }
 
-    ~ParseChar()
-    {
-#ifdef PS_DEBUG
-        std::cout << "ParseChar: destructor, name: " << name << std::endl;
-#endif
-    }
-
-    ParseChar()
-    {
-#ifdef PS_DEBUG
-        std::cout << "ParseChar: empty constructor " << std::endl;
-#endif
-    }
+    ~ParseChar(){}
+    ParseChar(){}
 
     explicit ParseChar(const S& ch,
                      const std::function<Next(S)>& next)
         : ch(ch)
         , next(next)
-    {
-#ifdef PS_DEBUG
-        std::cout << "ParseChar: constructor " << std::endl;
-#endif
-    }
+    {}
 
     ParseChar(const ParseChar<Next>& other)
         : ch(other.ch)
         , next(other.next)
     {
-#ifdef PS_DEBUG
-        std::cout << "ParseChar: copy constructor" << std::endl;
-#endif
     }
 
     ParseChar(const ParseChar<Next>&& other)
         : ch(other.ch)
         , next(other.next)
     {
-#ifdef PS_DEBUG
-        std::cout << "ParseChar: move constructor" << std::endl;
-#endif
     }
 
     ParseChar<Next>& operator=(ParseChar<Next> other)
     {
-
-#ifdef PS_DEBUG
-        std::cout << "NewTVar: copy assignment operator" << std::endl;
-#endif
         std::swap(ch, other.ch);
         std::swap(next, other.next);
         return *this;
@@ -92,9 +118,6 @@ struct ParseChar
 
     ParseChar<Next>& operator=(ParseChar<Next>&& other)
     {
-#ifdef PS_DEBUG
-        std::cout << "ParseChar: move assignment operator " << std::endl;
-#endif
         std::swap(ch, other.ch);
         std::swap(next, other.next);
         return *this;
@@ -107,7 +130,8 @@ template <class Ret>
 struct ParserF
 {
     std::variant<
-        ParseChar<Ret>
+        ParseChar<Ret>,
+        ParseDigit<Ret>
     > psf;
 };
 

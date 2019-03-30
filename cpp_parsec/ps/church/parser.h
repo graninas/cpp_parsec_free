@@ -65,19 +65,20 @@ ParserL<A> wrap(const Method<Any, A>& method)
     return n;
 }
 
-ParserL<Digit> digit()
+template <typename A>
+ParserL<Digit> parseDigit()
 {
-    auto r = psf::NewTVar<A, TVar<A>>::toAny(
-                val,
-                name,
-                [](const TVar<A>& tvar) { return tvar; }
+    auto r = psf::ParseDigit<A, Digit>::toAny(
+                [](const Digit& d) { return d; }
                 );
 
     return wrap(r);
 }
 
+const ParserL<Digit> digit = parseDigit<Digit>();
+
 //template <typename A>
-//ParserL<A> readTVar(const TVar<A>& tvar)
+//ParserL<A> readTVar(const Digit& tvar)
 //{
 //    auto r = psf::ReadTVar<A, A>::toAny(
 //                tvar,
@@ -88,7 +89,7 @@ ParserL<Digit> digit()
 
 //template <typename A>
 //ParserL<Unit> writeTVar(
-//        const TVar<A>& tvar,
+//        const Digit& tvar,
 //        const A& val)
 //{
 //    auto r = psf::WriteTVar<A, Unit>::toAny(
@@ -101,7 +102,7 @@ ParserL<Digit> digit()
 
 //template <typename A>
 //ParserL<Unit> modifyTVar(
-//        const TVar<A>& tvar,
+//        const Digit& tvar,
 //        const std::function<A(A)>& f)
 //{
 //    return bind<A, Unit>(readTVar(tvar), [=](const A& val)
@@ -112,33 +113,34 @@ ParserL<Digit> digit()
 
 ///// ParserL evaluation
 
-//template <typename A>
-//A atomically(Context& context,
-//             const ParserL<A>& ParserL)
-//{
+template <typename A>
+ps::ParseResult<A> parse(
+        const ParserL<A>& p,
+        const std::string& s)
+{
 //    RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
 //    {
 //        return runParserL<A>(runtime, ParserL);
 //    };
 
 //    return runPS<A>(context, runner);
-//}
+}
 
 //// Special version of newTVar
 //template <typename A>
-//TVar<A> newTVarIO(Context& context,
+//Digit newTVarIO(Context& context,
 //                  const A& val,
 //                  const std::string& name = "")
 //{
-//    return atomically(context, newTVar<A>(val, name));
+//    return atomically(context, newDigit(val, name));
 //}
 
 //// Special version of readTVar. Can be possibly optimized to not to wait for conflicts.
 //template <typename A>
 //A readTVarIO(Context& context,
-//             const TVar<A>& tvar)
+//             const Digit& tvar)
 //{
-//    return atomically(context, readTVar<A>(tvar));
+//    return atomically(context, readDigit(tvar));
 //}
 
 ///// Combinators
@@ -293,21 +295,21 @@ ParserL<Digit> digit()
 //// Additional TVar combinators
 
 //template <typename A, typename B>
-//ParserL<B> withTVar(const ParserL<TVar<A>>& ma,
+//ParserL<B> withTVar(const ParserL<Digit>& ma,
 //                 const std::function<ParserL<B>(A)>& f)
 //{
-//    return bind<A, B>(bind<TVar<A>, A>(ma, mReadTVar), f);
+//    return bind<A, B>(bind<Digit, A>(ma, mReadTVar), f);
 //}
 
 //template <typename A, typename B>
-//ParserL<B> withTVar(const TVar<A>& tvar,
+//ParserL<B> withTVar(const Digit& tvar,
 //                 const std::function<ParserL<B>(A)>& f)
 //{
-//    return bind<A, B>(readTVar<A>(tvar), f);
+//    return bind<A, B>(readDigit(tvar), f);
 //}
 
 //template <typename A, typename B>
-//ParserL<B> withTVar(const TVar<A>& tvar,
+//ParserL<B> withTVar(const Digit& tvar,
 //                 const std::function<B(A)>& f)
 //{
 //    return bind<A, B>(readTVar(tvar),
@@ -315,7 +317,7 @@ ParserL<Digit> digit()
 //}
 
 //template <typename A, typename B>
-//ParserL<Unit> whenTVar(const TVar<A>& tvar,
+//ParserL<Unit> whenTVar(const Digit& tvar,
 //                    const std::function<bool(A)>& tvarCond,
 //                    const ParserL<B>& mb)
 //{
@@ -328,27 +330,27 @@ ParserL<Digit> digit()
 //// TODO: replace by var args.
 
 //template <typename A, typename B, typename C>
-//ParserL<C> withTVars(const ParserL<TVar<A>>& ma,
+//ParserL<C> withTVars(const ParserL<Digit>& ma,
 //                  const ParserL<TVar<B>>& mb,
 //                  const std::function<ParserL<C>(A, B)>& f)
 //{
-//    return both<A, B, C>(bind<TVar<A>, A>(ma, mReadTVar),
+//    return both<A, B, C>(bind<Digit, A>(ma, mReadTVar),
 //                         bind<TVar<B>, B>(mb, mReadTVar),
 //                         f);
 //}
 
 //template <typename A, typename B, typename C>
-//ParserL<C> withTVars(const ParserL<TVar<A>>& ma,
+//ParserL<C> withTVars(const ParserL<Digit>& ma,
 //                  const ParserL<TVar<B>>& mb,
 //                  const std::function<C(A, B)>& f)
 //{
-//    return both<A, B, C>(bind<TVar<A>, A>(ma, mReadTVar),
+//    return both<A, B, C>(bind<Digit, A>(ma, mReadTVar),
 //                         bind<TVar<B>, B>(mb, mReadTVar),
 //                         f);
 //}
 
 //template <typename A, typename B, typename C>
-//ParserL<C> withTVars(const TVar<A>& tvar1,
+//ParserL<C> withTVars(const Digit& tvar1,
 //                  const TVar<B>& tvar2,
 //                  const std::function<C(A, B)>& f)
 //{
@@ -358,7 +360,7 @@ ParserL<Digit> digit()
 //}
 
 //template <typename A, typename B, typename C>
-//ParserL<C> withTVars(const TVar<A>& tvar1,
+//ParserL<C> withTVars(const Digit& tvar1,
 //                  const TVar<B>& tvar2,
 //                  const std::function<ParserL<C>(A, B)>& f)
 //{
@@ -368,23 +370,23 @@ ParserL<Digit> digit()
 //}
 
 //template <typename A>
-//ParserL<Unit> modifyTVarCurried(const TVar<A>& tvar)
+//ParserL<Unit> modifyTVarCurried(const Digit& tvar)
 //{
 //    return [=](const auto& f)
 //    {
-//        return modifyTVar<A>(tvar, f);
+//        return modifyDigit(tvar, f);
 //    };
 //}
 
 //template <typename A>
-//ParserL<A> modifyTVarRet(const TVar<A>& tvar,
+//ParserL<A> modifyTVarRet(const Digit& tvar,
 //                      const std::function<A(A)>& f)
 //{
-//    return sequence<Unit, A>(modifyTVar<A>(tvar, f), readTVar<A>(tvar));
+//    return sequence<Unit, A>(modifyDigit(tvar, f), readDigit(tvar));
 //}
 
 //template <typename A>
-//ParserL<A> writeTVarRet(const TVar<A>& tvar,
+//ParserL<A> writeTVarRet(const Digit& tvar,
 //                     const A& a)
 //{
 //    return sequence<Unit, A>(writeTVar(tvar, a), readTVar(tvar));
@@ -402,7 +404,7 @@ ParserL<Digit> digit()
 //}
 
 //template <typename A, typename B>
-//ParserL<std::optional<B>> tryTVar(const TVar<A>& tvar,
+//ParserL<std::optional<B>> tryTVar(const Digit& tvar,
 //                               const std::function<bool(A)>& tvarCond,
 //                               const ParserL<std::optional<B>>& mb)
 //{
@@ -424,14 +426,14 @@ ParserL<Digit> digit()
 
 //template <typename A>
 //ParserL<std::optional<A>> tryModifyTVar(
-//        const TVar<A>& tvar,
+//        const Digit& tvar,
 //        const std::function<std::optional<A>(A)>& f)
 //{
 //    return withTVar<A, std::optional<A>>(tvar, [=](const A& a)
 //    {
 //        std::optional<A> optNewA = f(a);
 //        return optNewA.has_value()
-//                ? sequence<Unit, std::optional<A>>(writeTVar<A>(tvar, optNewA.value()),
+//                ? sequence<Unit, std::optional<A>>(writeDigit(tvar, optNewA.value()),
 //                                                   pure<std::optional<A>>(optNewA))
 //                : pure<std::optional<A>>(optNewA);
 //    });

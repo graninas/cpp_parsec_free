@@ -10,119 +10,71 @@ namespace psf
 
 // PS methods
 
-template <typename Next>
+template <typename A, typename Next>
 struct ParseDigit
 {
-    std::function<Next(S)> next;
+//    A val;
+//    std::string name;
+    std::function<Next(Digit)> next;
 
-    static ParseDigit<Next> toAny(
+    static ParseDigit<Any, Next> toAny(
+//            const A& val,
+//            const std::string& name,
             const std::function<Next(Digit)>& next)
     {
         std::function<Next(Digit)> nextCopy = next;
-        ParseDigit<Next> m;
 
-        // This is not needed: no toAny / fromAny conversion
-        m.next = [=](const Digit& dAny)
+        ParseDigit<Any, Next> m;
+//        m.val = val;  // cast to any
+//        m.name = name;
+        m.next = [=](const Digit& d)
         {
-            return nextCopy(dAny);
+//            Digit tvar;
+//            tvar.id = tvarAny.id;
+//            tvar.name = tvarAny.name;
+            return nextCopy(d);
         };
         return m;
     }
 
-    ~ParseDigit(){}
-    ParseDigit(){}
-
-    explicit ParseDigit(const Digit& d,
-                     const std::function<Next(Digit)>& next)
-        : d(d)
-        , next(next)
-    {}
-
-    ParseDigit(const ParseDigit<Next>& other)
-        : d(other.d)
-        , next(other.next)
+    ~ParseDigit()
     {
     }
 
-    ParseDigit(const ParseDigit<Next>&& other)
-        : d(other.d)
-        , next(other.next)
+    ParseDigit()
     {
     }
 
-    ParseDigit<Next>& operator=(ParseDigit<Next> other)
+    explicit ParseDigit(const std::function<Next(Digit)>& next)
+        : next(next)
     {
-        std::swap(d, other.d);
+    }
+
+    ParseDigit(const ParseDigit<A, Next>& other)
+        : next(other.next)
+    {
+    }
+
+    ParseDigit(const ParseDigit<A, Next>&& other)
+        : next(other.next)
+    {
+    }
+
+    ParseDigit<A, Next>& operator=(ParseDigit<A, Next> other)
+    {
         std::swap(next, other.next);
         return *this;
     }
 
-    ParseDigit<Next>& operator=(ParseDigit<Next>&& other)
+    ParseDigit<A, Next>& operator=(ParseDigit<A, Next>&& other)
     {
-        std::swap(d, other.d);
         std::swap(next, other.next);
         return *this;
     }
 };
 
 template <typename Next>
-struct ParseChar
-{
-    S ch;
-    std::function<Next(S)> next;
-
-    static ParseChar<Next> toAny(
-            const S& ch,
-            const std::function<Next(S)>& next)
-    {
-        std::function<Next(S)> nextCopy = next;
-
-        ParseChar<Next> m;
-        m.ch = ch;
-
-        // This is not needed: no toAny / fromAny conversion
-        m.next = [=](const S& sAny)
-        {
-            return nextCopy(sAny);
-        };
-        return m;
-    }
-
-    ~ParseChar(){}
-    ParseChar(){}
-
-    explicit ParseChar(const S& ch,
-                     const std::function<Next(S)>& next)
-        : ch(ch)
-        , next(next)
-    {}
-
-    ParseChar(const ParseChar<Next>& other)
-        : ch(other.ch)
-        , next(other.next)
-    {
-    }
-
-    ParseChar(const ParseChar<Next>&& other)
-        : ch(other.ch)
-        , next(other.next)
-    {
-    }
-
-    ParseChar<Next>& operator=(ParseChar<Next> other)
-    {
-        std::swap(ch, other.ch);
-        std::swap(next, other.next);
-        return *this;
-    }
-
-    ParseChar<Next>& operator=(ParseChar<Next>&& other)
-    {
-        std::swap(ch, other.ch);
-        std::swap(next, other.next);
-        return *this;
-    }
-};
+using ParseDigitA = ParseDigit<Any, Next>;
 
 // PSF algebraic data type
 
@@ -130,8 +82,7 @@ template <class Ret>
 struct ParserF
 {
     std::variant<
-        ParseChar<Ret>,
-        ParseDigit<Ret>
+        ParseDigitA<Ret>
     > psf;
 };
 

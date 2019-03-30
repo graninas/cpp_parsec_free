@@ -207,34 +207,12 @@ PSTest::PSTest()
 //    QVERIFY(result == 15);
 //}
 
-template <typename E, typename T>
-using Either = std::variant<E, T>;
 
-template <typename E, typename T>
-bool isRight(const Either<E,T>& e)
-{
-    return std::holds_alternative<T>(e);
-}
-
-struct ParseError
-{
-};
-
-template <typename T>
-struct ParserResult
-{
-    T parsed;
-    std::string rest;
-};
-
-template <typename T>
-using ParseResult = Either<ParseError, ParserResult<T>>;
-
-template<typename T>
-Either<T, ParseError> parse(const ps::ParserL<T>& parser, const std::string& s)
-{
-    return Either<T, ParseError>( ParseError {} );
-}
+//template<typename T>
+//Either<T, ParseError> parse(const ps::ParserL<T>& parser, const std::string& s)
+//{
+//    return Either<T, ParseError>( ParseError {} );
+//}
 
 void PSTest::digitParserTest()
 {
@@ -247,12 +225,17 @@ void PSTest::digitParserTest()
 //        return many(digit);
 //    };
 
-    auto result = parse<uint8_t>(ps::digit, s);
+    ps::ParseResult<Digit> result = parse<uint8_t>(ps::digit, s);
 
     QVERIFY(isRight(result));
+
+    ps::PResult<Digit> r = std::get<ps::PResult<Digit>>(result);
+
+    QVERIFY(r.parsed == 2);
+    QVERIFY(r.rest == "");
 }
 
 QTEST_APPLESS_MAIN(PSTest)
 
-//#include "tst_parsec.moc"
+#include "tst_parsec.moc"
 

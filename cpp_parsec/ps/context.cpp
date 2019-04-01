@@ -92,12 +92,12 @@ namespace ps
 //    return found->second;
 //}
 
-//void AtomicRuntime::setTVarHandleData(
-//        const TVarId& tvarId,
-//        const std::any& data)
-//{
-//    _localTVars[tvarId].data = data;
-//    _localTVars[tvarId].modified = true;
-//}
+void ParserRuntime::has_more(size_t count) const
+{
+    // UTF-8 is not supported
+
+    // TODO: mistake on `1`?
+    return _source.size() < _current + count;
+}
 
 } // namespace ps

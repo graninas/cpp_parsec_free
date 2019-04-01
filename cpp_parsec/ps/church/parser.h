@@ -118,12 +118,12 @@ ps::ParseResult<A> parse(
         const ParserL<A>& p,
         const std::string& s)
 {
-//    RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
-//    {
-//        return runParserL<A>(runtime, ParserL);
-//    };
+    RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
+    {
+        return runParserL<A>(runtime, ParserL);
+    };
 
-//    return runPS<A>(context, runner);
+    return runPS<A>(context, runner);
 }
 
 //// Special version of newTVar

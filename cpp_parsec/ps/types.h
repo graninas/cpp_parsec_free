@@ -41,6 +41,7 @@ bool isLeft(const Either<E,T>& e)
 
 struct ParseError
 {
+    std::string message;
 };
 
 template <typename T>

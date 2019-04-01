@@ -6,6 +6,8 @@
 #include <iostream>
 #include <random>
 
+#include "../types.h"
+#include "../church/parserl.h"
 #include "../context.h"
 
 namespace ps
@@ -15,14 +17,11 @@ namespace ps
 //using RunnerFunc = std::function<RunResult<A>(AtomicRuntime&)>;
 
 //template <typename A>
-//A runPS(Context& context,
-//         const RunnerFunc<A>& runner)
+//A runParser(/*Context& context,*/
+//         /*const RunnerFunc<A>& runner*/
+//            const ParserL<A>& p,
+//            const std::string& s)
 //{
-//    std::default_random_engine generator;
-//    std::uniform_int_distribution<int> distribution(1, 100);
-//    auto backoffIntervalDice = std::bind(distribution, generator);
-//    auto ustamp = context.newId();
-
 //    while (true)
 //    {
 //        auto snapshot = context.takeSnapshot();

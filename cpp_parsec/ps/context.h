@@ -7,6 +7,7 @@
 #include <optional>
 #include <atomic>
 
+
 namespace ps
 {
 
@@ -39,32 +40,23 @@ namespace ps
 //    TVars takeSnapshot();
 //};
 
-//class AtomicRuntime
-//{
-//private:
-//    Context& _context;
+class ParserRuntime
+{
+private:
+    std::string& _source;
+    size_t _current;
 
-//    UStamp _ustamp;
-//    TVars _localTVars;
+public:
+    ParserRuntime(std::string& source, size_t current);
 
-//public:
-//    AtomicRuntime(Context& context, const UStamp& ustamp, const TVars& tvars);
+    bool has_more(size_t count) const;
+};
 
-//    TVarId newId();
-//    UStamp getUStamp() const;
-//    TVars getStagedTVars() const;
-
-//    void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
-//    TVarHandle getTVarHandle(const TVarId& tvarId) const;
-//    void setTVarHandleData(const TVarId& tvarId, const std::any& data);
-//};
-
-//template <typename A>
-//struct RunResult
-//{
-//    bool retry;
-//    std::optional<A> result;
-//};
+template <typename A>
+struct RunResult
+{
+    ps::Either<ParserResult, A> result;
+};
 
 } // namespace ps
 

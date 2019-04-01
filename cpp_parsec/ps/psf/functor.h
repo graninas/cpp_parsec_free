@@ -21,10 +21,10 @@ struct ParserFFunctorVisitor
         : fTemplate(func)
     {}
 
-    void operator()(const ParseDigitA<A>& fa)
+    void operator()(const ParseDigit<A>& fa)
     {
         MapFunc<A,B> g = fTemplate;
-        ParseDigitA<B> fb;
+        ParseDigit<B> fb;
         fb.next = [=](const Digit d)
         {
             return g(fa.next(d));

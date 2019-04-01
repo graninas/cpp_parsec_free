@@ -35,13 +35,13 @@ RunResult<A> runParserL(ParserRuntime& runtime,
     std::function<Any(psf::ParserF<Any>)> g
             = [&](const psf::ParserF<Any>& psf)
     {
-        auto runResult = runParserF(runtime, psf);
+        RunResult<Any> runResult = runParserF<Any>(runtime, psf);
         if (isLeft(runResult.result))
         {
             ParseError pe = std::get<ParseError>(runResult.result);
             throw std::runtime_error(pe.message);
         }
-        return std::get<A>(runResult.result);  // cast to any?
+        return std::get<Any>(runResult.result);
     };
 
     A result;
@@ -55,20 +55,6 @@ RunResult<A> runParserL(ParserRuntime& runtime,
         return RunResult<A> { ParseError {err.what()} };
     }
     return RunResult<A> { result };
-//    try
-//    {
-//        Any anyResult = psl.runF(pureAny, g);
-//        result = std::any_cast<A>(anyResult);
-//    }
-//    catch(std::runtime_error err)
-//    {
-//        if (strcmp(err.what(), "Retry") == 0)
-//        {
-//            return RunResult<A> { ParseError() };
-//        }
-//        throw err;
-//    }
-//    return RunResult<A> { false, result };
 }
 
 template <typename Ret>
@@ -83,8 +69,7 @@ struct ParserFVisitor
 
     RunResult<Ret> result;
 
-    template <typename A>
-    void operator()(const psf::ParseDigit<A, Ret>& f)
+    void operator()(const psf::ParseDigit<Ret>& f)
     {
         std::string_view s = _runtime.get_view();
 

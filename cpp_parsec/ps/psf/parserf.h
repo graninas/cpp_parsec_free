@@ -10,32 +10,23 @@ namespace psf
 
 // PS methods
 
-template <typename A, typename Next>
+template <typename Next>
 struct ParseDigit
 {
-//    A val;
-//    std::string name;
     std::function<Next(Digit)> next;
 
-    static ParseDigit<Any, Next> toAny(
-//            const A& val,
-//            const std::string& name,
-            const std::function<Next(Digit)>& next)
-    {
-        std::function<Next(Digit)> nextCopy = next;
+//    static ParseDigit<Next> toAny(
+//            const std::function<Next(Digit)>& next)
+//    {
+//        std::function<Next(Digit)> nextCopy = next;
 
-        ParseDigit<Any, Next> m;
-//        m.val = val;  // cast to any
-//        m.name = name;
-        m.next = [=](const Digit& d)
-        {
-//            Digit tvar;
-//            tvar.id = tvarAny.id;
-//            tvar.name = tvarAny.name;
-            return nextCopy(d);
-        };
-        return m;
-    }
+//        ParseDigit<Next> m;
+//        m.next = [=](const Digit& d)
+//        {
+//            return nextCopy(d);
+//        };
+//        return m;
+//    }
 
     ~ParseDigit()
     {
@@ -50,31 +41,31 @@ struct ParseDigit
     {
     }
 
-    ParseDigit(const ParseDigit<A, Next>& other)
+    ParseDigit(const ParseDigit<Next>& other)
         : next(other.next)
     {
     }
 
-    ParseDigit(const ParseDigit<A, Next>&& other)
+    ParseDigit(const ParseDigit<Next>&& other)
         : next(other.next)
     {
     }
 
-    ParseDigit<A, Next>& operator=(ParseDigit<A, Next> other)
+    ParseDigit<Next>& operator=(ParseDigit<Next> other)
     {
         std::swap(next, other.next);
         return *this;
     }
 
-    ParseDigit<A, Next>& operator=(ParseDigit<A, Next>&& other)
+    ParseDigit<Next>& operator=(ParseDigit<Next>&& other)
     {
         std::swap(next, other.next);
         return *this;
     }
 };
 
-template <typename Next>
-using ParseDigitA = ParseDigit<Any, Next>;
+//template <typename Next>
+//using ParseDigitA = ParseDigit<Any, Next>;
 
 // PSF algebraic data type
 
@@ -82,7 +73,7 @@ template <class Ret>
 struct ParserF
 {
     std::variant<
-        ParseDigitA<Ret>
+        ParseDigit<Ret>
     > psf;
 };
 

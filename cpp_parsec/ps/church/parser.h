@@ -49,8 +49,8 @@ ParserL<A> pure(const A& a)
     return n;
 }
 
-template <typename A, template <typename, typename> class Method>
-ParserL<A> wrap(const Method<Any, A>& method)
+template <typename A, template <typename> class Method>
+ParserL<A> wrap(const Method<A>& method)
 {
     ParserL<A> n;
 
@@ -65,17 +65,14 @@ ParserL<A> wrap(const Method<Any, A>& method)
     return n;
 }
 
-template <typename A>
 ParserL<Digit> parseDigit()
 {
-    auto r = psf::ParseDigit<A, Digit>::toAny(
-                [](const Digit& d) { return d; }
-                );
-
-    return wrap(r);
+    psf::ParseDigit<Digit> m;
+    m.next = id;
+    return wrap(m);
 }
 
-const ParserL<Digit> digit = parseDigit<Digit>();
+const ParserL<Digit> digit = parseDigit();
 
 //template <typename A>
 //ParserL<A> readTVar(const Digit& tvar)
@@ -115,25 +112,19 @@ const ParserL<Digit> digit = parseDigit<Digit>();
 
 template <typename A>
 ps::ParseResult<A> parse(
-        const ParserL<A>& parserL,
+        const ParserL<A>& psl,
         const std::string& s)
 {
-//    RunnerFunc<A> runner = [&](ParserRuntime& runtime)
-//    {
-//        return runParserL<A>(runtime, parserL);
-//    };
-
-//    return runParser<A>(context, runner);
-
     if (s.empty())
         return { ParseError { "Source string is empty." }};
 
     ParserRuntime runtime(s, 0);
-    RunResult<A> runResult = runParserL<A>(runtime, parserL);
-    if (isLeft(runResult.result))
-        return std::get<ParseError>(runResult.result);
+    RunResult<A> runResult = runParserL<A>(runtime, psl);
+//    if (isLeft(runResult.result))
+//        return std::get<ParseError>(runResult.result);
 
-    return { std::get<A>(runResult.result) };
+//    return { std::get<A>(runResult.result) };
+    return { ps::ParseError { "errrrrr" } };
 }
 
 //// Special version of newTVar

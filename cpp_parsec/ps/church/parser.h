@@ -2,10 +2,10 @@
 #define PS_CHURCH_PS_H
 
 #include "../types.h"
-//#include "../context.h"
-//#include "../impl/runtime.h"
+#include "../context.h"
+#include "../impl/runtime.h"
 #include "parserl.h"
-//#include "interpreter.h"
+#include "interpreter.h"
 
 namespace ps
 {
@@ -115,15 +115,16 @@ const ParserL<Digit> digit = parseDigit<Digit>();
 
 template <typename A>
 ps::ParseResult<A> parse(
-        const ParserL<A>& p,
+        const ParserL<A>& parserL,
         const std::string& s)
 {
-    RunnerFunc<A> runner = [&](AtomicRuntime& runtime)
-    {
-        return runParserL<A>(runtime, ParserL);
-    };
+//    RunnerFunc<A> runner = [&](ParserRuntime& runtime)
+//    {
+//        return runParserL<A>(runtime, parserL);
+//    };
 
-    return runPS<A>(context, runner);
+//    return runParser<A>(context, runner);
+    return runParser<A>(parserL, s);
 }
 
 //// Special version of newTVar

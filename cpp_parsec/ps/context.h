@@ -1,12 +1,9 @@
 #ifndef PS_CONTEXT_H
 #define PS_CONTEXT_H
 
-#include <map>
-#include <any>
-#include <mutex>
 #include <optional>
-#include <atomic>
 
+#include "types.h"
 
 namespace ps
 {
@@ -40,6 +37,8 @@ namespace ps
 //    TVars takeSnapshot();
 //};
 
+// UTF-8 is not supported
+
 class ParserRuntime
 {
 private:
@@ -55,7 +54,7 @@ public:
 template <typename A>
 struct RunResult
 {
-    ps::Either<ParserResult, A> result;
+    ps::Either<ParseError, A> result;
 };
 
 } // namespace ps

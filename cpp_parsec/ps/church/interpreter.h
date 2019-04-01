@@ -26,8 +26,8 @@ RunResult<A> runParserF(
 }
 
 template <typename A>
-RunResult<A> runPSL(ParserRuntime& runtime,
-                     const ParserL<A>& psl)
+RunResult<A> runParserL(ParserRuntime& runtime,
+                        const ParserL<A>& psl)
 {
     std::function<Any(A)>
             pureAny = [](const A& a) { return a; }; // cast to any
@@ -35,14 +35,11 @@ RunResult<A> runPSL(ParserRuntime& runtime,
     std::function<Any(psf::ParserF<Any>)> g
             = [&](const psf::ParserF<Any>& psf)
     {
-        auto runnerResult = runPSF(runtime, psf);
-        if (runnerResult.retry)
+        auto runResult = runParserF(runtime, psf);
+        if (isLeft(runResult))
         {
-            throw std::runtime_error("Retry");
-        }
-        if (!runnerResult.result.has_value())
-        {
-            throw std::runtime_error("No result.");
+            ParseError pe = std::get<ParseError>(runResult.result);
+            throw std::runtime_error(pe.message);
         }
         return runnerResult.result.value();
     };
@@ -55,13 +52,23 @@ RunResult<A> runPSL(ParserRuntime& runtime,
     }
     catch(std::runtime_error err)
     {
-        if (strcmp(err.what(), "Retry") == 0)
-        {
-            return RunResult<A> { true, std::nullopt };
-        }
-        throw err;
+        return RunResult<A> { ParseError(err.what()) };
     }
-    return RunResult<A> { false, result };
+    return RunResult<A> { result };
+//    try
+//    {
+//        Any anyResult = psl.runF(pureAny, g);
+//        result = std::any_cast<A>(anyResult);
+//    }
+//    catch(std::runtime_error err)
+//    {
+//        if (strcmp(err.what(), "Retry") == 0)
+//        {
+//            return RunResult<A> { ParseError() };
+//        }
+//        throw err;
+//    }
+//    return RunResult<A> { false, result };
 }
 
 template <typename Ret>
@@ -79,11 +86,20 @@ struct ParserFVisitor
     template <typename A>
     void operator()(const psf::ParseDigit<A, Ret>& f)
     {
-        if (_runtime.empty())
+        if (!_runtime.has_more(1))
         {
-            result = {ParseError {"Failed to parse digit: end of imput."}};
+            result = { ParseError {"Failed to parse digit: end of imput."} };
             return;
         }
+        else if (s.at(0) >= '0' && s.at(0) <= '9')
+        {
+            result = { ParseError {"Failed to parse digit: not a digit."} };
+            return;
+        }
+
+        std::string_view s = _runtime.get_view(1);
+        uint8_t digit = s.at(0) - '0';
+        result = { digit };
     }
 };
 

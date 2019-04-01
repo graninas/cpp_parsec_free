@@ -94,8 +94,6 @@ namespace ps
 
 void ParserRuntime::has_more(size_t count) const
 {
-    // UTF-8 is not supported
-
     // TODO: mistake on `1`?
     return _source.size() < _current + count;
 }

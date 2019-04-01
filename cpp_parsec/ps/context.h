@@ -1,7 +1,7 @@
 #ifndef PS_CONTEXT_H
 #define PS_CONTEXT_H
 
-#include <optional>
+#include <string_view>
 
 #include "types.h"
 
@@ -42,13 +42,13 @@ namespace ps
 class ParserRuntime
 {
 private:
-    std::string& _source;
+    const std::string& _source;
     size_t _current;
 
 public:
-    ParserRuntime(std::string& source, size_t current);
+    ParserRuntime(const std::string& source, size_t current);
 
-    bool has_more(size_t count) const;
+    std::string_view get_view() const;
 };
 
 template <typename A>

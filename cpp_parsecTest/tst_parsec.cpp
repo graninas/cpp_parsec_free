@@ -225,14 +225,18 @@ void PSTest::digitParserTest()
 //        return many(digit);
 //    };
 
-    ps::ParseResult<Digit> result = parse<uint8_t>(ps::digit, s);
+    ParseResult<Digit> result = parse<uint8_t>(digit, s);
 
     QVERIFY(isRight(result));
 
-    ps::PResult<Digit> r = std::get<ps::PResult<Digit>>(result);
+    Digit r = std::get<Digit>(result);
 
-    QVERIFY(r.parsed == 2);
-    QVERIFY(r.rest == "");
+    QVERIFY(r == 2);
+
+//    ps::PResult<Digit> r = std::get<ps::PResult<Digit>>(result);
+
+//    QVERIFY(r.parsed == 2);
+//    QVERIFY(r.rest == "");
 }
 
 QTEST_APPLESS_MAIN(PSTest)

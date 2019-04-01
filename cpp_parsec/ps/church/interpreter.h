@@ -36,23 +36,23 @@ RunResult<A> runParserL(ParserRuntime& runtime,
             = [&](const psf::ParserF<Any>& psf)
     {
         auto runResult = runParserF(runtime, psf);
-        if (isLeft(runResult))
+        if (isLeft(runResult.result))
         {
             ParseError pe = std::get<ParseError>(runResult.result);
             throw std::runtime_error(pe.message);
         }
-        return runnerResult.result.value();
+        return std::get<A>(runResult.result);  // cast to any?
     };
 
     A result;
     try
     {
         Any anyResult = psl.runF(pureAny, g);
-        result = std::any_cast<A>(anyResult);
+        result = std::any_cast<A>(anyResult); // cast from any
     }
     catch(std::runtime_error err)
     {
-        return RunResult<A> { ParseError(err.what()) };
+        return RunResult<A> { ParseError {err.what()} };
     }
     return RunResult<A> { result };
 //    try
@@ -86,7 +86,9 @@ struct ParserFVisitor
     template <typename A>
     void operator()(const psf::ParseDigit<A, Ret>& f)
     {
-        if (!_runtime.has_more(1))
+        std::string_view s = _runtime.get_view();
+
+        if (s.empty())
         {
             result = { ParseError {"Failed to parse digit: end of imput."} };
             return;
@@ -97,7 +99,6 @@ struct ParserFVisitor
             return;
         }
 
-        std::string_view s = _runtime.get_view(1);
         uint8_t digit = s.at(0) - '0';
         result = { digit };
     }

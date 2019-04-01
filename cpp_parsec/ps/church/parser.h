@@ -124,7 +124,16 @@ ps::ParseResult<A> parse(
 //    };
 
 //    return runParser<A>(context, runner);
-    return runParser<A>(parserL, s);
+
+    if (s.empty())
+        return { ParseError { "Source string is empty." }};
+
+    ParserRuntime runtime(s, 0);
+    RunResult<A> runResult = runParserL<A>(runtime, parserL);
+    if (isLeft(runResult.result))
+        return std::get<ParseError>(runResult.result);
+
+    return { std::get<A>(runResult.result) };
 }
 
 //// Special version of newTVar

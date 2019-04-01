@@ -13,13 +13,10 @@
 namespace ps
 {
 
-template <typename A>
-using RunnerFunc = std::function<RunResult<A>(AtomicRuntime&)>;
-
-template <typename A>
-A runParser(const ps::church::ParserL<A>& p,
-            const std::string& s)
-{
+//template <typename A>
+//ParseResult<A> runParser(const ps::church::ParserL<A>& p,
+//            const std::string& s)
+//{
 //    while (true)
 //    {
 //        auto snapshot = context.takeSnapshot();
@@ -39,9 +36,7 @@ A runParser(const ps::church::ParserL<A>& p,
 //            return runResult.result.value();
 //        }
 //    }
-
-
-}
+//}
 
 } // namespace ps
 

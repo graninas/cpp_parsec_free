@@ -44,15 +44,15 @@ struct ParseError
     std::string message;
 };
 
-template <typename T>
-struct PResult
-{
-    T parsed;
-    std::string rest;
-};
+//template <typename T>
+//struct PResult
+//{
+//    T parsed;
+//    std::string rest;
+//};
 
 template <typename T>
-using ParseResult = Either<ParseError, PResult<T>>;
+using ParseResult = Either<ParseError, T>;
 
 
 } // namespace ps

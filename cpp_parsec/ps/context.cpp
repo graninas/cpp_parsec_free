@@ -92,10 +92,15 @@ namespace ps
 //    return found->second;
 //}
 
-void ParserRuntime::has_more(size_t count) const
+std::string_view ParserRuntime::get_view() const
 {
-    // TODO: mistake on `1`?
-    return _source.size() < _current + count;
+    return std::string_view(_source).substr(_current);
 }
+
+//void ParserRuntime::has_more(size_t count) const
+//{
+//    // TODO: mistake on `1`?
+//    return _source.size() < _current + count;
+//}
 
 } // namespace ps

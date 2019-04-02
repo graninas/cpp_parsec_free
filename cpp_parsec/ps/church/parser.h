@@ -120,11 +120,15 @@ ps::ParseResult<A> parse(
 
     ParserRuntime runtime(s, 0);
     RunResult<A> runResult = runParserL<A>(runtime, psl);
-//    if (isLeft(runResult.result))
-//        return std::get<ParseError>(runResult.result);
 
-//    return { std::get<A>(runResult.result) };
-    return { ps::ParseError { "errrrrr" } };
+    if (isLeft(runResult.result))
+    {
+        std::cout << " Failed runParserL.\n";
+        return std::get<ParseError>(runResult.result);
+    }
+
+    std::cout << " Success runParserL.\n";
+    return { std::get<A>(runResult.result) };
 }
 
 //// Special version of newTVar

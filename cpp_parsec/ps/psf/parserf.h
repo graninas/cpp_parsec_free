@@ -15,26 +15,9 @@ struct ParseDigit
 {
     std::function<Next(Digit)> next;
 
-//    static ParseDigit<Next> toAny(
-//            const std::function<Next(Digit)>& next)
-//    {
-//        std::function<Next(Digit)> nextCopy = next;
+    ~ParseDigit() {}
 
-//        ParseDigit<Next> m;
-//        m.next = [=](const Digit& d)
-//        {
-//            return nextCopy(d);
-//        };
-//        return m;
-//    }
-
-    ~ParseDigit()
-    {
-    }
-
-    ParseDigit()
-    {
-    }
+    ParseDigit() {}
 
     explicit ParseDigit(const std::function<Next(Digit)>& next)
         : next(next)
@@ -63,9 +46,6 @@ struct ParseDigit
         return *this;
     }
 };
-
-//template <typename Next>
-//using ParseDigitA = ParseDigit<Any, Next>;
 
 // PSF algebraic data type
 

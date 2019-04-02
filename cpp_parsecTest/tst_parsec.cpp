@@ -220,21 +220,13 @@ void PSTest::digitParserTest()
 
     const std::string s = "1";
 
-//    const ParserL<std::list<uint8_t>> digits = []()
-//    {
-//        return many(digit);
-//    };
-
     ParseResult<Digit> result = parse<Digit>(parseDigit(), s);
 
     QVERIFY(isRight(result));
 
     Digit r = std::get<Digit>(result);
 
-    QVERIFY(r == 2);
-
-
-
+    QVERIFY(r == 1);
 
 //    ps::PResult<Digit> r = std::get<ps::PResult<Digit>>(result);
 

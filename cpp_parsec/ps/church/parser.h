@@ -84,6 +84,7 @@ ps::ParseResult<A> parse(
     if (s.empty())
         return { ParseError { "Source string is empty." }};
 
+    std::cout << " Running runParserL.\n";
     ParserRuntime runtime(s, 0);
     RunResult<A> runResult = runParserL<A>(runtime, psl, 0);
 

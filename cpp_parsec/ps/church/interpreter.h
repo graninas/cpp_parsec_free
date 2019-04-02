@@ -57,6 +57,7 @@ RunResult<A> runParserL(ParserRuntime& runtime,
 
         std::cout << "> psl.runF && cast from Any\n";
         result = std::any_cast<A>(anyResult); // cast from any
+        std::cout << "> psl.runF casts OK.\n";
     }
     catch (std::runtime_error err)
     {
@@ -111,7 +112,7 @@ struct ParserFVisitor
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= '0' && ch <= '9'; };
         auto converter = [](char ch) { return uint8_t(ch - '0'); };
-        auto r = parseSingle<Digit>(s, _position, validator, converter, "digit");
+        auto r = parseSingle<Ret>(s, _position, validator, converter, "digit");
         result.result = r.result;
         result.position = r.position;
     }
@@ -121,7 +122,7 @@ struct ParserFVisitor
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= 'A' && ch <= 'Z'; };
         auto converter = [](char ch) { return ch; };
-        auto r = parseSingle<Char>(s, _position, validator, converter, "upper char");
+        auto r = parseSingle<Ret>(s, _position, validator, converter, "upper char");
         result.result = r.result;
         result.position = r.position;
     }
@@ -131,7 +132,7 @@ struct ParserFVisitor
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= 'a' && ch <= 'z'; };
         auto converter = [](char ch) { return ch; };
-        auto r = parseSingle<Char>(s, _position, validator, converter, "lower char");
+        auto r = parseSingle<Ret>(s, _position, validator, converter, "lower char");
         result.result = r.result;
         result.position = r.position;
     }

@@ -55,6 +55,7 @@ template <typename A>
 struct RunResult
 {
     ps::Either<ParseError, A> result;
+    size_t position;
 };
 
 } // namespace ps

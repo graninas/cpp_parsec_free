@@ -18,25 +18,27 @@ struct ParserFVisitor;
 template <typename A>
 RunResult<A> runParserF(
         ParserRuntime& runtime,
-        const psf::ParserF<A>& psf)
+        const psf::ParserF<A>& psf,
+        size_t position)
 {
-    ParserFVisitor<A> visitor(runtime);
+    ParserFVisitor<A> visitor(runtime, position);
     std::visit(visitor, psf.psf);
     return visitor.result;
 }
 
 template <typename A>
 RunResult<A> runParserL(ParserRuntime& runtime,
-                        const ParserL<A>& psl)
+                        const ParserL<A>& psl,
+                        size_t position)
 {
     std::function<Any(A)>
             pureAny = [](const A& a) { return a; }; // cast to any
 
     std::function<Any(psf::ParserF<Any>)> g
-            = [&](const psf::ParserF<Any>& psf)
+            = [&, position](const psf::ParserF<Any>& psf)
     {
         std::cout << "> func g\n";
-        RunResult<Any> runResult = runParserF<Any>(runtime, psf);
+        RunResult<Any> runResult = runParserF<Any>(runtime, psf, position);
         if (isLeft(runResult.result))
         {
             std::cout << ">>> run result is Left\n";
@@ -56,47 +58,82 @@ RunResult<A> runParserL(ParserRuntime& runtime,
         std::cout << "> psl.runF && cast from Any\n";
         result = std::any_cast<A>(anyResult); // cast from any
     }
-    catch(std::runtime_error err)
+    catch (std::runtime_error err)
     {
         std::cout << "> exception\n";
-        return RunResult<A> { ParseError {err.what()} };
+        return { ParseError {err.what()}, position };
     }
 
     std::cout << "runParseL success.\n";
-    return RunResult<A> { result };
+    return { result, position };
+}
+
+template <typename Single>
+RunResult<Single> parseSingle(
+        const std::string_view& s,
+        const size_t position,
+        const std::function<bool(char)>& validator,
+        const std::function<Single(char)>& converter,
+        const std::string& name
+        )
+{
+    std::string failedMsg = std::string("Failed to parse ") + name;
+
+    if (s.empty())
+    {
+        return { ParseError {failedMsg + ": end of imput."}, position };
+    }
+    else if (!validator(s.at(0)))
+    {
+        return { ParseError {failedMsg + ": not a " + name + "."}, position };
+    }
+
+    return { converter(s.at(0)), position + 1 };
 }
 
 template <typename Ret>
 struct ParserFVisitor
 {
     ParserRuntime& _runtime;
+    size_t _position;
 
-    ParserFVisitor(ParserRuntime& runtime)
+    ParserFVisitor(ParserRuntime& runtime,
+                   size_t position)
         : _runtime(runtime)
+        , _position(position)
     {
     }
 
     RunResult<Ret> result;
 
-    void operator()(const psf::ParseDigit<Ret>& f)
+    void operator()(const psf::ParseDigit<Ret>&)
     {
         std::string_view s = _runtime.get_view();
+        auto validator = [](char ch) { return ch >= '0' && ch <= '9'; };
+        auto converter = [](char ch) { return uint8_t(ch - '0'); };
+        auto r = parseSingle<Digit>(s, _position, validator, converter, "digit");
+        result.result = r.result;
+        result.position = r.position;
+    }
 
-        std::cout << "S: <" << s << ">";
+    void operator()(const psf::ParseUpperCaseChar<Ret>&)
+    {
+        std::string_view s = _runtime.get_view();
+        auto validator = [](char ch) { return ch >= 'A' && ch <= 'Z'; };
+        auto converter = [](char ch) { return ch; };
+        auto r = parseSingle<Char>(s, _position, validator, converter, "upper char");
+        result.result = r.result;
+        result.position = r.position;
+    }
 
-        if (s.empty())
-        {
-            result = { ParseError {"Failed to parse digit: end of imput."} };
-            return;
-        }
-        else if (s.at(0) < '0' || s.at(0) > '9')
-        {
-            result = { ParseError {"Failed to parse digit: not a digit."} };
-            return;
-        }
-
-        uint8_t digit = s.at(0) - '0';
-        result = { digit };
+    void operator()(const psf::ParseLowerCaseChar<Ret>&)
+    {
+        std::string_view s = _runtime.get_view();
+        auto validator = [](char ch) { return ch >= 'a' && ch <= 'z'; };
+        auto converter = [](char ch) { return ch; };
+        auto r = parseSingle<Char>(s, _position, validator, converter, "lower char");
+        result.result = r.result;
+        result.position = r.position;
     }
 };
 

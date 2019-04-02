@@ -74,40 +74,6 @@ ParserL<Digit> parseDigit()
 
 const ParserL<Digit> digit = parseDigit();
 
-//template <typename A>
-//ParserL<A> readTVar(const Digit& tvar)
-//{
-//    auto r = psf::ReadTVar<A, A>::toAny(
-//                tvar,
-//                [](const A& val) { return val;  });
-
-//    return wrap(r);
-//}
-
-//template <typename A>
-//ParserL<Unit> writeTVar(
-//        const Digit& tvar,
-//        const A& val)
-//{
-//    auto r = psf::WriteTVar<A, Unit>::toAny(
-//                tvar,
-//                val,
-//                [](const Unit& unit) { return unit; }
-//                );
-//    return wrap(r);
-//}
-
-//template <typename A>
-//ParserL<Unit> modifyTVar(
-//        const Digit& tvar,
-//        const std::function<A(A)>& f)
-//{
-//    return bind<A, Unit>(readTVar(tvar), [=](const A& val)
-//    {
-//        return writeTVar(tvar, f(val));
-//    });
-//}
-
 ///// ParserL evaluation
 
 template <typename A>
@@ -119,7 +85,7 @@ ps::ParseResult<A> parse(
         return { ParseError { "Source string is empty." }};
 
     ParserRuntime runtime(s, 0);
-    RunResult<A> runResult = runParserL<A>(runtime, psl);
+    RunResult<A> runResult = runParserL<A>(runtime, psl, 0);
 
     if (isLeft(runResult.result))
     {

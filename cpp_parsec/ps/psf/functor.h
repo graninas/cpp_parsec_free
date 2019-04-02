@@ -31,6 +31,27 @@ struct ParserFFunctorVisitor
         };
         result.psf = fb;
     }
+
+    void operator()(const ParseUpperCaseChar<A>& fa)
+    {
+        MapFunc<A,B> g = fTemplate;
+        ParseUpperCaseChar<B> fb;
+        fb.next = [=](const Digit d)
+        {
+            return g(fa.next(d));
+        };
+        result.psf = fb;
+    }
+    void operator()(const ParseLowerCaseChar<A>& fa)
+    {
+        MapFunc<A,B> g = fTemplate;
+        ParseLowerCaseChar<B> fb;
+        fb.next = [=](const Digit d)
+        {
+            return g(fa.next(d));
+        };
+        result.psf = fb;
+    }
 };
 
 template <typename A, typename B>

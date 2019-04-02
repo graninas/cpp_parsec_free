@@ -13,6 +13,7 @@ namespace ps
 using Any = std::any;
 using S = std::string;
 using Digit = std::uint8_t;
+using Char = char;
 
 struct Unit
 {

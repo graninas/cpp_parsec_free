@@ -27,7 +27,7 @@ private Q_SLOTS:
 //    void bothVoidedCombinatorTest();
 //    void modifyTVarTest();
 
-
+    void singleDigitParserTest();
     void digitParserTest();
 };
 
@@ -214,24 +214,30 @@ PSTest::PSTest()
 //    return Either<T, ParseError>( ParseError {} );
 //}
 
-void PSTest::digitParserTest()
+void PSTest::singleDigitParserTest()
 {
     using namespace ps;
 
     const std::string s = "1";
-
     ParseResult<Digit> result = parse<Digit>(parseDigit(), s);
 
     QVERIFY(isRight(result));
 
     Digit r = std::get<Digit>(result);
-
     QVERIFY(r == 1);
+}
 
-//    ps::PResult<Digit> r = std::get<ps::PResult<Digit>>(result);
+void PSTest::digitParserTest()
+{
+    using namespace ps;
 
-//    QVERIFY(r.parsed == 2);
-//    QVERIFY(r.rest == "");
+    const std::string s = "1abc";
+    ParseResult<Digit> result = parse<Digit>(parseDigit(), s);
+
+    QVERIFY(isRight(result));
+
+    Digit r = std::get<Digit>(result);
+    QVERIFY(r == 1);
 }
 
 QTEST_APPLESS_MAIN(PSTest)

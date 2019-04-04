@@ -1,71 +1,61 @@
 #ifndef PS_CONTEXT_H
 #define PS_CONTEXT_H
 
-#include <map>
-#include <any>
-#include <mutex>
-#include <optional>
-#include <atomic>
+#include <string_view>
 
-#include "tvar.h"
+#include "types.h"
 
 namespace ps
 {
 
-using UStamp = Id;
+//using UStamp = Id;
 
-struct TVarHandle
-{
-    UStamp ustamp;
-    std::any data;
-    bool modified;
-};
+//struct TVarHandle
+//{
+//    UStamp ustamp;
+//    std::any data;
+//    bool modified;
+//};
 
-using TVars = std::map<TVarId, TVarHandle>;
+//using TVars = std::map<TVarId, TVarHandle>;
 
-class Context
+//class Context
+//{
+//private:
+
+//    std::atomic<Id> _id;
+//    TVars _tvars;
+
+//    std::mutex _lock;
+
+//public:
+//    Context();
+
+//    bool tryCommit(const UStamp& ustamp, const TVars& stagedTvars);
+
+//    Id newId();
+//    TVars takeSnapshot();
+//};
+
+// UTF-8 is not supported
+
+class ParserRuntime
 {
 private:
-
-    std::atomic<Id> _id;
-    TVars _tvars;
-
-    std::mutex _lock;
+    const std::string& _source;
+    size_t _current;
 
 public:
-    Context();
+    ParserRuntime(const std::string& source, size_t current);
 
-    bool tryCommit(const UStamp& ustamp, const TVars& stagedTvars);
-
-    Id newId();
-    TVars takeSnapshot();
-};
-
-class AtomicRuntime
-{
-private:
-    Context& _context;
-
-    UStamp _ustamp;
-    TVars _localTVars;
-
-public:
-    AtomicRuntime(Context& context, const UStamp& ustamp, const TVars& tvars);
-
-    TVarId newId();
-    UStamp getUStamp() const;
-    TVars getStagedTVars() const;
-
-    void addTVarHandle(const TVarId& tvarId, const TVarHandle& tvarHandle);
-    TVarHandle getTVarHandle(const TVarId& tvarId) const;
-    void setTVarHandleData(const TVarId& tvarId, const std::any& data);
+    std::string_view get_view() const;
+    void advance(size_t count);
 };
 
 template <typename A>
 struct RunResult
 {
-    bool retry;
-    std::optional<A> result;
+    ps::Either<ParseError, A> result;
 };
 
 } // namespace ps

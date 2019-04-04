@@ -107,6 +107,7 @@ struct ParserFVisitor
 {
     ParserRuntime& _runtime;
     size_t _position;
+    RunResult<Ret> result;
 
     ParserFVisitor(ParserRuntime& runtime,
                    size_t position)
@@ -115,17 +116,15 @@ struct ParserFVisitor
     {
     }
 
-    RunResult<Ret> result;
-
     void operator()(const psf::ParseDigit<Ret>& f)
     {
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= '0' && ch <= '9'; };
         auto converter = [](char ch) { return uint8_t(ch - '0'); };
-        auto r = parseSingle<Digit>(s, _position, validator, converter, "digit");
+        RunResult<Digit> r = parseSingle<Digit>(s, _position, validator, converter, "digit");
         result.position = r.position;
         if (isLeft(r.result))
-            result.result = r.result;
+            result.result = { std::get<ParseError>(r.result) };
         else
             result.result = f.next(std::get<Digit>(r.result));
     }
@@ -138,7 +137,7 @@ struct ParserFVisitor
         auto r = parseSingle<Char>(s, _position, validator, converter, "upper char");
         result.position = r.position;
         if (isLeft(r.result))
-            result.result = r.result;
+            result.result = { std::get<ParseError>(r.result) };
         else
             result.result = f.next(std::get<Char>(r.result));
     }
@@ -151,7 +150,7 @@ struct ParserFVisitor
         auto r = parseSingle<Char>(s, _position, validator, converter, "lower char");
         result.position = r.position;
         if (isLeft(r.result))
-            result.result = r.result;
+            result.result = { std::get<ParseError>(r.result) };
         else
             result.result = f.next(std::get<Char>(r.result));
     }

@@ -31,41 +31,45 @@ RunResult<A> runParserL(ParserRuntime& runtime,
                         const ParserL<A>& psl,
                         size_t position)
 {
+    std::cout << "runParserL\n";
+
     std::function<Any(A)>
             pureAny = [](const A& a) { return a; }; // cast to any
 
     std::function<Any(psf::ParserF<Any>)> g
             = [&, position](const psf::ParserF<Any>& psf)
     {
-        std::cout << "> func g\n";
+        std::cout << "runParserL -> \\g -> runParserF()\n";
         RunResult<Any> runResult = runParserF<Any>(runtime, psf, position);
+
         if (isLeft(runResult.result))
         {
-            std::cout << ">>> run result is Left\n";
+            std::cout << "runParserL -> \\g -> isLeft\n";
             ParseError pe = std::get<ParseError>(runResult.result);
             throw std::runtime_error(pe.message);
         }
-        std::cout << ">>> run result is Right\n";
+        std::cout << "runParserL -> \\g -> isRight\n";
         return std::get<Any>(runResult.result);
     };
 
     A result;
     try
     {
-        std::cout << "> psl.runF && cast to Any\n";
+        std::cout << "runParserL -> psl.runF(pureAny, g)\n";
         Any anyResult = psl.runF(pureAny, g);
 
-        std::cout << "> psl.runF && cast from Any\n";
+        std::cout << "runParserL -> any_cast()\n";
         result = std::any_cast<A>(anyResult); // cast from any
-        std::cout << "> psl.runF casts OK.\n";
+
+        std::cout << "runParserL -> any_cast OK\n";
     }
     catch (std::runtime_error err)
     {
-        std::cout << "> exception\n";
+        std::cout << "runParserL -> any_cast FAIL\n";
         return { ParseError {err.what()}, position };
     }
 
-    std::cout << "runParseL success.\n";
+    std::cout << "runParserL -> success\n";
     return { result, position };
 }
 

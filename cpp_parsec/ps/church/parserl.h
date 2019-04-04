@@ -3,7 +3,7 @@
 
 #include "../types.h"
 #include "../psf/parserf.h"
-#include "../psf/functor.h"
+#include "../psf/visitor.h"
 
 namespace ps
 {

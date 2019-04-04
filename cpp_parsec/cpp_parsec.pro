@@ -11,7 +11,6 @@ SOURCES += \
 
 HEADERS += \
     ps/context.h \
-    ps/psf/functor.h \
     ps/impl/runtime.h \
     ps/types.h \
     ps/church/interpreter.h \
@@ -19,7 +18,7 @@ HEADERS += \
     ps/ps.h \
     ps2/tvar.h \
     ps2/context.h \
-    ps2/psf/functor.h \
+    ps2/psf/visitor.h \
     ps2/psf/psf.h \
     ps2/impl/runtime.h \
     ps2/types.h \
@@ -30,7 +29,8 @@ HEADERS += \
     ps2/ps.h \
     ps/church/parserl.h \
     ps/church/parser.h \
-    ps/psf/parserf.h
+    ps/psf/parserf.h \
+    ps/psf/visitor.h
 
 unix {
     target.path = /usr/lib

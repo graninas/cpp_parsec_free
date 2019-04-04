@@ -14,20 +14,27 @@ namespace church
 
 template <typename A, typename B>
 ParserL<B> bind(const ParserL<A>& ma,
-             const std::function<ParserL<B>(A)>& f)
+                const std::function<ParserL<B>(A)>& f)
 {
+    std::cout << "bind\n";
     ParserL<B> n;
-    n.runF = [=](const std::function<S(B)>& p,
-                 const std::function<S(psf::ParserF<S>)>& r)
+    n.runF = [=](const std::function<Any(B)>& p,
+                 const std::function<Any(psf::ParserF<Any>)>& r)
     {
         auto fst = [=](const A& a)
         {
+            std::cout << "bind -> \\runF -> \\fst\n";
             ParserL<B> internal = f(a);
             return internal.runF(p, r);
         };
 
-        return ma.runF(fst, r);
+        std::cout << "bind -> \\runF -> ma.runF()\n";
+        auto runFResult = ma.runF(fst, r);
+        std::cout << "bind -> \\runF -> success\n";
+        return runFResult;
     };
+
+    std::cout << "bind -> success\n";
     return n;
 }
 
@@ -40,61 +47,85 @@ ParserL<A> join(const ParserL<ParserL<A>>& mma)
 template <typename A>
 ParserL<A> pure(const A& a)
 {
+    std::cout << "pure\n";
     ParserL<A> n;
     n.runF = [=](const std::function<Any(A)>& p,
                  const std::function<Any(psf::ParserF<Any>)>&)
     {
-        return p(a);
+        std::cout << "pure -> \\runF -> \\p()\n";
+        auto pResult = p(a);
+        std::cout << "pure -> \\runF -> success\n";
+        return pResult;
     };
+
+    std::cout << "pure -> success\n";
     return n;
 }
 
 template <typename A, template <typename> class Method>
 ParserL<A> wrap(const Method<A>& method)
 {
+    std::cout << "wrap\n";
     ParserL<A> n;
 
     n.runF = [=](const std::function<Any(A)>& p,
                  const std::function<Any(psf::ParserF<Any>)>& r)
     {
+        std::cout << "wrap -> \\runF -> fmap\n";
         psf::ParserF<A> f { method };
         psf::ParserF<Any> mapped = psf::fmap<A, Any>(p, f);
-        return r(mapped);
+        std::cout << "wrap -> \\runF -> \\r()\n";
+        Any rResult = r(mapped);
+        std::cout << "wrap -> \\runF -> success\n";
+        return rResult;
     };
 
+    std::cout << "wrap -> success\n";
     return n;
 }
 
 ParserL<Digit> parseDigit()
 {
-    psf::ParseDigit<Digit> m;
-    m.next = id;
-    return wrap(m);
+    return wrap(psf::ParseDigit<Digit>{ id });
+}
+
+ParserL<Char> parseLowerCaseChar()
+{
+    return wrap(psf::ParseLowerCaseChar<Char>{ id });
+}
+
+ParserL<Char> parseUpperCaseChar()
+{
+    return wrap(psf::ParseUpperCaseChar<Char>{ id });
 }
 
 const ParserL<Digit> digit = parseDigit();
+const ParserL<Char> lowerCaseChar = parseLowerCaseChar();
+const ParserL<Char> upperCaseChar = parseUpperCaseChar();
 
-///// ParserL evaluation
+/// ParserL evaluation
 
 template <typename A>
 ps::ParseResult<A> parse(
         const ParserL<A>& psl,
         const std::string& s)
 {
+    std::cout << "parse\n";
+
     if (s.empty())
         return { ParseError { "Source string is empty." }};
 
-    std::cout << " Running runParserL.\n";
+    std::cout << "parse -> runParserL\n";
     ParserRuntime runtime(s, 0);
     RunResult<A> runResult = runParserL<A>(runtime, psl, 0);
 
     if (isLeft(runResult.result))
     {
-        std::cout << " Failed runParserL.\n";
+        std::cout << "parse -> isLeft\n";
         return std::get<ParseError>(runResult.result);
     }
 
-    std::cout << " Success runParserL.\n";
+    std::cout << "parse -> success\n";
     return { std::get<A>(runResult.result) };
 }
 

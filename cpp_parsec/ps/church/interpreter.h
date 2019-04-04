@@ -48,6 +48,7 @@ RunResult<A> runParserL(ParserRuntime& runtime,
             ParseError pe = std::get<ParseError>(runResult.result);
             throw std::runtime_error(pe.message);
         }
+
         std::cout << "runParserL -> \\g -> isRight\n";
         return std::get<Any>(runResult.result);
     };
@@ -65,8 +66,13 @@ RunResult<A> runParserL(ParserRuntime& runtime,
     }
     catch (std::runtime_error err)
     {
-        std::cout << "runParserL -> any_cast FAIL\n";
+        std::cout << "runParserL -> Parsing FAIL " << err.what() << " \n";
         return { ParseError {err.what()}, position };
+    }
+    catch (std::exception ex)
+    {
+        std::cout << "runParserL -> any_cast FAIL " << ex.what() << " \n";
+        return { ParseError {ex.what()}, position };
     }
 
     std::cout << "runParserL -> success\n";
@@ -111,34 +117,43 @@ struct ParserFVisitor
 
     RunResult<Ret> result;
 
-    void operator()(const psf::ParseDigit<Ret>&)
+    void operator()(const psf::ParseDigit<Ret>& f)
     {
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= '0' && ch <= '9'; };
         auto converter = [](char ch) { return uint8_t(ch - '0'); };
-        auto r = parseSingle<Ret>(s, _position, validator, converter, "digit");
-        result.result = r.result;
+        auto r = parseSingle<Digit>(s, _position, validator, converter, "digit");
         result.position = r.position;
+        if (isLeft(r.result))
+            result.result = r.result;
+        else
+            result.result = f.next(std::get<Digit>(r.result));
     }
 
-    void operator()(const psf::ParseUpperCaseChar<Ret>&)
+    void operator()(const psf::ParseUpperCaseChar<Ret>& f)
     {
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= 'A' && ch <= 'Z'; };
         auto converter = [](char ch) { return ch; };
-        auto r = parseSingle<Ret>(s, _position, validator, converter, "upper char");
-        result.result = r.result;
+        auto r = parseSingle<Char>(s, _position, validator, converter, "upper char");
         result.position = r.position;
+        if (isLeft(r.result))
+            result.result = r.result;
+        else
+            result.result = f.next(std::get<Char>(r.result));
     }
 
-    void operator()(const psf::ParseLowerCaseChar<Ret>&)
+    void operator()(const psf::ParseLowerCaseChar<Ret>& f)
     {
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= 'a' && ch <= 'z'; };
         auto converter = [](char ch) { return ch; };
-        auto r = parseSingle<Ret>(s, _position, validator, converter, "lower char");
-        result.result = r.result;
+        auto r = parseSingle<Char>(s, _position, validator, converter, "lower char");
         result.position = r.position;
+        if (isLeft(r.result))
+            result.result = r.result;
+        else
+            result.result = f.next(std::get<Char>(r.result));
     }
 };
 

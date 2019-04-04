@@ -30,9 +30,9 @@ struct ParserFVisitor
         fb.next = [=](const Digit d)
         {
             std::cout << "ParserFVisitor::ParseDigit -> \\fb.next -> fa.next()\n";
-            auto faResult = fa.next(d);
+            A faResult = fa.next(d);
             std::cout << "ParserFVisitor::ParseDigit -> \\fb.next -> g()\n";
-            auto gResult = g(faResult);
+            B gResult = g(faResult);
             std::cout << "ParserFVisitor::ParseDigit -> \\fb.next -> success\n";
             return gResult;
         };
@@ -46,9 +46,9 @@ struct ParserFVisitor
         fb.next = [=](const Char d)
         {
             std::cout << "ParserFVisitor::ParseUCChar -> \\fb.next -> fa.next()\n";
-            auto faResult = fa.next(d);
+            A faResult = fa.next(d);
             std::cout << "ParserFVisitor::ParseUCChar -> \\fb.next -> g()\n";
-            auto gResult = g(faResult);
+            B gResult = g(faResult);
             std::cout << "ParserFVisitor::ParseUCChar -> \\fb.next -> success\n";
             return gResult;
         };
@@ -61,12 +61,11 @@ struct ParserFVisitor
         fb.next = [=](const Char d)
         {
             std::cout << "ParserFVisitor::ParseLCChar -> \\fb.next -> fa.next()\n";
-            auto faResult = fa.next(d);
+            A faResult = fa.next(d);
             std::cout << "ParserFVisitor::ParseLCChar -> \\fb.next -> g()\n";
-            auto gResult = g(faResult);
+            B gResult = g(faResult);
             std::cout << "ParserFVisitor::ParseLCChar -> \\fb.next -> success\n";
             return gResult;
-
         };
         result.psf = fb;
     }

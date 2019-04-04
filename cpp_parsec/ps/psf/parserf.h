@@ -14,37 +14,6 @@ template <typename Next>
 struct ParseDigit
 {
     std::function<Next(Digit)> next;
-
-//    ~ParseDigit() {}
-
-//    ParseDigit() {}
-
-//    explicit ParseDigit(const std::function<Next(Digit)>& next)
-//        : next(next)
-//    {
-//    }
-
-//    ParseDigit(const ParseDigit<Next>& other)
-//        : next(other.next)
-//    {
-//    }
-
-//    ParseDigit(const ParseDigit<Next>&& other)
-//        : next(other.next)
-//    {
-//    }
-
-//    ParseDigit<Next>& operator=(ParseDigit<Next> other)
-//    {
-//        std::swap(next, other.next);
-//        return *this;
-//    }
-
-//    ParseDigit<Next>& operator=(ParseDigit<Next>&& other)
-//    {
-//        std::swap(next, other.next);
-//        return *this;
-//    }
 };
 
 template <typename Next>

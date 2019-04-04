@@ -118,7 +118,7 @@ ps::ParseResult<A> parse(
 
     std::cout << "parse -> runParserL\n";
     ParserRuntime runtime(s, 0);
-    RunResult<A> runResult = runParserL<A>(runtime, psl, 0);
+    RunResult<A> runResult = runParserL<A>(runtime, psl);
 
     if (isLeft(runResult.result))
     {

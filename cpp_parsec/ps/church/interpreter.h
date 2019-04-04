@@ -18,18 +18,16 @@ struct ParserFVisitor;
 template <typename A>
 RunResult<A> runParserF(
         ParserRuntime& runtime,
-        const psf::ParserF<A>& psf,
-        size_t position)
+        const psf::ParserF<A>& psf)
 {
-    ParserFVisitor<A> visitor(runtime, position);
+    ParserFVisitor<A> visitor(runtime);
     std::visit(visitor, psf.psf);
     return visitor.result;
 }
 
 template <typename A>
 RunResult<A> runParserL(ParserRuntime& runtime,
-                        const ParserL<A>& psl,
-                        size_t position)
+                        const ParserL<A>& psl)
 {
     std::cout << "runParserL\n";
 
@@ -37,10 +35,10 @@ RunResult<A> runParserL(ParserRuntime& runtime,
             pureAny = [](const A& a) { return a; }; // cast to any
 
     std::function<Any(psf::ParserF<Any>)> g
-            = [&, position](const psf::ParserF<Any>& psf)
+            = [&](const psf::ParserF<Any>& psf)
     {
         std::cout << "runParserL -> \\g -> runParserF()\n";
-        RunResult<Any> runResult = runParserF<Any>(runtime, psf, position);
+        RunResult<Any> runResult = runParserF<Any>(runtime, psf);
 
         if (isLeft(runResult.result))
         {
@@ -67,22 +65,24 @@ RunResult<A> runParserL(ParserRuntime& runtime,
     catch (std::runtime_error err)
     {
         std::cout << "runParserL -> Parsing FAIL " << err.what() << " \n";
-        return { ParseError {err.what()}, position };
+        return { ParseError {err.what()} };
     }
     catch (std::exception ex)
     {
         std::cout << "runParserL -> any_cast FAIL " << ex.what() << " \n";
-        return { ParseError {ex.what()}, position };
+        return { ParseError {ex.what()} };
     }
 
     std::cout << "runParserL -> success\n";
-    return { result, position };
+    return { result };
 }
 
+template <typename A>
+using LocalParserResult = ps::Either<ParseError, A>;
+
 template <typename Single>
-RunResult<Single> parseSingle(
+LocalParserResult<Single> parseSingle(
         const std::string_view& s,
-        const size_t position,
         const std::function<bool(char)>& validator,
         const std::function<Single(char)>& converter,
         const std::string& name
@@ -92,27 +92,24 @@ RunResult<Single> parseSingle(
 
     if (s.empty())
     {
-        return { ParseError {failedMsg + ": end of imput."}, position };
+        return { ParseError {failedMsg + ": end of imput."} };
     }
     else if (!validator(s.at(0)))
     {
-        return { ParseError {failedMsg + ": not a " + name + "."}, position };
+        return { ParseError {failedMsg + ": not a " + name + "."} };
     }
 
-    return { converter(s.at(0)), position + 1 };
+    return { converter(s.at(0)) };
 }
 
 template <typename Ret>
 struct ParserFVisitor
 {
     ParserRuntime& _runtime;
-    size_t _position;
     RunResult<Ret> result;
 
-    ParserFVisitor(ParserRuntime& runtime,
-                   size_t position)
+    ParserFVisitor(ParserRuntime& runtime)
         : _runtime(runtime)
-        , _position(position)
     {
     }
 
@@ -121,12 +118,14 @@ struct ParserFVisitor
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= '0' && ch <= '9'; };
         auto converter = [](char ch) { return uint8_t(ch - '0'); };
-        RunResult<Digit> r = parseSingle<Digit>(s, _position, validator, converter, "digit");
-        result.position = r.position;
-        if (isLeft(r.result))
-            result.result = { std::get<ParseError>(r.result) };
+        auto r = parseSingle<Digit>(s, validator, converter, "digit");
+        if (isLeft(r))
+            result.result = { std::get<ParseError>(r) };
         else
-            result.result = f.next(std::get<Digit>(r.result));
+        {
+            _runtime.advance(1);
+            result.result = f.next(std::get<Digit>(r));
+        }
     }
 
     void operator()(const psf::ParseUpperCaseChar<Ret>& f)
@@ -134,12 +133,14 @@ struct ParserFVisitor
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= 'A' && ch <= 'Z'; };
         auto converter = [](char ch) { return ch; };
-        auto r = parseSingle<Char>(s, _position, validator, converter, "upper char");
-        result.position = r.position;
-        if (isLeft(r.result))
-            result.result = { std::get<ParseError>(r.result) };
+        auto r = parseSingle<Char>(s, validator, converter, "upper char");
+        if (isLeft(r))
+            result.result = { std::get<ParseError>(r) };
         else
-            result.result = f.next(std::get<Char>(r.result));
+        {
+            _runtime.advance(1);
+            result.result = f.next(std::get<Char>(r));
+        }
     }
 
     void operator()(const psf::ParseLowerCaseChar<Ret>& f)
@@ -147,12 +148,14 @@ struct ParserFVisitor
         std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= 'a' && ch <= 'z'; };
         auto converter = [](char ch) { return ch; };
-        auto r = parseSingle<Char>(s, _position, validator, converter, "lower char");
-        result.position = r.position;
-        if (isLeft(r.result))
-            result.result = { std::get<ParseError>(r.result) };
+        auto r = parseSingle<Char>(s, validator, converter, "lower char");
+        if (isLeft(r))
+            result.result = { std::get<ParseError>(r) };
         else
-            result.result = f.next(std::get<Char>(r.result));
+        {
+            _runtime.advance(1);
+            result.result = f.next(std::get<Char>(r));
+        }
     }
 };
 

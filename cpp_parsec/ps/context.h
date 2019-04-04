@@ -49,13 +49,13 @@ public:
     ParserRuntime(const std::string& source, size_t current);
 
     std::string_view get_view() const;
+    void advance(size_t count);
 };
 
 template <typename A>
 struct RunResult
 {
     ps::Either<ParseError, A> result;
-    size_t position;
 };
 
 } // namespace ps

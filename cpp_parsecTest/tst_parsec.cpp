@@ -104,7 +104,7 @@ void PSTest::bindPureTest()
 {
     using namespace ps;
 
-    const std::string s = "1a2";
+    const std::string s = "1b2";
 
     ParserL<R> p = ps::bind<Digit, R>(digit,       [=](Digit d1) { return
                    ps::pure<R>(R{d1, 'a'}); });
@@ -120,16 +120,17 @@ void PSTest::sequenceCombinatorTest()
 {
     using namespace ps;
 
-    const std::string s = "1a2";
+    const std::string s = "1b2";
 
-    std::function<ParserL<Digit>(Digit)> f
-            = [=](Digit d1) { return ps::pure<Digit>(d1); };
+    ParserL<R> p = ps::bind<Digit, R>(digit,         [=](Digit d1) { return
+                   ps::bind<Char,  R>(lowerCaseChar, [=](Char ch1) { return
+                   ps::pure<R>(R{d1, ch1}); }); });
 
-    ParserL<Digit> p = ps::bind<Digit, Digit>(ps::pure<Digit>(1), f);
-
-    ParseResult<Digit> result = parse(p, s);
+    ParseResult<R> result = parse(p, s);
 
     QVERIFY(isRight(result));
+    QVERIFY(std::get<R>(result).ch == 'b');
+    QVERIFY(std::get<R>(result).d == 1);
 }
 
 QTEST_APPLESS_MAIN(PSTest)

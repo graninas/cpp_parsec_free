@@ -157,6 +157,24 @@ struct ParserFVisitor
             result = { s };
         }
     }
+
+    void operator()(const psf::ParseSymbol<Ret>& f)
+    {
+        auto validator = [&](char ch) { return ch == f.symbol; };
+        ParseResult<Char> r = parseSingle<Char>(_runtime,
+                                                validator, id,
+                                                std::string("symbol: " + f.symbol));
+
+        if (isLeft(r))
+            result = { std::get<ParseError>(r) };
+        else
+        {
+            _runtime.advance(1);
+            ParseSuccess<Ret> s;
+            s.parsed = f.next(getParsed<Char>(r));
+            result = { s };
+        }
+    }
 };
 
 } // namespace church

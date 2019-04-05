@@ -58,6 +58,19 @@ struct ParserFVisitor
         };
         result.psf = fb;
     }
+    void operator()(const ParseSymbol<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        ParseSymbol<B> fb;
+        fb.symbol = fa.symbol;
+        fb.next = [=](const Char d)
+        {
+            A faResult = fa.next(d);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
 };
 
 template <typename A, typename B>

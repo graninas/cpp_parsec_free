@@ -12,29 +12,32 @@ namespace ps
 namespace church
 {
 
-//template <typename A, typename B>
-//ParserL<B> bindX(const ParserL<A>& ma,
-//                 const ParserL<A>& mOnFail,
-//                 const std::function<ParserL<B>(A)>& onSuccess)
-//{
-//    std::cout << "bind\n";
-//    ParserL<B> n;
-//    n.runF = [=](const std::function<PRA(B)>& p,
-//                 const std::function<PRA(psf::ParserF<Any>)>& r)
-//    {
-//        std::function<PRA(A)> fst = [=](const A& a)
-//        {
-//            ParserL<B> internal = onSuccess(a);
-//            PRA res = internal.runF(p, r);  // Any == B
-//            return res;
-//        };
+template <typename A, typename B>
+ParserL<B> orElseBind(const ParserL<A>& ma,
+                      const ParserL<A>& mOnFail,
+                      const std::function<ParserL<B>(A)>& onSuccess)
+{
+    ParserL<B> n;
+    n.runF = [=](const std::function<PRA(B)>& p,
+                 const std::function<PRA(psf::ParserF<PRA>)>& r)
+    {
+        std::function<PRA(A)> fst = [=](const A& a)
+        {
+            ParserL<B> internal = onSuccess(a);
+            PRA res = internal.runF(p, r);
+            return res;
+        };
 
-//        PRA runFResult = ma.runF(fst, r);
-//        return runFResult;
-//    };
+        PRA runFResult = ma.runF(fst, r);
+        if (isLeft(runFResult))
+        {
+            runFResult = mOnFail.runF(fst, r);
+        }
+        return runFResult;
+    };
 
-//    return n;
-//}
+    return n;
+}
 
 template <typename A, typename B>
 ParserL<B> bind(const ParserL<A>& ma,
@@ -109,9 +112,16 @@ ParserL<Char> parseUpperCaseChar()
     return wrap(psf::ParseUpperCaseChar<Char>{ id }, "[ParseUpperCaseChar]");
 }
 
+ParserL<Char> parseSymbol(Char ch)
+{
+    return wrap(psf::ParseSymbol<Char>{ ch, id },
+                std::string("[ParseSymbol: ") + ch + "]");
+}
+
 const ParserL<Digit> digit = parseDigit();
 const ParserL<Char> lowerCaseChar = parseLowerCaseChar();
 const ParserL<Char> upperCaseChar = parseUpperCaseChar();
+const auto symbol = [](Char ch) { return parseSymbol(ch); };
 
 /// ParserL evaluation
 
@@ -133,11 +143,12 @@ ps::ParseResult<A> parse(
 
 //}
 
-//template <typename T>
-//ParserL<Many<T>> orP(const ParserL<T>& l, const ParserL<T>& r)
-//{
-//    return bindX(l, r, [](T& t) { return pure(t); });
-//}
+template <typename T>
+ParserL<T> alt(const ParserL<T>& l, const ParserL<T>& r)
+{
+    std::function<ParserL<T>(T)> f = [](T t) { return pure<T>(t); };
+    return orElseBind<T, T>(l, r, f);
+}
 
 
 

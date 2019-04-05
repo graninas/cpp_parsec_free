@@ -28,6 +28,13 @@ struct ParseLowerCaseChar
     std::function<Next(Char)> next;
 };
 
+template <typename Next>
+struct ParseSymbol
+{
+    Char symbol;
+    std::function<Next(Char)> next;
+};
+
 // PSF algebraic data type
 
 template <class Ret>
@@ -36,7 +43,8 @@ struct ParserF
     std::variant<
         ParseDigit<Ret>,
         ParseUpperCaseChar<Ret>,
-        ParseLowerCaseChar<Ret>
+        ParseLowerCaseChar<Ret>,
+        ParseSymbol<Ret>
     > psf;
 };
 

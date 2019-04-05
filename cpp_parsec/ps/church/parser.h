@@ -12,30 +12,49 @@ namespace ps
 namespace church
 {
 
+//template <typename A, typename B>
+//ParserL<B> bindX(const ParserL<A>& ma,
+//                 const ParserL<A>& mOnFail,
+//                 const std::function<ParserL<B>(A)>& onSuccess)
+//{
+//    std::cout << "bind\n";
+//    ParserL<B> n;
+//    n.runF = [=](const std::function<PRA(B)>& p,
+//                 const std::function<PRA(psf::ParserF<Any>)>& r)
+//    {
+//        std::function<PRA(A)> fst = [=](const A& a)
+//        {
+//            ParserL<B> internal = onSuccess(a);
+//            PRA res = internal.runF(p, r);  // Any == B
+//            return res;
+//        };
+
+//        PRA runFResult = ma.runF(fst, r);
+//        return runFResult;
+//    };
+
+//    return n;
+//}
+
 template <typename A, typename B>
 ParserL<B> bind(const ParserL<A>& ma,
                 const std::function<ParserL<B>(A)>& f)
 {
-    std::cout << "bind\n";
     ParserL<B> n;
-    n.runF = [=](const std::function<Any(B)>& p,
-                 const std::function<Any(psf::ParserF<Any>)>& r)
+    n.runF = [=](const std::function<PRA(B)>& p,
+                 const std::function<PRA(psf::ParserF<Any>)>& r)
     {
-        std::function<Any(A)> fst = [=](const A& a)
+        std::function<PRA(A)> fst = [=](const A& a)
         {
-            std::cout << "bind -> \\runF -> \\fst\n";
             ParserL<B> internal = f(a);
-            Any res = internal.runF(p, r);  // Any == B
+            PRA res = internal.runF(p, r);  // Any == B
             return res;
         };
 
-        std::cout << "bind -> \\runF -> ma.runF()\n";
-        Any runFResult = ma.runF(fst, r);
-        std::cout << "bind -> \\runF -> success\n";
+        PRA runFResult = ma.runF(fst, r);
         return runFResult;
     };
 
-    std::cout << "bind -> success\n";
     return n;
 }
 
@@ -48,40 +67,30 @@ ParserL<A> join(const ParserL<ParserL<A>>& mma)
 template <typename A>
 ParserL<A> pure(const A& a, const std::string& name = "")
 {
-    std::cout << "pure " + name + " \n";
     ParserL<A> n;
-    n.runF = [=](const std::function<Any(A)>& p,
-                 const std::function<Any(psf::ParserF<Any>)>&)
+    n.runF = [=](const std::function<PRA(A)>& p,
+                 const std::function<PRA(psf::ParserF<Any>)>&)
     {
-        std::cout << "pure " + name + " -> \\runF -> \\p()\n";
-        Any pResult = p(a);
-        std::cout << "pure " + name + " -> \\runF -> success\n";
+        PRA pResult = p(a);
         return pResult;
     };
-
-    std::cout << "pure " + name + " -> success\n";
     return n;
 }
 
 template <typename A, template <typename> class Method>
 ParserL<A> wrap(const Method<A>& method, const std::string& name = "")
 {
-    std::cout << "wrap " + name + " \n";
     ParserL<A> n;
 
-    n.runF = [=](const std::function<Any(A)>& p,
-                 const std::function<Any(psf::ParserF<Any>)>& r)
+    n.runF = [=](const std::function<PRA(A)>& p,
+                 const std::function<PRA(psf::ParserF<Any>)>& r)
     {
-        std::cout << "wrap " + name + " -> \\runF -> fmap\n";
         psf::ParserF<A> f { method };
         psf::ParserF<Any> mapped = psf::fmap<A, Any>(p, f);
-        std::cout << "wrap " + name + " -> \\runF -> \\r()\n";
-        Any rResult = r(mapped);
-        std::cout << "wrap " + name + " -> \\runF -> success\n";
+        PRA rResult = r(mapped);
         return rResult;
     };
 
-    std::cout << "wrap " + name + " -> success\n";
     return n;
 }
 
@@ -111,30 +120,25 @@ ps::ParseResult<A> parse(
         const ParserL<A>& psl,
         const std::string& s)
 {
-    std::cout << "parse\n";
-
     if (s.empty())
         return { ParseError { "Source string is empty." }};
 
-    std::cout << "parse -> runParserL\n";
     ParserRuntime runtime(s, 0);
-    RunResult<A> runResult = runParserL<A>(runtime, psl);
-
-    if (isLeft(runResult.result))
-    {
-        std::cout << "parse -> isLeft\n";
-        return std::get<ParseError>(runResult.result);
-    }
-
-    std::cout << "parse -> success\n";
-    return { std::get<A>(runResult.result) };
+    return runParserL<A>(runtime, psl);
 }
 
-template <typename T>
-ParserL<Many<T>> many(const ParserL<T>& parser)
-{
+//template <typename T>
+//ParserL<Many<T>> many(const ParserL<T>& parser)
+//{
 
-}
+//}
+
+//template <typename T>
+//ParserL<Many<T>> orP(const ParserL<T>& l, const ParserL<T>& r)
+//{
+//    return bindX(l, r, [](T& t) { return pure(t); });
+//}
+
 
 
 } // namespace church

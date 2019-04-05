@@ -23,17 +23,12 @@ struct ParserFVisitor
 
     void operator()(const ParseDigit<A>& fa)
     {
-        std::cout << "ParserFVisitor::ParseDigit\n";
-
         MapFunc<A, B> g = fTemplate;
         ParseDigit<B> fb;
         fb.next = [=](const Digit d)
         {
-            std::cout << "ParserFVisitor::ParseDigit -> \\fb.next -> fa.next()\n";
             A faResult = fa.next(d);
-            std::cout << "ParserFVisitor::ParseDigit -> \\fb.next -> g()\n";
             B gResult = g(faResult);
-            std::cout << "ParserFVisitor::ParseDigit -> \\fb.next -> success\n";
             return gResult;
         };
         result.psf = fb;
@@ -45,11 +40,8 @@ struct ParserFVisitor
         ParseUpperCaseChar<B> fb;
         fb.next = [=](const Char d)
         {
-            std::cout << "ParserFVisitor::ParseUCChar -> \\fb.next -> fa.next()\n";
             A faResult = fa.next(d);
-            std::cout << "ParserFVisitor::ParseUCChar -> \\fb.next -> g()\n";
             B gResult = g(faResult);
-            std::cout << "ParserFVisitor::ParseUCChar -> \\fb.next -> success\n";
             return gResult;
         };
         result.psf = fb;
@@ -60,11 +52,8 @@ struct ParserFVisitor
         ParseLowerCaseChar<B> fb;
         fb.next = [=](const Char d)
         {
-            std::cout << "ParserFVisitor::ParseLCChar -> \\fb.next -> fa.next()\n";
             A faResult = fa.next(d);
-            std::cout << "ParserFVisitor::ParseLCChar -> \\fb.next -> g()\n";
             B gResult = g(faResult);
-            std::cout << "ParserFVisitor::ParseLCChar -> \\fb.next -> success\n";
             return gResult;
         };
         result.psf = fb;

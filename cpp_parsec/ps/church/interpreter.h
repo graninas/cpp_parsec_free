@@ -16,7 +16,7 @@ template <typename Ret>
 struct ParserFVisitor;
 
 template <typename A>
-RunResult<A> runParserF(
+ParseResult<A> runParserF(
         ParserRuntime& runtime,
         const psf::ParserF<A>& psf)
 {
@@ -26,68 +26,60 @@ RunResult<A> runParserF(
 }
 
 template <typename A>
-RunResult<A> runParserL(ParserRuntime& runtime,
+ParseResult<A> runParserL(ParserRuntime& runtime,
                         const ParserL<A>& psl)
 {
-    std::cout << "runParserL\n";
+    std::function<PRA(A)> pureAny = [](const A& a)
+            {
+                // cast to any
+                ParseSuccess<Any> r;
+                r.parsed = a;
+                return r;
+            };
 
-    std::function<Any(A)>
-            pureAny = [](const A& a) { return a; }; // cast to any
-
-    std::function<Any(psf::ParserF<Any>)> g
+    std::function<PRA(psf::ParserF<Any>)> g
             = [&](const psf::ParserF<Any>& psf)
     {
-        std::cout << "runParserL -> \\g -> runParserF()\n";
-        RunResult<Any> runResult = runParserF<Any>(runtime, psf);
-
-        if (isLeft(runResult.result))
-        {
-            std::cout << "runParserL -> \\g -> isLeft\n";
-            ParseError pe = std::get<ParseError>(runResult.result);
-            throw std::runtime_error(pe.message);
-        }
-
-        std::cout << "runParserL -> \\g -> isRight\n";
-        return std::get<Any>(runResult.result);
+        ParseResult<Any> parseResult = runParserF<Any>(runtime, psf);
+        return parseResult;
     };
 
-    A result;
     try
     {
-        std::cout << "runParserL -> psl.runF(pureAny, g)\n";
-        Any anyResult = psl.runF(pureAny, g);
+        PRA anyResult = psl.runF(pureAny, g);
+        if (std::holds_alternative<ParseError>(anyResult))
+        {
+            return { std::get<ParseError>(anyResult) };
+        }
+        else
+        {
+            ParseSuccess<Any> success = std::get<ParseSuccess<Any>>(anyResult);
+            // cast from any
+            A a = std::any_cast<A>(success.parsed);
 
-        std::cout << "runParserL -> any_cast()\n";
-        result = std::any_cast<A>(anyResult); // cast from any
-
-        std::cout << "runParserL -> any_cast OK\n";
-    }
-    catch (std::runtime_error err)
-    {
-        std::cout << "runParserL -> Parsing FAIL " << err.what() << " \n";
-        return { ParseError {err.what()} };
+            ParseSuccess<A> r;
+            r.parsed = a;
+            return r;
+        }
     }
     catch (std::exception ex)
     {
-        std::cout << "runParserL -> any_cast FAIL " << ex.what() << " \n";
         return { ParseError {ex.what()} };
     }
-
-    std::cout << "runParserL -> success\n";
-    return { result };
 }
 
 template <typename A>
 using LocalParserResult = ps::Either<ParseError, A>;
 
 template <typename Single>
-LocalParserResult<Single> parseSingle(
-        const std::string_view& s,
+ParseResult<Single> parseSingle(
+        ParserRuntime& runtime,
         const std::function<bool(char)>& validator,
         const std::function<Single(char)>& converter,
         const std::string& name
         )
 {
+    std::string_view s = runtime.get_view();
     std::string failedMsg = std::string("Failed to parse ") + name;
 
     if (s.empty())
@@ -99,14 +91,16 @@ LocalParserResult<Single> parseSingle(
         return { ParseError {failedMsg + ": not a " + name + "."} };
     }
 
-    return { converter(s.at(0)) };
+    ParseSuccess<Single> r;
+    r.parsed = converter(s.at(0));
+    return { r };
 }
 
 template <typename Ret>
 struct ParserFVisitor
 {
     ParserRuntime& _runtime;
-    RunResult<Ret> result;
+    ParseResult<Ret> result;
 
     ParserFVisitor(ParserRuntime& runtime)
         : _runtime(runtime)
@@ -115,46 +109,53 @@ struct ParserFVisitor
 
     void operator()(const psf::ParseDigit<Ret>& f)
     {
-        std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= '0' && ch <= '9'; };
         auto converter = [](char ch) { return uint8_t(ch - '0'); };
-        auto r = parseSingle<Digit>(s, validator, converter, "digit");
+
+        ParseResult<Digit> r = parseSingle<Digit>(_runtime, validator, converter, "digit");
+
         if (isLeft(r))
-            result.result = { std::get<ParseError>(r) };
+            result = { std::get<ParseError>(r) };
         else
         {
             _runtime.advance(1);
-            result.result = f.next(std::get<Digit>(r));
+            ParseSuccess<Ret> s;
+            s.parsed = f.next(getParsed<Digit>(r));
+            result = { s };
         }
     }
 
     void operator()(const psf::ParseUpperCaseChar<Ret>& f)
     {
-        std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= 'A' && ch <= 'Z'; };
         auto converter = [](char ch) { return ch; };
-        auto r = parseSingle<Char>(s, validator, converter, "upper char");
+        ParseResult<Char> r = parseSingle<Char>(_runtime, validator, converter, "upper char");
+
         if (isLeft(r))
-            result.result = { std::get<ParseError>(r) };
+            result = { std::get<ParseError>(r) };
         else
         {
             _runtime.advance(1);
-            result.result = f.next(std::get<Char>(r));
+            ParseSuccess<Ret> s;
+            s.parsed = f.next(getParsed<Char>(r));
+            result = { s };
         }
     }
 
     void operator()(const psf::ParseLowerCaseChar<Ret>& f)
     {
-        std::string_view s = _runtime.get_view();
         auto validator = [](char ch) { return ch >= 'a' && ch <= 'z'; };
         auto converter = [](char ch) { return ch; };
-        auto r = parseSingle<Char>(s, validator, converter, "lower char");
+        ParseResult<Char> r = parseSingle<Char>(_runtime, validator, converter, "lower char");
+
         if (isLeft(r))
-            result.result = { std::get<ParseError>(r) };
+            result = { std::get<ParseError>(r) };
         else
         {
             _runtime.advance(1);
-            result.result = f.next(std::get<Char>(r));
+            ParseSuccess<Ret> s;
+            s.parsed = f.next(getParsed<Char>(r));
+            result = { s };
         }
     }
 };

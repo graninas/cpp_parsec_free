@@ -67,6 +67,13 @@ T getParsed(const ps::ParseResult<T>& r)
     return s.parsed;
 }
 
+// unsafe get error
+template <typename T>
+ParseError getError(const ps::ParseResult<T>& r)
+{
+    return std::get<ParseError>(r);
+}
+
 } // namespace ps
 
 #endif // PS_TYPES_H

@@ -27,21 +27,18 @@ ParseResult<A> runParserF(
 
 template <typename A>
 ParseResult<A> runParserL(ParserRuntime& runtime,
-                        const ParserL<A>& psl)
+                          const ParserL<A>& psl)
 {
     std::function<PRA(A)> pureAny = [](const A& a)
             {
                 // cast to any
-                ParseSuccess<Any> r;
-                r.parsed = a;
-                return r;
+                return ParseSuccess<Any> { a };
             };
 
     std::function<PRA(psf::ParserF<Any>)> g
             = [&](const psf::ParserF<Any>& psf)
     {
-        ParseResult<Any> parseResult = runParserF<Any>(runtime, psf);
-        return parseResult;
+        return runParserF<Any>(runtime, psf);
     };
 
     try
@@ -49,13 +46,14 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
         PRA anyResult = psl.runF(pureAny, g);
         if (std::holds_alternative<ParseError>(anyResult))
         {
-            return { std::get<ParseError>(anyResult) };
+            return { ParseError { "vvv" } };
+//            return { std::get<ParseError>(anyResult) };
         }
         else
         {
-            ParseSuccess<Any> success = std::get<ParseSuccess<Any>>(anyResult);
+            Any parsed = getParsed<Any>(anyResult);
             // cast from any
-            A a = std::any_cast<A>(success.parsed);
+            A a = std::any_cast<A>(parsed);
 
             ParseSuccess<A> r;
             r.parsed = a;

@@ -5,6 +5,7 @@
 #include <string>
 #include <variant>
 #include <any>
+#include <vector>
 
 namespace ps
 {
@@ -14,6 +15,9 @@ using Any = std::any;
 using S = std::string;
 using Digit = std::uint8_t;
 using Char = char;
+
+template <typename T>
+using Many = std::vector<T>;
 
 struct Unit
 {

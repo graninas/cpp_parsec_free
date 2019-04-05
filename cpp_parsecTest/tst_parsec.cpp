@@ -23,7 +23,9 @@ private Q_SLOTS:
     void parseFailureTest();
 
     void bindPureTest();
-    void sequenceCombinatorTest();
+    void sequencedParsersTest();
+
+    void manyCombinatorTest();
 };
 
 PSTest::PSTest()
@@ -116,7 +118,7 @@ void PSTest::bindPureTest()
     QVERIFY(std::get<R>(result).d == 1);
 }
 
-void PSTest::sequenceCombinatorTest()
+void PSTest::sequencedParsersTest()
 {
     using namespace ps;
 
@@ -125,6 +127,29 @@ void PSTest::sequenceCombinatorTest()
     ParserL<R> p = ps::bind<Digit, R>(digit,         [=](Digit d1) { return
                    ps::bind<Char,  R>(lowerCaseChar, [=](Char ch1) { return
                    ps::pure<R>(R{d1, ch1}); }); });
+
+    ParseResult<R> result = parse(p, s);
+
+    QVERIFY(isRight(result));
+    QVERIFY(std::get<R>(result).ch == 'b');
+    QVERIFY(std::get<R>(result).d == 1);
+}
+
+struct R2
+{
+    ps::Many<ps::Digit> ds;
+    ps::Char ch;
+};
+
+void PSTest::manyCombinatorTest()
+{
+    using namespace ps;
+
+    const std::string s = "1234b2";
+
+    ParserL<R> p = ps::bind<Many<Digit>, R2>(many(digit),   [=](const Many<Digit>& ds) { return
+                   ps::bind<Char,        R2>(lowerCaseChar, [=](Char ch1)                     { return
+                   ps::pure<R2>(R2{ds, ch1}); }); });
 
     ParseResult<R> result = parse(p, s);
 

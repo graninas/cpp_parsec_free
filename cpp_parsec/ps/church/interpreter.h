@@ -41,13 +41,11 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
         ParseResult<PRA> r = runParserF<PRA>(runtime, psf);
         if (isLeft(r))
         {
-            PRA a = { getError(r) };
-            return a;
+            return PRA { getError(r) };
         }
         else
         {
-            PRA a = getParsed<PRA>(r);
-            return a;
+            return PRA { getParsed<PRA>(r) };
         }
     };
 
@@ -63,10 +61,7 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
             Any parsed = getParsed<Any>(anyResult);
             // cast from any
             A a = std::any_cast<A>(parsed);
-
-            ParseSuccess<A> r;
-            r.parsed = a;
-            return r;
+            return ParseSuccess<A> { a };
         }
     }
     catch (std::exception ex)

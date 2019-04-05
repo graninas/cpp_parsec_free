@@ -17,13 +17,13 @@ public:
 private Q_SLOTS:
 
     void singleDigitParserTest();
-//    void digitParserTest();
-//    void lowerCaseCharParserTest();
-//    void upperCaseCharParserTest();
-//    void parseFailureTest();
+    void digitParserTest();
+    void lowerCaseCharParserTest();
+    void upperCaseCharParserTest();
+    void parseFailureTest();
 
-//    void bindPureTest();
-//    void sequencedParsersTest();
+    void bindPureTest();
+    void sequencedParsersTest();
 
     void manyCombinatorTest();
 };
@@ -39,9 +39,18 @@ void PSTest::singleDigitParserTest()
     const std::string s = "1";
     ParseResult<Digit> result = parse<Digit>(parseDigit(), s);
 
-    ParseError e = getError(result);
+    QVERIFY(isRight(result));
 
-    std::cout << e.message;
+    Digit r = getParsed<Digit>(result);
+    QVERIFY(r == 1);
+}
+
+void PSTest::digitParserTest()
+{
+    using namespace ps;
+
+    const std::string s = "1abc";
+    ParseResult<Digit> result = parse<Digit>(parseDigit(), s);
 
     QVERIFY(isRight(result));
 
@@ -49,103 +58,89 @@ void PSTest::singleDigitParserTest()
     QVERIFY(r == 1);
 }
 
-//void PSTest::digitParserTest()
-//{
-//    using namespace ps;
+void PSTest::lowerCaseCharParserTest()
+{
+    using namespace ps;
 
-//    const std::string s = "1abc";
-//    ParseResult<Digit> result = parse<Digit>(parseDigit(), s);
+    const std::string s = "abc";
+    ParseResult<Char> result = parse<Char>(lowerCaseChar, s);
 
-//    QVERIFY(isRight(result));
+    QVERIFY(isRight(result));
 
-//    Digit r = getParsed<Digit>(result);
-//    QVERIFY(r == 1);
-//}
+    Char r = getParsed<Char>(result);
+    QVERIFY(r == 'a');
+}
 
-//void PSTest::lowerCaseCharParserTest()
-//{
-//    using namespace ps;
+void PSTest::upperCaseCharParserTest()
+{
+    using namespace ps;
 
-//    const std::string s = "abc";
-//    ParseResult<Char> result = parse<Char>(lowerCaseChar, s);
+    const std::string s = "BCD";
+    ParseResult<Char> result = parse<Char>(upperCaseChar, s);
 
-//    QVERIFY(isRight(result));
+    QVERIFY(isRight(result));
 
-//    Char r = getParsed<Char>(result);
-//    QVERIFY(r == 'a');
-//}
+    Char r = getParsed<Char>(result);
+    QVERIFY(r == 'B');
+}
 
-//void PSTest::upperCaseCharParserTest()
-//{
-//    using namespace ps;
+void PSTest::parseFailureTest()
+{
+    using namespace ps;
 
-//    const std::string s = "BCD";
-//    ParseResult<Char> result = parse<Char>(upperCaseChar, s);
+    const std::string s = "abc";
+    ParseResult<Digit> result = parse<Digit>(parseDigit(), s);
 
-//    QVERIFY(isRight(result));
+    QVERIFY(isLeft(result));
+    QVERIFY(std::get<ParseError>(result).message == "Failed to parse digit: not a digit.");
+}
 
-//    Char r = getParsed<Char>(result);
-//    QVERIFY(r == 'B');
-//}
+struct R
+{
+    ps::Digit d;
+    ps::Char ch;
+};
 
-//void PSTest::parseFailureTest()
-//{
-//    using namespace ps;
+void PSTest::bindPureTest()
+{
+    using namespace ps;
 
-//    const std::string s = "abc";
-//    ParseResult<Digit> result = parse<Digit>(parseDigit(), s);
+    const std::string s = "1b2";
 
-//    QVERIFY(isLeft(result));
-//    std::cout << std::get<ParseError>(result).message;
-//    QVERIFY(std::get<ParseError>(result).message == "Failed to parse digit: not a digit.");
-//}
+    ParserL<R> p = ps::bind<Digit, R>(digit,       [=](Digit d1) { return
+                   ps::pure<R>(R{d1, 'a'}); });
 
-//struct R
-//{
-//    ps::Digit d;
-//    ps::Char ch;
-//};
+    ParseResult<R> result = parse(p, s);
 
-//void PSTest::bindPureTest()
-//{
-//    using namespace ps;
+    QVERIFY(isRight(result));
+    R r = getParsed<R>(result);
+    QVERIFY(r.ch == 'a');
+    QVERIFY(r.d == 1);
+}
 
-//    const std::string s = "1b2";
+void PSTest::sequencedParsersTest()
+{
+    using namespace ps;
 
-//    ParserL<R> p = ps::bind<Digit, R>(digit,       [=](Digit d1) { return
-//                   ps::pure<R>(R{d1, 'a'}); });
+    const std::string s = "1b2";
 
-//    ParseResult<R> result = parse(p, s);
+    ParserL<R> p = ps::bind<Digit, R>(digit,         [=](Digit d1) { return
+                   ps::bind<Char,  R>(lowerCaseChar, [=](Char ch1) { return
+                   ps::pure<R>(R{d1, ch1}); }); });
 
-//    QVERIFY(isRight(result));
-//    R r = getParsed<R>(result);
-//    QVERIFY(r.ch == 'a');
-//    QVERIFY(r.d == 1);
-//}
+    ParseResult<R> result = parse(p, s);
 
-//void PSTest::sequencedParsersTest()
-//{
-//    using namespace ps;
+    QVERIFY(isRight(result));
+    R r = getParsed<R>(result);
+    QVERIFY(r.ch == 'b');
+    QVERIFY(r.d == 1);
+}
 
-//    const std::string s = "1b2";
-
-//    ParserL<R> p = ps::bind<Digit, R>(digit,         [=](Digit d1) { return
-//                   ps::bind<Char,  R>(lowerCaseChar, [=](Char ch1) { return
-//                   ps::pure<R>(R{d1, ch1}); }); });
-
-//    ParseResult<R> result = parse(p, s);
-
-//    QVERIFY(isRight(result));
-//    R r = getParsed<R>(result);
-//    QVERIFY(r.ch == 'b');
-//    QVERIFY(r.d == 1);
-//}
-
-//struct R2
-//{
-//    ps::Many<ps::Digit> ds;
-//    ps::Char ch;
-//};
+struct R2
+{
+    ps::Many<ps::Digit> ds;
+    ps::Char ch;
+};
 
 void PSTest::manyCombinatorTest()
 {

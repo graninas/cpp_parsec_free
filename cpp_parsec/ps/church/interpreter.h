@@ -35,10 +35,20 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
                 return ParseSuccess<Any> { a };
             };
 
-    std::function<PRA(psf::ParserF<Any>)> g
-            = [&](const psf::ParserF<Any>& psf)
+    std::function<PRA(psf::ParserF<PRA>)> g
+            = [&](const psf::ParserF<PRA>& psf)
     {
-        return runParserF<Any>(runtime, psf);
+        ParseResult<PRA> r = runParserF<PRA>(runtime, psf);
+        if (isLeft(r))
+        {
+            PRA a = { getError(r) };
+            return a;
+        }
+        else
+        {
+            PRA a = getParsed<PRA>(r);
+            return a;
+        }
     };
 
     try
@@ -46,8 +56,7 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
         PRA anyResult = psl.runF(pureAny, g);
         if (std::holds_alternative<ParseError>(anyResult))
         {
-            return { ParseError { "vvv" } };
-//            return { std::get<ParseError>(anyResult) };
+            return { getError(anyResult) };
         }
         else
         {
@@ -65,9 +74,6 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
         return { ParseError {ex.what()} };
     }
 }
-
-template <typename A>
-using LocalParserResult = ps::Either<ParseError, A>;
 
 template <typename Single>
 ParseResult<Single> parseSingle(

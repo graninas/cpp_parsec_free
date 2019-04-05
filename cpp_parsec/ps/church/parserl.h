@@ -18,7 +18,7 @@ template <typename A>
 using ParserFunc = std::function<
         PRA(
             std::function<PRA(A)>,
-            std::function<PRA(psf::ParserF<Any>)>
+            std::function<PRA(psf::ParserF<PRA>)>
         )>;
 
 template <typename A>

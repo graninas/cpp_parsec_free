@@ -42,12 +42,12 @@ ParserL<B> bind(const ParserL<A>& ma,
 {
     ParserL<B> n;
     n.runF = [=](const std::function<PRA(B)>& p,
-                 const std::function<PRA(psf::ParserF<Any>)>& r)
+                 const std::function<PRA(psf::ParserF<PRA>)>& r)
     {
         std::function<PRA(A)> fst = [=](const A& a)
         {
             ParserL<B> internal = f(a);
-            PRA res = internal.runF(p, r);  // Any == B
+            PRA res = internal.runF(p, r);
             return res;
         };
 
@@ -69,7 +69,7 @@ ParserL<A> pure(const A& a, const std::string& name = "")
 {
     ParserL<A> n;
     n.runF = [=](const std::function<PRA(A)>& p,
-                 const std::function<PRA(psf::ParserF<Any>)>&)
+                 const std::function<PRA(psf::ParserF<PRA>)>&)
     {
         PRA pResult = p(a);
         return pResult;
@@ -83,10 +83,10 @@ ParserL<A> wrap(const Method<A>& method, const std::string& name = "")
     ParserL<A> n;
 
     n.runF = [=](const std::function<PRA(A)>& p,
-                 const std::function<PRA(psf::ParserF<Any>)>& r)
+                 const std::function<PRA(psf::ParserF<PRA>)>& r)
     {
         psf::ParserF<A> f { method };
-        psf::ParserF<Any> mapped = psf::fmap<A, Any>(p, f);
+        psf::ParserF<PRA> mapped = psf::fmap<A, PRA>(p, f);
         PRA rResult = r(mapped);
         return rResult;
     };

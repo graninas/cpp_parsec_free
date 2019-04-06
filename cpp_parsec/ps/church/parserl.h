@@ -12,11 +12,13 @@ namespace church
 
 // PS Free Church-encoded
 
+using PRA = ParseResult<Any>;
+
 template <typename A>
-using ParserFunc= std::function<
-        Any(
-            std::function<Any(A)>,
-            std::function<Any(psf::ParserF<Any>)>
+using ParserFunc = std::function<
+        PRA(
+            std::function<PRA(A)>,
+            std::function<PRA(psf::ParserF<PRA>)>
         )>;
 
 template <typename A>

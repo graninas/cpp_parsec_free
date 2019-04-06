@@ -52,11 +52,11 @@ public:
     void advance(size_t count);
 };
 
-template <typename A>
-struct RunResult
-{
-    ps::Either<ParseError, A> result;
-};
+//template <typename A>
+//struct RunResult
+//{
+//    ps::Either<ParseError, A> result;
+//};
 
 } // namespace ps
 

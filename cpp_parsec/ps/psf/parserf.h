@@ -11,20 +11,11 @@ namespace psf
 // PS methods
 
 template <typename Next>
-struct ParseDigit
+struct ParseSymbolCond
 {
-    std::function<Next(Digit)> next;
-};
+    std::string name;
+    std::function<bool(char)> validator;
 
-template <typename Next>
-struct ParseUpperCaseChar
-{
-    std::function<Next(Char)> next;
-};
-
-template <typename Next>
-struct ParseLowerCaseChar
-{
     std::function<Next(Char)> next;
 };
 
@@ -34,9 +25,7 @@ template <class Ret>
 struct ParserF
 {
     std::variant<
-        ParseDigit<Ret>,
-        ParseUpperCaseChar<Ret>,
-        ParseLowerCaseChar<Ret>
+        ParseSymbolCond<Ret>
     > psf;
 };
 

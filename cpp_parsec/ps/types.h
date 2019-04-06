@@ -5,6 +5,7 @@
 #include <string>
 #include <variant>
 #include <any>
+#include <vector>
 
 namespace ps
 {
@@ -14,6 +15,9 @@ using Any = std::any;
 using S = std::string;
 using Digit = std::uint8_t;
 using Char = char;
+
+template <typename T>
+using Many = std::vector<T>;
 
 struct Unit
 {
@@ -45,16 +49,30 @@ struct ParseError
     std::string message;
 };
 
-//template <typename T>
-//struct PResult
-//{
-//    T parsed;
-//    std::string rest;
-//};
+template <typename T>
+struct ParseSuccess
+{
+    T parsed;
+};
 
 template <typename T>
-using ParseResult = Either<ParseError, T>;
+using ParseResult = Either<ParseError, ParseSuccess<T>>;
 
+
+// unsafe get parsed
+template <typename T>
+T getParsed(const ps::ParseResult<T>& r)
+{
+    ParseSuccess<T> s = std::get<ps::ParseSuccess<T>>(r);
+    return s.parsed;
+}
+
+// unsafe get error
+template <typename T>
+ParseError getError(const ps::ParseResult<T>& r)
+{
+    return std::get<ParseError>(r);
+}
 
 } // namespace ps
 

@@ -27,9 +27,23 @@ struct ParserFVisitor
         ParseSymbolCond<B> fb;
         fb.name = fa.name;
         fb.validator = fa.validator;
-        fb.next = [=](const Char d)
+        fb.next = [=](const Char d, size_t position)
         {
-            A faResult = fa.next(d);
+            A faResult = fa.next(d, position);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
+
+    void operator()(const FailWith<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        FailWith<B> fb;
+        fb.message = fa.message;
+        fb.next = [=](const Any& a, size_t position)
+        {
+            A faResult = fa.next(a, position);
             B gResult = g(faResult);
             return gResult;
         };

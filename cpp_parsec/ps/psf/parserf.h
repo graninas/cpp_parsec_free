@@ -16,7 +16,15 @@ struct ParseSymbolCond
     std::string name;
     std::function<bool(char)> validator;
 
-    std::function<Next(Char)> next;
+    std::function<Next(Char, size_t position)> next;
+};
+
+template <typename Next>
+struct FailWith
+{
+    std::string message;
+
+    std::function<Next(Any, size_t position)> next;
 };
 
 // PSF algebraic data type
@@ -25,7 +33,8 @@ template <class Ret>
 struct ParserF
 {
     std::variant<
-        ParseSymbolCond<Ret>
+        ParseSymbolCond<Ret>,
+        FailWith<Ret>
     > psf;
 };
 

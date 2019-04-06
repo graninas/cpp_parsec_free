@@ -24,8 +24,7 @@ ParserL<B> bindT(const ParserL<A>& ma,
         std::function<PRA(A)> fst = [=](const A& a)
         {
             ParserL<B> internal = onSuccess(a);
-            PRA res = internal.runF(p, r);
-            return res;
+            return internal.runF(p, r);
         };
 
         PRA runFResult = ma.runF(fst, r);
@@ -50,12 +49,10 @@ ParserL<B> bind(const ParserL<A>& ma,
         std::function<PRA(A)> fst = [=](const A& a)
         {
             ParserL<B> internal = f(a);
-            PRA res = internal.runF(p, r);
-            return res;
+            return internal.runF(p, r);
         };
 
-        PRA runFResult = ma.runF(fst, r);
-        return runFResult;
+        return ma.runF(fst, r);
     };
 
     return n;
@@ -90,8 +87,7 @@ ParserL<A> wrap(const Method<A>& method)
     {
         psf::ParserF<A> f { method };
         psf::ParserF<PRA> mapped = psf::fmap<A, PRA>(p, f);
-        PRA rResult = r(mapped);
-        return rResult;
+        return r(mapped);
     };
 
     return n;
@@ -101,7 +97,19 @@ ParserL<Char> parseSymbolCond(
         const std::string& name,
         const std::function<bool(char)>& validator)
 {
-    return wrap(psf::ParseSymbolCond<Char>{ name, validator, id });
+    return wrap(psf::ParseSymbolCond<Char>{
+                    name,
+                    validator,
+                    [](Char ch, size_t) { return ch; } });
+}
+
+template <typename T>
+ParserL<T> failWith(const std::string& message)
+{
+    return wrap(psf::FailWith<T> {
+                    message,
+                    [](Any a, size_t) { return std::any_cast<T>(a); } // bottom, should not be called.
+                });
 }
 
 std::function<bool(char)> chEq(char ch)
@@ -152,10 +160,10 @@ ps::ParseResult<A> parse(
         const std::string& s)
 {
     if (s.empty())
-        return { ParseError { "Source string is empty." }};
+        return { ParseError { "Source string is empty.", 0 } };
 
     ParserRuntime runtime(s, 0);
-    return runParserL<A>(runtime, psl);
+    return runParserL<A>(runtime, 0, psl);
 }
 
 //template <typename T>
@@ -169,6 +177,12 @@ ParserL<T> alt(const ParserL<T>& l, const ParserL<T>& r)
 {
     std::function<ParserL<T>(T)> f = [](T t) { return pure<T>(t); };
     return bindT<T, T>(l, r, f);
+}
+
+template <typename T>
+ParserL<T> tryP(const ParserL<T>& p)
+{
+
 }
 
 } // namespace church

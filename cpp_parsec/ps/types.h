@@ -47,12 +47,14 @@ bool isLeft(const Either<E,T>& e)
 struct ParseError
 {
     std::string message;
+    size_t err_position;
 };
 
 template <typename T>
 struct ParseSuccess
 {
     T parsed;
+    size_t next_position;
 };
 
 template <typename T>

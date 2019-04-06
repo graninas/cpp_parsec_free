@@ -35,6 +35,19 @@ struct ParserFVisitor
         };
         result.psf = fb;
     }
+
+    void operator()(const FailWith<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        FailWith<B> fb;
+        fb.message = fa.message;
+        fb.next = [=](const Any& a)
+        {
+            A faResult = fa.next(a);
+            B gResult = g(faResult);
+            return gResult;
+        };
+    }
 };
 
 template <typename A, typename B>

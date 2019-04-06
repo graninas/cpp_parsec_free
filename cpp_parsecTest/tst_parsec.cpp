@@ -22,6 +22,9 @@ private Q_SLOTS:
     void upperCaseCharParserTest();
     void symbolParserTest();
     void parseFailureTest();
+    void parseFailure2Test();
+    void failWithTest();
+    void internalParsersTest();
 
     void bindPureTest();
     void sequencedParsersTest();
@@ -97,6 +100,54 @@ void PSTest::parseFailureTest()
 
     QVERIFY(isLeft(result));
     QVERIFY(std::get<ParseError>(result).message == "Failed to parse digit: not a digit.");
+}
+
+void PSTest::parseFailure2Test()
+{
+    using namespace ps;
+
+    ParserL<Char> p =
+            ps::bind<Char, Char>(letter, [](auto) { return
+            ps::bind<Char, Char>(digit,  [](auto) { return letter; }); });
+
+    ParseResult<Char> result = parse<Char>(p, "abc");
+
+    QVERIFY(isLeft(result));
+    QVERIFY(std::get<ParseError>(result).message == "Failed to parse digit: not a digit.");
+}
+
+void PSTest::failWithTest()
+{
+    using namespace ps;
+
+    ParseResult<Char> result = parse<Char>(failWith<Char>("error!"), "abc");
+
+    QVERIFY(isLeft(result));
+    std::cout << std::get<ParseError>(result).message;
+    QVERIFY(std::get<ParseError>(result).message == "error!");
+}
+
+void PSTest::internalParsersTest()
+{
+//    using namespace ps;
+
+//    ParserL<Char> p1 =
+//            ps::bind<Char, Char>(upper, [=](auto) { return
+//            ps::bind<Char, Char>(lower, [=](auto) { return lower; }); });
+
+//    ParserL<Char> p2 =
+//            ps::bind<Char, Char>(upper, [=](auto) { return
+//            ps::bind<Char, Char>(upper, [=](auto) { return upper; }); });
+
+//    ParserL<Char> p =
+//            ps::bind<Char, Char>(digit, [=](auto) {
+//                return alt(tryP(p1), tryP(p2)); });
+
+//    ParseResult<Char> result = parse<Char>(p, "1AAA2");
+
+//    QVERIFY(isRight(result));
+//    Char ch = getParsed<Char>(result);
+//    QVERIFY(ch == 'A');
 }
 
 struct R

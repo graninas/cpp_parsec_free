@@ -19,13 +19,22 @@ struct ParseSymbolCond
     std::function<Next(Char)> next;
 };
 
+template <typename Next>
+struct FailWith
+{
+    std::string message;
+
+    std::function<Next(Any)> next;
+};
+
 // PSF algebraic data type
 
 template <class Ret>
 struct ParserF
 {
     std::variant<
-        ParseSymbolCond<Ret>
+        ParseSymbolCond<Ret>,
+        FailWith<Ret>
     > psf;
 };
 

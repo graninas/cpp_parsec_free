@@ -31,8 +31,7 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
 {
     std::function<PRA(A)> pureAny = [](const A& a)
             {
-                // cast to any
-                return ParseSuccess<Any> { a };
+                return ParseSuccess<Any> { a }; // cast to any
             };
 
     std::function<PRA(psf::ParserF<PRA>)> g
@@ -119,6 +118,12 @@ struct ParserFVisitor
             s.parsed = f.next(getParsed<Char>(r));
             result = { s };
         }
+    }
+
+    void operator()(const psf::FailWith<Ret>& f)
+    {
+        // TODO: does not call f.next?
+        result = ParseError { f.message };
     }
 };
 

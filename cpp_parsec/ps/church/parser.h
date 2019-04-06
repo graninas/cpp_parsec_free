@@ -24,8 +24,7 @@ ParserL<B> bindT(const ParserL<A>& ma,
         std::function<PRA(A)> fst = [=](const A& a)
         {
             ParserL<B> internal = onSuccess(a);
-            PRA res = internal.runF(p, r);
-            return res;
+            return internal.runF(p, r);
         };
 
         PRA runFResult = ma.runF(fst, r);
@@ -50,12 +49,10 @@ ParserL<B> bind(const ParserL<A>& ma,
         std::function<PRA(A)> fst = [=](const A& a)
         {
             ParserL<B> internal = f(a);
-            PRA res = internal.runF(p, r);
-            return res;
+            return internal.runF(p, r);
         };
 
-        PRA runFResult = ma.runF(fst, r);
-        return runFResult;
+        return ma.runF(fst, r);
     };
 
     return n;
@@ -74,8 +71,7 @@ ParserL<A> pure(const A& a)
     n.runF = [=](const std::function<PRA(A)>& p,
                  const std::function<PRA(psf::ParserF<PRA>)>&)
     {
-        PRA pResult = p(a);
-        return pResult;
+        return p(a);
     };
     return n;
 }
@@ -90,8 +86,7 @@ ParserL<A> wrap(const Method<A>& method)
     {
         psf::ParserF<A> f { method };
         psf::ParserF<PRA> mapped = psf::fmap<A, PRA>(p, f);
-        PRA rResult = r(mapped);
-        return rResult;
+        return r(mapped);
     };
 
     return n;
@@ -102,6 +97,15 @@ ParserL<Char> parseSymbolCond(
         const std::function<bool(char)>& validator)
 {
     return wrap(psf::ParseSymbolCond<Char>{ name, validator, id });
+}
+
+template <typename T>
+ParserL<T> failWith(const std::string& message)
+{
+    return wrap(psf::FailWith<T> {
+                    message,
+                    [](Any a) { return std::any_cast<T>(a); } // bottom, should not be called.
+                });
 }
 
 std::function<bool(char)> chEq(char ch)

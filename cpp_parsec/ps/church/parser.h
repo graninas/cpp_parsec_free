@@ -109,9 +109,36 @@ std::function<bool(char)> chEq(char ch)
     return [=](char ch1) { return ch1 == ch; };
 }
 
-const ParserL<Char> digit = parseSymbolCond("digit", [](char ch) { return ch >= '0' && ch <= '9'; });
-const ParserL<Char> lower = parseSymbolCond("lower", [](char ch) { return ch >= 'a' && ch <= 'z'; });
-const ParserL<Char> upper = parseSymbolCond("upper", [](char ch) { return ch >= 'A' && ch <= 'Z'; });
+const auto isLower = [](char ch)
+{
+    return ch >= 'a' && ch <= 'z';
+};
+
+const auto isUpper = [](char ch)
+{
+    return ch >= 'A' && ch <= 'Z';
+};
+
+const auto isAlpha = [](char ch)
+{
+    return isLower(ch) || isUpper(ch);
+};
+
+const auto isDigit = [](char ch)
+{
+    return ch >= '0' && ch <= '9';
+};
+
+const auto isAlphaNum = [](char ch)
+{
+    return isAlpha(ch) || isDigit(ch);
+};
+
+const ParserL<Char> digit    = parseSymbolCond("digit",    isDigit);
+const ParserL<Char> lower    = parseSymbolCond("lower",    isLower);
+const ParserL<Char> upper    = parseSymbolCond("upper",    isUpper);
+const ParserL<Char> letter   = parseSymbolCond("letter",   isAlpha);
+const ParserL<Char> alphaNum = parseSymbolCond("alphaNum", isAlphaNum);
 
 const auto symbol = [](Char ch) {
     return parseSymbolCond(std::string() + ch, chEq(ch));

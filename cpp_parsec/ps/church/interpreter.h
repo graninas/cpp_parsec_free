@@ -106,64 +106,9 @@ struct ParserFVisitor
     {
     }
 
-    void operator()(const psf::ParseDigit<Ret>& f)
+    void operator()(const psf::ParseSymbolCond<Ret>& f)
     {
-        auto validator = [](char ch) { return ch >= '0' && ch <= '9'; };
-        auto converter = [](char ch) { return uint8_t(ch - '0'); };
-
-        ParseResult<Digit> r = parseSingle<Digit>(_runtime, validator, converter, "digit");
-
-        if (isLeft(r))
-            result = { std::get<ParseError>(r) };
-        else
-        {
-            _runtime.advance(1);
-            ParseSuccess<Ret> s;
-            s.parsed = f.next(getParsed<Digit>(r));
-            result = { s };
-        }
-    }
-
-    void operator()(const psf::ParseUpperCaseChar<Ret>& f)
-    {
-        auto validator = [](char ch) { return ch >= 'A' && ch <= 'Z'; };
-        auto converter = [](char ch) { return ch; };
-        ParseResult<Char> r = parseSingle<Char>(_runtime, validator, converter, "upper char");
-
-        if (isLeft(r))
-            result = { std::get<ParseError>(r) };
-        else
-        {
-            _runtime.advance(1);
-            ParseSuccess<Ret> s;
-            s.parsed = f.next(getParsed<Char>(r));
-            result = { s };
-        }
-    }
-
-    void operator()(const psf::ParseLowerCaseChar<Ret>& f)
-    {
-        auto validator = [](char ch) { return ch >= 'a' && ch <= 'z'; };
-        auto converter = [](char ch) { return ch; };
-        ParseResult<Char> r = parseSingle<Char>(_runtime, validator, converter, "lower char");
-
-        if (isLeft(r))
-            result = { std::get<ParseError>(r) };
-        else
-        {
-            _runtime.advance(1);
-            ParseSuccess<Ret> s;
-            s.parsed = f.next(getParsed<Char>(r));
-            result = { s };
-        }
-    }
-
-    void operator()(const psf::ParseSymbol<Ret>& f)
-    {
-        auto validator = [&](char ch) { return ch == f.symbol; };
-        ParseResult<Char> r = parseSingle<Char>(_runtime,
-                                                validator, id,
-                                                std::string("symbol: " + f.symbol));
+        ParseResult<Char> r = parseSingle<Char>(_runtime, f.validator, id, f.name);
 
         if (isLeft(r))
             result = { std::get<ParseError>(r) };

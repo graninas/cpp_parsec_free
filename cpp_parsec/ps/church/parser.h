@@ -13,9 +13,9 @@ namespace church
 {
 
 template <typename A, typename B>
-ParserL<B> orElseBind(const ParserL<A>& ma,
-                      const ParserL<A>& mOnFail,
-                      const std::function<ParserL<B>(A)>& onSuccess)
+ParserL<B> bindT(const ParserL<A>& ma,
+                 const ParserL<A>& mOnFail,
+                 const std::function<ParserL<B>(A)>& onSuccess)
 {
     ParserL<B> n;
     n.runF = [=](const std::function<PRA(B)>& p,
@@ -68,7 +68,7 @@ ParserL<A> join(const ParserL<ParserL<A>>& mma)
 }
 
 template <typename A>
-ParserL<A> pure(const A& a, const std::string& name = "")
+ParserL<A> pure(const A& a)
 {
     ParserL<A> n;
     n.runF = [=](const std::function<PRA(A)>& p,
@@ -81,7 +81,7 @@ ParserL<A> pure(const A& a, const std::string& name = "")
 }
 
 template <typename A, template <typename> class Method>
-ParserL<A> wrap(const Method<A>& method, const std::string& name = "")
+ParserL<A> wrap(const Method<A>& method)
 {
     ParserL<A> n;
 
@@ -97,31 +97,25 @@ ParserL<A> wrap(const Method<A>& method, const std::string& name = "")
     return n;
 }
 
-ParserL<Digit> parseDigit()
+ParserL<Char> parseSymbolCond(
+        const std::string& name,
+        const std::function<bool(char)>& validator)
 {
-    return wrap(psf::ParseDigit<Digit>{ id }, "[ParseDigit]");
+    return wrap(psf::ParseSymbolCond<Char>{ name, validator, id });
 }
 
-ParserL<Char> parseLowerCaseChar()
+std::function<bool(char)> chEq(char ch)
 {
-    return wrap(psf::ParseLowerCaseChar<Char>{ id }, "[ParseLowerCaseChar]");
+    return [=](char ch1) { return ch1 == ch; };
 }
 
-ParserL<Char> parseUpperCaseChar()
-{
-    return wrap(psf::ParseUpperCaseChar<Char>{ id }, "[ParseUpperCaseChar]");
-}
+const ParserL<Char> digit = parseSymbolCond("digit", [](char ch) { return ch >= '0' && ch <= '9'; });
+const ParserL<Char> lower = parseSymbolCond("lower", [](char ch) { return ch >= 'a' && ch <= 'z'; });
+const ParserL<Char> upper = parseSymbolCond("upper", [](char ch) { return ch >= 'A' && ch <= 'Z'; });
 
-ParserL<Char> parseSymbol(Char ch)
-{
-    return wrap(psf::ParseSymbol<Char>{ ch, id },
-                std::string("[ParseSymbol: ") + ch + "]");
-}
-
-const ParserL<Digit> digit = parseDigit();
-const ParserL<Char> lowerCaseChar = parseLowerCaseChar();
-const ParserL<Char> upperCaseChar = parseUpperCaseChar();
-const auto symbol = [](Char ch) { return parseSymbol(ch); };
+const auto symbol = [](Char ch) {
+    return parseSymbolCond(std::string() + ch, chEq(ch));
+};
 
 /// ParserL evaluation
 
@@ -147,10 +141,8 @@ template <typename T>
 ParserL<T> alt(const ParserL<T>& l, const ParserL<T>& r)
 {
     std::function<ParserL<T>(T)> f = [](T t) { return pure<T>(t); };
-    return orElseBind<T, T>(l, r, f);
+    return bindT<T, T>(l, r, f);
 }
-
-
 
 } // namespace church
 } // namespace ps

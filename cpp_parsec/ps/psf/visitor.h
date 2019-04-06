@@ -21,48 +21,12 @@ struct ParserFVisitor
         : fTemplate(func)
     {}
 
-    void operator()(const ParseDigit<A>& fa)
+    void operator()(const ParseSymbolCond<A>& fa)
     {
         MapFunc<A, B> g = fTemplate;
-        ParseDigit<B> fb;
-        fb.next = [=](const Digit d)
-        {
-            A faResult = fa.next(d);
-            B gResult = g(faResult);
-            return gResult;
-        };
-        result.psf = fb;
-    }
-
-    void operator()(const ParseUpperCaseChar<A>& fa)
-    {
-        MapFunc<A, B> g = fTemplate;
-        ParseUpperCaseChar<B> fb;
-        fb.next = [=](const Char d)
-        {
-            A faResult = fa.next(d);
-            B gResult = g(faResult);
-            return gResult;
-        };
-        result.psf = fb;
-    }
-    void operator()(const ParseLowerCaseChar<A>& fa)
-    {
-        MapFunc<A, B> g = fTemplate;
-        ParseLowerCaseChar<B> fb;
-        fb.next = [=](const Char d)
-        {
-            A faResult = fa.next(d);
-            B gResult = g(faResult);
-            return gResult;
-        };
-        result.psf = fb;
-    }
-    void operator()(const ParseSymbol<A>& fa)
-    {
-        MapFunc<A, B> g = fTemplate;
-        ParseSymbol<B> fb;
-        fb.symbol = fa.symbol;
+        ParseSymbolCond<B> fb;
+        fb.name = fa.name;
+        fb.validator = fa.validator;
         fb.next = [=](const Char d)
         {
             A faResult = fa.next(d);

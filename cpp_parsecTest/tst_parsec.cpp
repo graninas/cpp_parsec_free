@@ -123,7 +123,6 @@ void PSTest::failWithTest()
     ParseResult<Char> result = parse<Char>(failWith<Char>("error!"), "abc");
 
     QVERIFY(isLeft(result));
-    std::cout << std::get<ParseError>(result).message;
     QVERIFY(std::get<ParseError>(result).message == "error!");
 }
 

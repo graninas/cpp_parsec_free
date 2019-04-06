@@ -47,6 +47,7 @@ struct ParserFVisitor
             B gResult = g(faResult);
             return gResult;
         };
+        result.psf = fb;
     }
 };
 

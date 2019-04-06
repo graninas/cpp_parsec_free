@@ -14,6 +14,11 @@ std::string_view ParserRuntime::get_view() const
     return std::string_view(_source).substr(_current);
 }
 
+std::string_view ParserRuntime::get_view(size_t position) const
+{
+    return std::string_view(_source).substr(_current + position);
+}
+
 void ParserRuntime::advance(size_t count)
 {
     // TODO: protection

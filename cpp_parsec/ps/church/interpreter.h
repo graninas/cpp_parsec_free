@@ -29,7 +29,7 @@ template <typename A>
 ParseResult<A> runParserL(ParserRuntime& runtime,
                           const ParserL<A>& psl)
 {
-    std::function<PRA(A)> pureAny = [](const A& a)
+    std::function<PRA(A)> pureAny = [=](const A& a)
             {
                 return ParseSuccess<Any> { a }; // cast to any
             };
@@ -44,7 +44,7 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
         }
         else
         {
-            return PRA { getParsed<PRA>(r) };
+            return getParsed<PRA>(r);
         }
     };
 
@@ -57,15 +57,14 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
         }
         else
         {
-            Any parsed = getParsed<Any>(anyResult);
-            // cast from any
-            A a = std::any_cast<A>(parsed);
+            ParseSuccess<Any> successAny = std::get<ParseSuccess<Any>>(anyResult);
+            A a = std::any_cast<A>(successAny.parsed); // cast from any
             return ParseSuccess<A> { a };
         }
     }
     catch (std::exception ex)
     {
-        return { ParseError {ex.what()} };
+        return { ParseError { ex.what() } };
     }
 }
 
@@ -82,16 +81,14 @@ ParseResult<Single> parseSingle(
 
     if (s.empty())
     {
-        return { ParseError {failedMsg + ": end of imput."} };
+        return { ParseError { failedMsg + ": end of imput." } };
     }
     else if (!validator(s.at(0)))
     {
-        return { ParseError {failedMsg + ": not a " + name + "."} };
+        return { ParseError { failedMsg + ": not a " + name + "." } };
     }
 
-    ParseSuccess<Single> r;
-    r.parsed = converter(s.at(0));
-    return { r };
+    return ParseSuccess<Single> { converter(s.at(0)) };
 }
 
 template <typename Ret>
@@ -114,9 +111,9 @@ struct ParserFVisitor
         else
         {
             _runtime.advance(1);
-            ParseSuccess<Ret> s;
-            s.parsed = f.next(getParsed<Char>(r));
-            result = { s };
+            ParseSuccess<Char> success = std::get<ParseSuccess<Char>>(r);
+            auto next = f.next(success.parsed);
+            result = { ParseSuccess<Ret> { next } };
         }
     }
 

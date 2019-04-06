@@ -49,6 +49,7 @@ public:
     ParserRuntime(const std::string& source, size_t current);
 
     std::string_view get_view() const;
+    std::string_view get_view(size_t position) const;
     void advance(size_t count);
 };
 

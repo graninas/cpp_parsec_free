@@ -156,7 +156,7 @@ ps::ParseResult<A> parse(
         const std::string& s)
 {
     if (s.empty())
-        return { ParseError { "Source string is empty." }};
+        return { ParseError { "Source string is empty." } };
 
     ParserRuntime runtime(s, 0);
     return runParserL<A>(runtime, psl);
@@ -173,6 +173,12 @@ ParserL<T> alt(const ParserL<T>& l, const ParserL<T>& r)
 {
     std::function<ParserL<T>(T)> f = [](T t) { return pure<T>(t); };
     return bindT<T, T>(l, r, f);
+}
+
+template <typename T>
+ParserL<T> tryP(const ParserL<T>& p)
+{
+
 }
 
 } // namespace church

@@ -49,6 +49,19 @@ struct ParserFVisitor
             result = runParserL<Ret>(_runtime, rNext);
         }
     }
+
+    void operator()(const psf::GetSt<ParserL<Ret>>& f)
+    {
+        auto rNext = f.next(_runtime.get_state());
+        result = runParserL<Ret>(_runtime, rNext);
+    }
+
+    void operator()(const psf::PutSt<ParserL<Ret>>& f)
+    {
+        _runtime.put_state(f.st);
+        auto rNext = f.next(unit);
+        result = runParserL<Ret>(_runtime, rNext);
+    }
 };
 
 template <typename Ret>

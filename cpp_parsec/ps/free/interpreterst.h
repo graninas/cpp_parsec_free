@@ -3,6 +3,7 @@
 
 #include "parserlst.h"
 #include "../context.h"
+#include "interpreter.h"
 
 namespace ps
 {
@@ -14,7 +15,7 @@ template <template <typename> class P, typename Ret>
 struct ParserLSTVisitor;
 
 template <template <typename> class P, typename Ret>
-ParseResult<Ret> runParserLST(
+ParseResult<Ret> runParserT(
         ParserRuntime& runtime,
         const ParserLST<P, Ret>& pslst)
 {
@@ -37,13 +38,14 @@ struct ParserFSTVisitor
     template <typename A>
     void operator()(const psfst::TryP<P, A, ParserLST<P, Ret>>& f)
     {
-        // TODO
-        int i = 10;
-//        auto tvarId = _runtime.newId();
+        auto pr1 = runParserL(_runtime, f.parser);
+
 //        TVarHandle tvarHandle { _runtime.getUStamp(), f.val, true };
 //        _runtime.addTVarHandle(tvarId, tvarHandle);
 //        TVarAny tvar { f.name, tvarId };
 //        result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvar));
+        ParserLST<P, Ret> pr2 = f.next(pr1);
+        result = runParserT<P, Ret>(_runtime, pr2);
     }
 };
 

@@ -14,13 +14,16 @@ class ParserRuntime
 {
 private:
     const std::string& _source;
-    size_t _current;
+    State _state;
 
 public:
-    ParserRuntime(const std::string& source, size_t current);
+    ParserRuntime(const std::string& source, const State& state);
 
     std::string_view get_view() const;
     void advance(size_t count);
+
+    State get_state() const;
+    void put_state(const State& state);
 };
 
 

@@ -155,8 +155,9 @@ ParseResult<A> parse(
     if (s.empty())
         return { ParseError { "Source string is empty." }};
 
-    ParserRuntime runtime(s, 0);
-//    return runParserT<A>(runtime, pst);
+    ParserRuntime runtime(s, State {0});
+    ParseResult<A> res = runParserT<PL, A>(runtime, pst);
+    return res;
 }
 
 //template <typename T>

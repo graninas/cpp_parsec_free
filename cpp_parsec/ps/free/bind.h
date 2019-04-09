@@ -70,7 +70,7 @@ struct BindParserLVisitor
     void operator()(const FreeF<A>& fa)
     {
         ArrowFunc<A,B> f = fTemplate;
-        BindParserLVisitor<A, B> visitor(f);
+        BindStmfVisitor<A, B> visitor(f);
         std::visit(visitor, fa.psf.psf);
         psf::ParserF<ParserL<B>> visited = visitor.result;
         result.psl = FreeF<B> { visited };

@@ -108,36 +108,36 @@ struct R
 
 void PSTest::bindPureTest()
 {
-//    using namespace ps;
+    using namespace ps;
 
-//    ParserL<R> p = ps::bind<Char, R>(digit,       [=](Char d1) { return
-//                   ps::pure<R>(R{d1, 'a', '0'}); });
+    ParserL<R> p = ps::bind<Char, R>(digit,       [=](Char d1) { return
+                   ps::pure<R>(R{d1, 'a', '0'}); });
 
-//    ParseResult<R> result = parse(p, "1b2");
+    ParseResult<R> result = parse(p, "1b2");
 
-//    QVERIFY(isRight(result));
-//    R r = getParsed<R>(result);
-//    QVERIFY(r.dg0 == '1');
-//    QVERIFY(r.ch1 == 'a');
-//    QVERIFY(r.ch2 == '0');
+    QVERIFY(isRight(result));
+    R r = getParsed<R>(result);
+    QVERIFY(r.dg0 == '1');
+    QVERIFY(r.ch1 == 'a');
+    QVERIFY(r.ch2 == '0');
 }
 
 void PSTest::sequencedParsersTest()
 {
-//    using namespace ps;
+    using namespace ps;
 
-//    ParserL<R> p = ps::bind<Char, R>(digit,         [=](Char dg0) { return
-//                   ps::bind<Char, R>(lower,         [=](Char ch1) { return
-//                   ps::bind<Char, R>(symbol('2'),   [=](Char ch2) { return
-//                   ps::pure<R>(R{dg0, ch1, ch2}); }); }); });
+    ParserL<R> p = ps::bind<Char, R>(digit,         [=](Char dg0) { return
+                   ps::bind<Char, R>(lower,         [=](Char ch1) { return
+                   ps::bind<Char, R>(symbol('2'),   [=](Char ch2) { return
+                   ps::pure<R>(R{dg0, ch1, ch2}); }); }); });
 
-//    ParseResult<R> result = parse(p, "1b2");
+    ParseResult<R> result = parse(p, "1b2");
 
-//    QVERIFY(isRight(result));
-//    R r = getParsed<R>(result);
-//    QVERIFY(r.dg0 == '1');
-//    QVERIFY(r.ch1 == 'b');
-//    QVERIFY(r.ch2 == '2');
+    QVERIFY(isRight(result));
+    R r = getParsed<R>(result);
+    QVERIFY(r.dg0 == '1');
+    QVERIFY(r.ch1 == 'b');
+    QVERIFY(r.ch2 == '2');
 }
 
 void PSTest::altCombinatorTest()

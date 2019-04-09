@@ -47,20 +47,20 @@ struct ParserFVisitor
             B gResult = g(faResult);
             return gResult;
         };
-        result.psfst = fb;
+        result.psf = fb;
     }
 
     void operator()(const GetSt<A>& fa)
     {
         MapFunc<A, B> g = fTemplate;
-        PutSt<B> fb;
+        GetSt<B> fb;
         fb.next = [=](const State& st)
         {
             A faResult = fa.next(st);
             B gResult = g(faResult);
             return gResult;
         };
-        result.psfst = fb;
+        result.psf = fb;
     }
 };
 

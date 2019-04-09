@@ -4,45 +4,92 @@
 #include "../types.h"
 #include "../context.h"
 #include "parserl.h"
+#include "parserlst.h"
 #include "bind.h"
 #include "bindst.h"
 #include "interpreter.h"
 #include "interpreterst.h"
+#include "parserl_functor.h"
 
 namespace ps
 {
 namespace free
 {
 
-// ParserL generic monadic interface.
+template <typename A>
+using PL = ParserL<A>;
 
-template <typename A, typename B>
-ParserL<B> bind(const ParserL<A>& ma,
-                const std::function<ParserL<B>(A)>& f)
-{
-    BindParserLVisitor<A, B> visitor(f);
-    std::visit(visitor, ma.psl);
-    return visitor.result;
-}
+template <typename A>
+using ParserT = ParserLST<PL, A>;
 
-template <typename A, template <typename> class Method>
-static ParserL<A> wrap(const Method<ParserL<A>>& method)
+// ParserT generic monadic interface.
+
+//template <typename A, typename B>
+//ParserT<B> bind(const ParserT<A>& ma,
+//                const std::function<ParserT<B>(A)>& f)
+//{
+//    BindParserLSTVisitor<PL, A, B> visitor(f);
+//    std::visit(visitor, ma.psl);
+//    return visitor.result;
+//}
+
+template <typename A,
+          template <typename> class Method>
+static ParserL<A> wrapPL(const Method<ParserL<A>>& method)
 {
     return { FreeF<A> { psf::ParserF<ParserL<A>> { method } } };
 }
 
 template <typename A>
-ParserL<A> pure(const A& a)
+ParserL<A> purePL(const A& a)
 {
     return { PureF<A>{ a } };
 }
+
+//template <typename A,
+//          template <typename, typename> class Method>
+//static ParserT<A> wrap(const Method<PL, ParserT<A>>& method)
+//{
+//    return { FreeFST<PL, A> {
+//            psfst::ParserFST<PL, ParserT<A>> { method } } };
+//}
+
+template <typename A>
+ParserT<A> pure(const A& a)
+{
+    return { PureFST<PL, A>{ a } };
+}
+
+
+template <typename A>
+ParserT<ParseResult<A>> tryP(
+        const PL<A>& parser)
+{
+    std::function<PL<Any>(PL<A>)> pToAny = [](const PL<A>& psl)
+    {
+        return fmap<A, Any>([](const A& a) { return a; }, psl);
+    };
+
+    psfst::TryPA<PL, ParserT<ParseResult<A>>> r
+            = psfst::TryP<PL, A, ParserT<ParseResult<A>>>::toAny(
+                parser,
+                pToAny,
+                [](const ParseResult<A>& pr)
+                    { return pure<ParseResult<A>>(pr); }
+                );
+//    return wrap(r);
+
+    auto r2 = psfst::ParserFST<PL, ParserT<ParseResult<A>>> { r };
+    return { FreeFST<PL, ParseResult<A>> { r2 } };
+}
+
 
 ParserL<Char> parseSymbolCond(
         const std::string& name,
         const std::function<bool(char)>& validator)
 {
-    return wrap(psf::ParseSymbolCond<ParserL<Char>>{ name, validator,
-                [](Char ch) { return pure<Char>(ch); }
+    return wrapPL(psf::ParseSymbolCond<ParserL<Char>>{ name, validator,
+                [](Char ch) { return purePL<Char>(ch); }
                 });
 }
 
@@ -76,54 +123,41 @@ const auto isAlphaNum = [](char ch)
     return isAlpha(ch) || isDigit(ch);
 };
 
-const ParserL<Char> digit    = parseSymbolCond("digit",    isDigit);
-const ParserL<Char> lower    = parseSymbolCond("lower",    isLower);
-const ParserL<Char> upper    = parseSymbolCond("upper",    isUpper);
-const ParserL<Char> letter   = parseSymbolCond("letter",   isAlpha);
-const ParserL<Char> alphaNum = parseSymbolCond("alphaNum", isAlphaNum);
+const ParserL<Char> digitPL    = parseSymbolCond("digit",    isDigit);
+const ParserL<Char> lowerPL    = parseSymbolCond("lower",    isLower);
+const ParserL<Char> upperPL    = parseSymbolCond("upper",    isUpper);
+const ParserL<Char> letterPL   = parseSymbolCond("letter",   isAlpha);
+const ParserL<Char> alphaNumPL = parseSymbolCond("alphaNum", isAlphaNum);
 
-const auto symbol = [](Char ch) {
+const auto symbolPL = [](Char ch) {
     return parseSymbolCond(std::string() + ch, chEq(ch));
 };
 
-//template <typename A>
-//ParserL<Char> newTVar(
-//        const std::string& name,
-//        const std::function<bool(char)>& validator)
-//{
-//    auto r = stmf::NewTVar<A, PSL<TVar<A>>>::toAny(
-//                val,
-//                name,
-//                [](const TVar<A>& tvar)
-//                    { return pure<TVar<A>>(tvar); }
-//                );
-//    return wrap(r);
-//}
+
+const ParserT<ParseResult<Char>> digit    = tryP<Char>(digitPL);
+//const ParserT<ParseResult<Char>> lower    =
+//const ParserT<ParseResult<Char>> upper    =
+//const ParserT<ParseResult<Char>> letter   =
+//const ParserT<ParseResult<Char>> alphaNum =
+
+//const auto symbol = [](Char ch) {
+//    return parseSymbolCond(std::string() + ch, chEq(ch));
+//};
+
 
 /// ParserL evaluation
 
 template <typename A>
 ParseResult<A> parse(
-        const ParserL<A>& psl,
+        const ParserT<A>& pst,
         const std::string& s)
 {
     if (s.empty())
         return { ParseError { "Source string is empty." }};
 
     ParserRuntime runtime(s, 0);
-    return runParserL<A>(runtime, psl);
+//    return runParserT<A>(runtime, pst);
 }
-
-//template <typename A, typename B>
-//ParserL<B> bindT(const ParserL<A>& ma,
-//                 const ParserL<A>& mOnFail,
-//                 const std::function<ParserL<B>(A)>& onSuccess)
-//{
-//    BindParserLVisitor<A, B> visitor(f);
-//    std::visit(visitor, ma.psl);
-//    ParserL<B> result = visitor.result;
-//    return n;
-//}
 
 //template <typename T>
 //ParserL<T> alt(const ParserL<T>& l, const ParserL<T>& r)

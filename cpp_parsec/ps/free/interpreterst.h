@@ -35,7 +35,7 @@ struct ParserFSTVisitor
     }
 
     template <typename A>
-    void operator()(const psfst::TryP<A, P, ParserLST<P, Ret>>& f)
+    void operator()(const psfst::TryP<P, A, ParserLST<P, Ret>>& f)
     {
         // TODO
         int i = 10;

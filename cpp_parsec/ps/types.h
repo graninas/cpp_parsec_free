@@ -15,6 +15,7 @@ using Any = std::any;
 using S = std::string;
 using Digit = std::uint8_t;
 using Char = char;
+using Pos = size_t;
 
 template <typename T>
 using Many = std::vector<T>;
@@ -73,6 +74,11 @@ ParseError getError(const ps::ParseResult<T>& r)
 {
     return std::get<ParseError>(r);
 }
+
+struct State
+{
+    Pos pos;
+};
 
 } // namespace ps
 

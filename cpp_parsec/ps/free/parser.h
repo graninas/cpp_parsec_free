@@ -134,21 +134,21 @@ const auto symbolPL = [](Char ch) {
 };
 
 
-const ParserT<ParseResult<Char>> digit    = tryP<Char>(digitPL);
-//const ParserT<ParseResult<Char>> lower    =
-//const ParserT<ParseResult<Char>> upper    =
-//const ParserT<ParseResult<Char>> letter   =
-//const ParserT<ParseResult<Char>> alphaNum =
+const ParserT<ParseResult<Char>> digit = tryP<Char>(digitPL);
+const ParserT<ParseResult<Char>> lower = tryP<Char>(lowerPL);
+const ParserT<ParseResult<Char>> upper    = tryP<Char>(upperPL);
+const ParserT<ParseResult<Char>> letter   = tryP<Char>(letterPL);
+const ParserT<ParseResult<Char>> alphaNum = tryP<Char>(alphaNumPL);
 
-//const auto symbol = [](Char ch) {
-//    return parseSymbolCond(std::string() + ch, chEq(ch));
-//};
+const auto symbol = [](Char ch) {
+    return tryP<Char>(symbolPL(ch));
+};
 
 
 /// ParserL evaluation
 
 template <typename A>
-ParseResult<A> parse(
+ParseResult<A> parseP(
         const ParserT<A>& pst,
         const std::string& s)
 {
@@ -158,6 +158,24 @@ ParseResult<A> parse(
     ParserRuntime runtime(s, State {0});
     ParseResult<A> res = runParserT<PL, A>(runtime, pst);
     return res;
+}
+
+template <typename A>
+ParseResult<A> parse(
+        const ParserT<ParseResult<A>>& pst,
+        const std::string& s)
+{
+    ParseResult<ParseResult<A>> res = parseP(pst, s);
+    if (isLeft(res))
+    {
+        auto pe = getError(res);
+        return ParseError { pe.message };
+    }
+    else
+    {
+        auto se = getParsed(res);
+        return se;
+    }
 }
 
 //template <typename T>

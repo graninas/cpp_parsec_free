@@ -16,23 +16,22 @@ struct BindParserLVisitor;
 template <typename A, typename B>
 using ArrowFunc = std::function<ParserL<B>(A)>;
 
-template <typename A, typename B,
-          template <typename, typename> class Visitor>
-ParserL<B> runBind(const ParserL<A>& psl, const ArrowFunc<A, B>& f)
+template <typename A, typename B>
+ParserL<B> runBind(const ParserL<A>& psl,
+                   const ArrowFunc<A, B>& f)
 {
-    Visitor<A, B> visitor(f);
+    BindParserLVisitor<A, B> visitor(f);
     std::visit(visitor, psl.psl);
     return visitor.result;
 }
 
-
 template <typename A, typename B>
-struct BindStmfVisitor
+struct BindParserFVisitor
 {
     ArrowFunc<A,B> fTemplate;
     psf::ParserF<ParserL<B>> result;
 
-    BindStmfVisitor(const ArrowFunc<A,B>& func)
+    BindParserFVisitor(const ArrowFunc<A,B>& func)
         : fTemplate(func)
     {}
 
@@ -45,7 +44,7 @@ struct BindStmfVisitor
         fb.next = [=](Char ch)
         {
             ParserL<A> nextA = fa.next(ch);
-            return runBind<A, B, BindParserLVisitor>(nextA, f);
+            return runBind<A, B>(nextA, f);
         };
         result.psf = fb;
     }
@@ -70,7 +69,7 @@ struct BindParserLVisitor
     void operator()(const FreeF<A>& fa)
     {
         ArrowFunc<A,B> f = fTemplate;
-        BindStmfVisitor<A, B> visitor(f);
+        BindParserFVisitor<A, B> visitor(f);
         std::visit(visitor, fa.psf.psf);
         psf::ParserF<ParserL<B>> visited = visitor.result;
         result.psl = FreeF<B> { visited };

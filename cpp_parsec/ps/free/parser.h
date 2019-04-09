@@ -3,10 +3,11 @@
 
 #include "../types.h"
 #include "../context.h"
-//#include "../impl/runtime.h"
 #include "parserl.h"
 #include "bind.h"
+#include "bindst.h"
 #include "interpreter.h"
+#include "interpreterst.h"
 
 namespace ps
 {
@@ -112,6 +113,25 @@ ParseResult<A> parse(
     ParserRuntime runtime(s, 0);
     return runParserL<A>(runtime, psl);
 }
+
+//template <typename A, typename B>
+//ParserL<B> bindT(const ParserL<A>& ma,
+//                 const ParserL<A>& mOnFail,
+//                 const std::function<ParserL<B>(A)>& onSuccess)
+//{
+//    BindParserLVisitor<A, B> visitor(f);
+//    std::visit(visitor, ma.psl);
+//    ParserL<B> result = visitor.result;
+//    return n;
+//}
+
+//template <typename T>
+//ParserL<T> alt(const ParserL<T>& l, const ParserL<T>& r)
+//{
+//    std::function<ParserL<T>(T)> f = [](T t) { return pure<T>(t); };
+//    return bindT<T, T>(l, r, f);
+//}
+
 
 } // namespace free
 } // namespace ps

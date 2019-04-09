@@ -34,7 +34,12 @@ HEADERS += \
     ps/church/parserl.h \
     ps/church/parser.h \
     ps/psf/parserf.h \
-    ps/psf/visitor.h
+    ps/psf/visitor.h \
+    ps/psf/parserfst.h \
+    ps/psf/visitorst.h \
+    ps/free/parserlst.h \
+    ps/free/interpreterst.h \
+    ps/free/bindst.h
 
 unix {
     target.path = /usr/lib

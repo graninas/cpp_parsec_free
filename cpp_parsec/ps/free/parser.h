@@ -24,14 +24,33 @@ using ParserT = ParserLST<PL, A>;
 
 // ParserT generic monadic interface.
 
-//template <typename A, typename B>
-//ParserT<B> bind(const ParserT<A>& ma,
-//                const std::function<ParserT<B>(A)>& f)
-//{
-//    BindParserLSTVisitor<PL, A, B> visitor(f);
-//    std::visit(visitor, ma.psl);
-//    return visitor.result;
-//}
+template <typename A, typename B>
+ParserL<B> bindPL(const ParserL<A>& ma,
+                  const std::function<ParserL<B>(A)>& f)
+{
+    return runBind(ma, f);
+}
+
+
+// Unsafe!
+template <typename A, typename B>
+ParserT<B> bind(
+        const ParserT<ParseResult<A>>& ma,
+        const std::function<ParserT<B>(A)>& f)
+{
+    std::function<ParserT<B>(ParseResult<A>)> f2 =
+            [=](const ParseResult<A>& res)
+    {
+        if (isLeft(res))
+        {
+            throw std::runtime_error("it's failed.");
+        }
+
+        return f(getParsed(res));
+    };
+
+    return runBindST(ma, f2);
+}
 
 template <typename A,
           template <typename> class Method>
@@ -176,6 +195,15 @@ ParseResult<A> parse(
         auto se = getParsed(res);
         return se;
     }
+}
+
+// Unsafe!
+template <typename A>
+ParseResult<A> parse(
+        const ParserT<A>& pst,
+        const std::string& s)
+{
+    return parseP(pst, s);
 }
 
 //template <typename T>

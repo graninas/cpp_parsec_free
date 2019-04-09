@@ -27,6 +27,10 @@ HEADERS += \
     ps2/church/functor.h \
     ps2/church/ps.h \
     ps2/ps.h \
+    ps/free/interpreter.h \
+    ps/free/bind.h \
+    ps/free/parser.h \
+    ps/free/parserl.h \
     ps/church/parserl.h \
     ps/church/parser.h \
     ps/psf/parserf.h \

@@ -70,31 +70,6 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
     }
 }
 
-template <typename Single>
-ParseResult<Single> parseSingle(
-        ParserRuntime& runtime,
-        const std::function<bool(char)>& validator,
-        const std::function<Single(char)>& converter,
-        const std::string& name
-        )
-{
-    std::string_view s = runtime.get_view();
-    std::string failedMsg = std::string("Failed to parse ") + name;
-
-    if (s.empty())
-    {
-        return { ParseError {failedMsg + ": end of imput."} };
-    }
-    else if (!validator(s.at(0)))
-    {
-        return { ParseError {failedMsg + ": not a " + name + "."} };
-    }
-
-    ParseSuccess<Single> r;
-    r.parsed = converter(s.at(0));
-    return { r };
-}
-
 template <typename Ret>
 struct ParserFVisitor
 {

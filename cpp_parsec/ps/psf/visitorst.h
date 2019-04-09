@@ -9,51 +9,41 @@ namespace psfst
 {
 
 template <typename A, typename B>
-using MapFunc = std::function<B(A)>;
+using MapFuncST = std::function<B(A)>;
 
-template <typename A, typename B>
+template <template <typename> class P,
+          typename A,
+          typename B>
 struct ParserFSTVisitor
 {
-    MapFunc<A, B> fTemplate;
-    ParserFST<B> result;
+    MapFuncST<A, B> fTemplate;
+    ParserFST<P, B> result;
 
-    ParserFSTVisitor(const MapFunc<A, B>& func)
+    ParserFSTVisitor(const MapFuncST<A, B>& func)
         : fTemplate(func)
     {}
 
-    void operator()(const PutSt<A>& fa)
+    void operator()(const TryPA<P, A>& fa)
     {
-        MapFunc<A, B> g = fTemplate;
-        PutSt<B> fb;
-        fb.st = fa.st;
-        fb.next = [=](const Unit&)
+        MapFuncST<A, B> g = fTemplate;
+        TryPA<P, B> fb;
+        fb.parser = fa.parser;
+        fb.next = [=](const ParseResult<Any>& result)
         {
-            A faResult = fa.next(unit);
-            B gResult = g(faResult);
-            return gResult;
-        };
-        result.psfst = fb;
-    }
-
-    void operator()(const GetSt<A>& fa)
-    {
-        MapFunc<A, B> g = fTemplate;
-        PutSt<B> fb;
-        fb.next = [=](const State& st)
-        {
-            A faResult = fa.next(st);
-            B gResult = g(faResult);
-            return gResult;
+            return g(fa.next(result));
         };
         result.psfst = fb;
     }
 };
 
-template <typename A, typename B>
-ParserFST<B> fmap(const MapFunc<A, B>& f,
-                const ParserFST<A>& method)
+template <template <typename> class P,
+          typename A,
+          typename B>
+ParserFST<P, B> fmap(
+        const MapFuncST<A, B>& f,
+        const ParserFST<P, A>& method)
 {
-    ParserFSTVisitor<A, B> visitor(f);
+    ParserFSTVisitor<P, A, B> visitor(f);
     std::visit(visitor, method.psfst);
     return visitor.result;
 }

@@ -9,71 +9,67 @@ namespace ps
 namespace free
 {
 
-//// Forward declaration
-//template <typename Ret>
-//struct ParserLSTVisitor;
+// Forward declaration
+template <template <typename> class P, typename Ret>
+struct ParserLSTVisitor;
 
-//template <typename Ret>
-//ParseResult<Ret> runParserLST(
-//        ParserRuntime& runtime,
-//        const ParserLST<Ret>& psl)
-//{
-//    ParserLSTVisitor<Ret> visitor(runtime);
-//    std::visit(visitor, psl.psl);
-//    return visitor.result;
-//}
+template <template <typename> class P, typename Ret>
+ParseResult<Ret> runParserLST(
+        ParserRuntime& runtime,
+        const ParserLST<P, Ret>& pslst)
+{
+    ParserLSTVisitor<P, Ret> visitor(runtime);
+    std::visit(visitor, pslst.pslst);
+    return visitor.result;
+}
 
-//template <typename Ret>
-//struct ParserFVisitor
-//{
-//    ParserRuntime& _runtime;
-//    ParseResult<Ret> result;
+template <template <typename> class P, typename Ret>
+struct ParserFSTVisitor
+{
+    ParserRuntime& _runtime;
+    ParseResult<Ret> result;
 
-//    ParserFVisitor(ParserRuntime& runtime)
-//        : _runtime(runtime)
-//    {
-//    }
+    ParserFSTVisitor(ParserRuntime& runtime)
+        : _runtime(runtime)
+    {
+    }
 
-//    void operator()(const psf::ParseSymbolCond<ParserLST<Ret>>& f)
-//    {
-//        ParseResult<Char> r = parseSingle<Char>(_runtime, f.validator, id, f.name);
+    template <typename A>
+    void operator()(const psfst::TryP<A, P, ParserLST<P, Ret>>& f)
+    {
+        // TODO
+        int i = 10;
+//        auto tvarId = _runtime.newId();
+//        TVarHandle tvarHandle { _runtime.getUStamp(), f.val, true };
+//        _runtime.addTVarHandle(tvarId, tvarHandle);
+//        TVarAny tvar { f.name, tvarId };
+//        result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvar));
+    }
+};
 
-//        if (isLeft(r))
-//            result = { std::get<ParseError>(r) };
-//        else
-//        {
-//            _runtime.advance(1);
+template <template <typename> class P, typename Ret>
+struct ParserLSTVisitor
+{
+    ParserRuntime& _runtime;
+    ParseResult<Ret> result;
 
-//            Char ch = std::get<ParseSuccess<Char>>(r).parsed;
-//            auto rNext = f.next(ch);
-//            result = runParserLST<Ret>(_runtime, rNext);
-//        }
-//    }
-//};
+    ParserLSTVisitor(ParserRuntime& runtime)
+        : _runtime(runtime)
+    {
+    }
 
-//template <typename Ret>
-//struct ParserLSTVisitor
-//{
-//    ParserRuntime& _runtime;
-//    ParseResult<Ret> result;
+    void operator()(const PureFST<P, Ret>& p)
+    {
+        result = ParseSuccess<Ret> { p.ret };
+    }
 
-//    ParserLSTVisitor(ParserRuntime& runtime)
-//        : _runtime(runtime)
-//    {
-//    }
-
-//    void operator()(const PureF<Ret>& p)
-//    {
-//        result = ParseSuccess<Ret> { p.ret };
-//    }
-
-//    void operator()(const FreeF<Ret>& f)
-//    {
-//        ParserFVisitor<Ret> visitor(_runtime);
-//        std::visit(visitor, f.psf.psf);
-//        result = visitor.result;
-//    }
-//};
+    void operator()(const FreeFST<P, Ret>& f)
+    {
+        ParserFSTVisitor<P, Ret> visitor(_runtime);
+        std::visit(visitor, f.psfst.psfst);
+        result = visitor.result;
+    }
+};
 
 } // namespace free
 } // namespace ps

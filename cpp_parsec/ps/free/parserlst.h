@@ -29,7 +29,6 @@ struct FreeFST
     psfst::ParserFST<P, ParserLST<P, Ret>> psfst;
 };
 
-
 template <template <typename> class P, typename A>
 struct ParserLST
 {

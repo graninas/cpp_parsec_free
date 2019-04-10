@@ -29,22 +29,33 @@ template <typename A, typename B>
 ParserL<B> bindPL(const ParserL<A>& ma,
                   const std::function<ParserL<B>(A)>& f)
 {
-    return runBind(ma, f);
+    return runBind<A, B>(ma, f);
 }
 
-
-// Unsafe!
+// Special hacky function, do not use it.
 template <typename A, typename B>
-ParserT<B> bind(
+ParserT<B> bindTry(
         const ParserT<ParseResult<A>>& ma,
+        const ParserT<ParseResult<A>>& mOnFail,
         const std::function<ParserT<B>(A)>& f)
 {
+    std::function<ParserT<B>(ParseResult<A>)> f3 =
+            [=](const ParseResult<A>& res)
+    {
+        if (isLeft(res))
+        {
+            throw std::runtime_error(getError(res).message);
+        }
+
+        return f(getParsed(res));
+    };
+
     std::function<ParserT<B>(ParseResult<A>)> f2 =
             [=](const ParseResult<A>& res)
     {
         if (isLeft(res))
         {
-            throw std::runtime_error("it's failed.");
+            return runBindST(mOnFail, f3);
         }
 
         return f(getParsed(res));
@@ -59,27 +70,6 @@ ParserT<B> bind(
         const std::function<ParserT<B>(A)>& f)
 {
     return runBindST(ma, f);
-}
-
-// Unsafe!
-template <typename A, typename B>
-ParserT<B> bindT(
-        const ParserT<ParseResult<A>>& ma,
-        const ParserT<ParseResult<A>>& mOnFail,
-        const std::function<ParserT<B>(A)>& f)
-{
-    std::function<ParserT<B>(ParseResult<A>)> f2 =
-            [=](const ParseResult<A>& res)
-    {
-        if (isLeft(res))
-        {
-            throw std::runtime_error("it's failed.");
-        }
-
-        return f(getParsed(res));
-    };
-
-    return runBindST(ma, f2);
 }
 
 template <typename A,
@@ -220,15 +210,15 @@ const auto symbolPL = [](Char ch) {
 };
 
 
-//const ParserT<Char> digit    = evalP<Char>(digitPL);
-//const ParserT<Char> lower    = evalP<Char>(lowerPL);
-//const ParserT<Char> upper    = evalP<Char>(upperPL);
-//const ParserT<Char> letter   = evalP<Char>(letterPL);
-//const ParserT<Char> alphaNum = evalP<Char>(alphaNumPL);
+const ParserT<ParseResult<Char>> digitP    = tryP<Char>(digitPL);
+const ParserT<ParseResult<Char>> lowerP    = tryP<Char>(lowerPL);
+const ParserT<ParseResult<Char>> upperP    = tryP<Char>(upperPL);
+const ParserT<ParseResult<Char>> letterP   = tryP<Char>(letterPL);
+const ParserT<ParseResult<Char>> alphaNumP = tryP<Char>(alphaNumPL);
 
-//const auto symbol = [](Char ch) {
-//    return evalP<Char>(symbolPL(ch));
-//};
+const auto symbolP = [](Char ch) {
+    return tryP<Char>(symbolPL(ch));
+};
 
 const ParserT<Char> digit    = evalP<Char>(digitPL);
 const ParserT<Char> lower    = evalP<Char>(lowerPL);
@@ -288,13 +278,15 @@ ParseResult<A> parse(
     return parseP(pst, s);
 }
 
-//template <typename T>
-//ParserL<T> alt(const ParserL<T>& l, const ParserL<T>& r)
-//{
-//    std::function<ParserL<T>(T)> f = [](T t) { return pure<T>(t); };
-//    return bindT<T, T>(l, r, f);
-//}
+template <typename A>
+ParserT<A> alt(const ParserL<A>& l, const ParserL<A>& r)
+{
+    ParserT<ParseResult<A>> lp = tryP(l);
+    ParserT<ParseResult<A>> rp = tryP(r);
 
+    std::function<ParserT<A>(A)> f = [](const A& a) { return pure(a); };
+    return bindTry(lp, rp, f);
+}
 
 } // namespace free
 } // namespace ps

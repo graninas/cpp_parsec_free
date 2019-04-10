@@ -38,9 +38,18 @@ struct ParserFSTVisitor
     template <typename A>
     void operator()(const psfst::TryP<P, A, ParserLST<P, Ret>>& f)
     {
-        auto pr1 = runParserL(_runtime, f.parser);
-        ParserLST<P, Ret> pr2 = f.next(pr1);
-        result = runParserT<P, Ret>(_runtime, pr2);
+        State currentSt = _runtime.get_state();
+        try
+        {
+            ParseResult<A> pr1 = runParserL(_runtime, f.parser);
+            ParserLST<P, Ret> pr2 = f.next(pr1);
+            result = runParserT<P, Ret>(_runtime, pr2);
+        }
+        catch (const std::runtime_error& err)
+        {
+            _runtime.put_state(currentSt);
+            result = ParseError { err.what() };
+        }
     }
 
     template <typename A>

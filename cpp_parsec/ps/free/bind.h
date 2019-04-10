@@ -14,11 +14,8 @@ template <typename A, typename B>
 struct BindParserLVisitor;
 
 template <typename A, typename B>
-using ArrowFunc = std::function<ParserL<B>(A)>;
-
-template <typename A, typename B>
 ParserL<B> runBind(const ParserL<A>& psl,
-                   const ArrowFunc<A, B>& f)
+                   const std::function<ParserL<B>(A)>& f)
 {
     BindParserLVisitor<A, B> visitor(f);
     std::visit(visitor, psl.psl);
@@ -28,16 +25,16 @@ ParserL<B> runBind(const ParserL<A>& psl,
 template <typename A, typename B>
 struct BindParserFVisitor
 {
-    ArrowFunc<A,B> fTemplate;
+    std::function<ParserL<B>(A)> fTemplate;
     psf::ParserF<ParserL<B>> result;
 
-    BindParserFVisitor(const ArrowFunc<A,B>& func)
+    BindParserFVisitor(const std::function<ParserL<B>(A)>& func)
         : fTemplate(func)
     {}
 
     void operator()(const psf::ParseSymbolCond<ParserL<A>>& fa)
     {
-        ArrowFunc<A,B> f = fTemplate;
+        std::function<ParserL<B>(A)> f = fTemplate;
         psf::ParseSymbolCond<ParserL<B>> fb;
         fb.validator = fa.validator;
         fb.name = fa.name;
@@ -48,27 +45,35 @@ struct BindParserFVisitor
         };
         result.psf = fb;
     }
+
+    void operator()(const psf::GetSt<ParserL<A>>& fa)
+    {
+    }
+
+    void operator()(const psf::PutSt<ParserL<A>>& fa)
+    {
+    }
 };
 
 template <typename A, typename B>
 struct BindParserLVisitor
 {
-    ArrowFunc<A, B> fTemplate;
+    std::function<ParserL<B>(A)> fTemplate;
     ParserL<B> result;
 
-    BindParserLVisitor(const ArrowFunc<A,B>& func)
+    BindParserLVisitor(const std::function<ParserL<B>(A)>& func)
         : fTemplate(func)
     {}
 
     void operator()(const PureF<A>& fa)
     {
-        ArrowFunc<A,B> f = fTemplate;
+        std::function<ParserL<B>(A)> f = fTemplate;
         result = f(fa.ret);
     }
 
     void operator()(const FreeF<A>& fa)
     {
-        ArrowFunc<A,B> f = fTemplate;
+        std::function<ParserL<B>(A)> f = fTemplate;
         BindParserFVisitor<A, B> visitor(f);
         std::visit(visitor, fa.psf.psf);
         psf::ParserF<ParserL<B>> visited = visitor.result;

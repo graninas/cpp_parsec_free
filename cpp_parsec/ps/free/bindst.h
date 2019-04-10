@@ -57,6 +57,19 @@ struct BindParserFSTVisitor
         };
         result.psfst = fb;
     }
+
+    void operator()(const psfst::EvalPA<P, ParserLST<P, A>>& fa)
+    {
+        ArrowFuncST<P, A, B> f = fTemplate;
+        psfst::EvalPA<P, ParserLST<P, B>> fb;
+        fb.parser = fa.parser;
+        fb.next = [=](const ParseResult<Any>& result)
+        {
+            ParserLST<P, A> nextA = fa.next(result);
+            return runBindST<P, A, B>(nextA, f);
+        };
+        result.psfst = fb;
+    }
 };
 
 template <template <typename> class P,

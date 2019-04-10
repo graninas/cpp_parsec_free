@@ -39,11 +39,14 @@ struct ParserFSTVisitor
     void operator()(const psfst::TryP<P, A, ParserLST<P, Ret>>& f)
     {
         auto pr1 = runParserL(_runtime, f.parser);
+        ParserLST<P, Ret> pr2 = f.next(pr1);
+        result = runParserT<P, Ret>(_runtime, pr2);
+    }
 
-//        TVarHandle tvarHandle { _runtime.getUStamp(), f.val, true };
-//        _runtime.addTVarHandle(tvarId, tvarHandle);
-//        TVarAny tvar { f.name, tvarId };
-//        result = runSTML<Ret, StmlVisitor>(_runtime, f.next(tvar));
+    template <typename A>
+    void operator()(const psfst::EvalP<P, A, ParserLST<P, Ret>>& f)
+    {
+        auto pr1 = runParserL(_runtime, f.parser);
         ParserLST<P, Ret> pr2 = f.next(pr1);
         result = runParserT<P, Ret>(_runtime, pr2);
     }

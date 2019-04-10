@@ -34,6 +34,18 @@ struct ParserFSTVisitor
         };
         result.psfst = fb;
     }
+
+    void operator()(const EvalPA<P, A>& fa)
+    {
+        MapFuncST<A, B> g = fTemplate;
+        EvalPA<P, B> fb;
+        fb.parser = fa.parser;
+        fb.next = [=](const ParseResult<Any>& result)
+        {
+            return g(fa.next(result));
+        };
+        result.psfst = fb;
+    }
 };
 
 template <template <typename> class P,

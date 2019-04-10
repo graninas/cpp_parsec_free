@@ -52,6 +52,27 @@ ParserT<B> bind(
     return runBindST(ma, f2);
 }
 
+// Unsafe!
+template <typename A, typename B>
+ParserT<B> bindT(
+        const ParserT<ParseResult<A>>& ma,
+        const ParserT<ParseResult<A>>& mOnFail,
+        const std::function<ParserT<B>(A)>& f)
+{
+    std::function<ParserT<B>(ParseResult<A>)> f2 =
+            [=](const ParseResult<A>& res)
+    {
+        if (isLeft(res))
+        {
+            throw std::runtime_error("it's failed.");
+        }
+
+        return f(getParsed(res));
+    };
+
+    return runBindST(ma, f2);
+}
+
 template <typename A,
           template <typename> class Method>
 static ParserL<A> wrapPL(const Method<ParserL<A>>& method)
@@ -65,24 +86,34 @@ ParserL<A> purePL(const A& a)
     return { PureF<A>{ a } };
 }
 
-//template <typename A,
-//          template <typename, typename> class Method>
-//static ParserT<A> wrap(const Method<PL, ParserT<A>>& method)
-//{
-//    return { FreeFST<PL, A> {
-//            psfst::ParserFST<PL, ParserT<A>> { method } } };
-//}
-
 template <typename A>
 ParserT<A> pure(const A& a)
 {
     return { PureFST<PL, A>{ a } };
 }
 
+template <typename A>
+ParserT<ParseResult<A>> evalP(const PL<A>& parser)
+{
+    std::function<PL<Any>(PL<A>)> pToAny = [](const PL<A>& psl)
+    {
+        return fmap<A, Any>([](const A& a) { return a; }, psl);
+    };
+
+    psfst::EvalPA<PL, ParserT<ParseResult<A>>> r
+        = psfst::EvalP<PL, A, ParserT<ParseResult<A>>>::toAny(
+            parser,
+            pToAny,
+            [](const ParseResult<A>& pr)
+                { return pure<ParseResult<A>>(pr); }
+            );
+
+    auto r2 = psfst::ParserFST<PL, ParserT<ParseResult<A>>> { r };
+    return { FreeFST<PL, ParseResult<A>> { r2 } };
+}
 
 template <typename A>
-ParserT<ParseResult<A>> tryP(
-        const PL<A>& parser)
+ParserT<ParseResult<A>> tryP(const PL<A>& parser)
 {
     std::function<PL<Any>(PL<A>)> pToAny = [](const PL<A>& psl)
     {
@@ -90,18 +121,30 @@ ParserT<ParseResult<A>> tryP(
     };
 
     psfst::TryPA<PL, ParserT<ParseResult<A>>> r
-            = psfst::TryP<PL, A, ParserT<ParseResult<A>>>::toAny(
-                parser,
-                pToAny,
-                [](const ParseResult<A>& pr)
-                    { return pure<ParseResult<A>>(pr); }
-                );
-//    return wrap(r);
+        = psfst::TryP<PL, A, ParserT<ParseResult<A>>>::toAny(
+            parser,
+            pToAny,
+            [](const ParseResult<A>& pr)
+                { return pure<ParseResult<A>>(pr); }
+            );
 
     auto r2 = psfst::ParserFST<PL, ParserT<ParseResult<A>>> { r };
     return { FreeFST<PL, ParseResult<A>> { r2 } };
 }
 
+//ParserL<Unit> putStPL(const State& st)
+//{
+//    return wrapPL(psf::PutSt<ParserL<Unit>>{ st,
+//                [](const Unit&) { return purePL<Unit>(unit); }
+//                });
+//}
+
+//ParserL<State> getStPL()
+//{
+//    return wrapPL(psf::GetSt<ParserL<State>>{
+//                [](const State& st) { return purePL<State>(st); }
+//                });
+//}
 
 ParserL<Char> parseSymbolCond(
         const std::string& name,
@@ -153,16 +196,25 @@ const auto symbolPL = [](Char ch) {
 };
 
 
-const ParserT<ParseResult<Char>> digit = tryP<Char>(digitPL);
-const ParserT<ParseResult<Char>> lower = tryP<Char>(lowerPL);
-const ParserT<ParseResult<Char>> upper    = tryP<Char>(upperPL);
-const ParserT<ParseResult<Char>> letter   = tryP<Char>(letterPL);
-const ParserT<ParseResult<Char>> alphaNum = tryP<Char>(alphaNumPL);
+//const ParserT<Char> digit    = evalP<Char>(digitPL);
+//const ParserT<Char> lower    = evalP<Char>(lowerPL);
+//const ParserT<Char> upper    = evalP<Char>(upperPL);
+//const ParserT<Char> letter   = evalP<Char>(letterPL);
+//const ParserT<Char> alphaNum = evalP<Char>(alphaNumPL);
+
+//const auto symbol = [](Char ch) {
+//    return evalP<Char>(symbolPL(ch));
+//};
+
+const ParserT<ParseResult<Char>> digit    = evalP<Char>(digitPL);
+const ParserT<ParseResult<Char>> lower    = evalP<Char>(lowerPL);
+const ParserT<ParseResult<Char>> upper    = evalP<Char>(upperPL);
+const ParserT<ParseResult<Char>> letter   = evalP<Char>(letterPL);
+const ParserT<ParseResult<Char>> alphaNum = evalP<Char>(alphaNumPL);
 
 const auto symbol = [](Char ch) {
-    return tryP<Char>(symbolPL(ch));
+    return evalP<Char>(symbolPL(ch));
 };
-
 
 /// ParserL evaluation
 

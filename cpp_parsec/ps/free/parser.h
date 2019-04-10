@@ -288,6 +288,14 @@ ParserT<A> alt(const ParserL<A>& l, const ParserL<A>& r)
     return bindTry(lp, rp, f);
 }
 
+template <typename A>
+ParserT<A> alt(const ParserT<ParseResult<A>>& l,
+               const ParserT<ParseResult<A>>& r)
+{
+    std::function<ParserT<A>(A)> f = [](const A& a) { return pure(a); };
+    return bindTry(l, r, f);
+}
+
 } // namespace free
 } // namespace ps
 

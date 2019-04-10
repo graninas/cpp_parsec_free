@@ -48,7 +48,9 @@ struct ParserFSTVisitor
         catch (const std::runtime_error& err)
         {
             _runtime.put_state(currentSt);
-            result = ParseError { err.what() };
+
+            ParserLST<P, Ret> pr2 = f.next(ParseError { err.what() });
+            result = runParserT<P, Ret>(_runtime, pr2);
         }
     }
 

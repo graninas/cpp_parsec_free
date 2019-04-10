@@ -39,7 +39,8 @@ struct ParserFVisitor
         ParseResult<Char> r = parseSingle<Char>(_runtime, f.validator, id, f.name);
 
         if (isLeft(r))
-            result = { std::get<ParseError>(r) };
+//            result = { std::get<ParseError>(r) };
+            throw std::runtime_error(getError(r).message);
         else
         {
             _runtime.advance(1);

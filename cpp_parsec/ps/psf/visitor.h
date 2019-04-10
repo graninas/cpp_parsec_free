@@ -35,6 +35,33 @@ struct ParserFVisitor
         };
         result.psf = fb;
     }
+
+    void operator()(const PutSt<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        PutSt<B> fb;
+        fb.st = fa.st;
+        fb.next = [=](const Unit&)
+        {
+            A faResult = fa.next(unit);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
+
+    void operator()(const GetSt<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        GetSt<B> fb;
+        fb.next = [=](const State& st)
+        {
+            A faResult = fa.next(st);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
 };
 
 template <typename A, typename B>

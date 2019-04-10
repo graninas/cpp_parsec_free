@@ -19,13 +19,28 @@ struct ParseSymbolCond
     std::function<Next(Char)> next;
 };
 
+template <typename Next>
+struct PutSt
+{
+    State st;
+    std::function<Next(Unit)> next;
+};
+
+template <typename Next>
+struct GetSt
+{
+    std::function<Next(State)> next;
+};
+
 // PSF algebraic data type
 
 template <class Ret>
 struct ParserF
 {
     std::variant<
-        ParseSymbolCond<Ret>
+        ParseSymbolCond<Ret>,
+        PutSt<Ret>,
+        GetSt<Ret>
     > psf;
 };
 

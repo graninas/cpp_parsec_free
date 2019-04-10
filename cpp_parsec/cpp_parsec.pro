@@ -27,10 +27,21 @@ HEADERS += \
     ps2/church/functor.h \
     ps2/church/ps.h \
     ps2/ps.h \
+    ps/free/interpreter.h \
+    ps/free/bind.h \
+    ps/free/parser.h \
+    ps/free/parserl.h \
     ps/church/parserl.h \
     ps/church/parser.h \
     ps/psf/parserf.h \
-    ps/psf/visitor.h
+    ps/psf/visitor.h \
+    ps/psf/parserfst.h \
+    ps/psf/visitorst.h \
+    ps/free/parserlst.h \
+    ps/free/interpreterst.h \
+    ps/free/bindst.h \
+    ps/free/parserl_functor.h \
+    ps/free/parserlst_functor.h
 
 unix {
     target.path = /usr/lib

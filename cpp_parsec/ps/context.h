@@ -8,55 +8,49 @@
 namespace ps
 {
 
-//using UStamp = Id;
-
-//struct TVarHandle
-//{
-//    UStamp ustamp;
-//    std::any data;
-//    bool modified;
-//};
-
-//using TVars = std::map<TVarId, TVarHandle>;
-
-//class Context
-//{
-//private:
-
-//    std::atomic<Id> _id;
-//    TVars _tvars;
-
-//    std::mutex _lock;
-
-//public:
-//    Context();
-
-//    bool tryCommit(const UStamp& ustamp, const TVars& stagedTvars);
-
-//    Id newId();
-//    TVars takeSnapshot();
-//};
-
 // UTF-8 is not supported
 
 class ParserRuntime
 {
 private:
     const std::string& _source;
-    size_t _current;
+    State _state;
 
 public:
-    ParserRuntime(const std::string& source, size_t current);
+    ParserRuntime(const std::string& source, const State& state);
 
     std::string_view get_view() const;
     void advance(size_t count);
+
+    State get_state() const;
+    void put_state(const State& state);
 };
 
-//template <typename A>
-//struct RunResult
-//{
-//    ps::Either<ParseError, A> result;
-//};
+
+template <typename Single>
+ParseResult<Single> parseSingle(
+        ParserRuntime& runtime,
+        const std::function<bool(char)>& validator,
+        const std::function<Single(char)>& converter,
+        const std::string& name
+        )
+{
+    std::string_view s = runtime.get_view();
+    std::string failedMsg = std::string("Failed to parse ") + name;
+
+    if (s.empty())
+    {
+        return { ParseError {failedMsg + ": end of imput."} };
+    }
+    else if (!validator(s.at(0)))
+    {
+        return { ParseError {failedMsg + ": not a " + name + "."} };
+    }
+
+    ParseSuccess<Single> r;
+    r.parsed = converter(s.at(0));
+    return { r };
+}
 
 } // namespace ps
 

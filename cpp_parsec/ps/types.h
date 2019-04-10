@@ -15,6 +15,7 @@ using Any = std::any;
 using S = std::string;
 using Digit = std::uint8_t;
 using Char = char;
+using Pos = size_t;
 
 template <typename T>
 using Many = std::vector<T>;
@@ -58,7 +59,6 @@ struct ParseSuccess
 template <typename T>
 using ParseResult = Either<ParseError, ParseSuccess<T>>;
 
-
 // unsafe get parsed
 template <typename T>
 T getParsed(const ps::ParseResult<T>& r)
@@ -73,6 +73,29 @@ ParseError getError(const ps::ParseResult<T>& r)
 {
     return std::get<ParseError>(r);
 }
+
+// fmap
+
+template <typename A, typename B>
+ParseResult<B> fmapPR(
+        const std::function<B(A)>& f,
+        const ParseResult<A>& pr)
+{
+    if (isLeft(pr))
+    {
+        return getError(pr);
+    }
+
+    A parsed = getParsed(pr);
+    return ParseSuccess<B> { f(parsed) };
+}
+
+// state
+
+struct State
+{
+    Pos pos;
+};
 
 } // namespace ps
 

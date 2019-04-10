@@ -10,6 +10,7 @@
 #include "interpreter.h"
 #include "interpreterst.h"
 #include "parserl_functor.h"
+#include "../psf/visitorst.h"
 
 namespace ps
 {
@@ -50,6 +51,14 @@ ParserT<B> bind(
     };
 
     return runBindST(ma, f2);
+}
+
+template <typename A, typename B>
+ParserT<B> bind(
+        const ParserT<A>& ma,
+        const std::function<ParserT<B>(A)>& f)
+{
+    return runBindST(ma, f);
 }
 
 // Unsafe!
@@ -93,7 +102,7 @@ ParserT<A> pure(const A& a)
 }
 
 template <typename A>
-ParserT<ParseResult<A>> evalP(const PL<A>& parser)
+ParserT<A> evalP(const PL<A>& parser)
 {
     std::function<PL<Any>(PL<A>)> pToAny = [](const PL<A>& psl)
     {
@@ -108,8 +117,23 @@ ParserT<ParseResult<A>> evalP(const PL<A>& parser)
                 { return pure<ParseResult<A>>(pr); }
             );
 
-    auto r2 = psfst::ParserFST<PL, ParserT<ParseResult<A>>> { r };
-    return { FreeFST<PL, ParseResult<A>> { r2 } };
+    std::function<ParserLST<PL, A>(ParserLST<PL, ParseResult<A>>)> df
+            = [](const ParserLST<PL, ParseResult<A>>& pslst)
+    {
+        ParserLST<PL, A> lstMapped = runBindST<PL, ParseResult<A>, A>(pslst, [](const ParseResult<A>& pr)
+        {
+            if (isLeft(pr))
+            {
+                throw std::runtime_error(getError(pr).message);
+            }
+            return pure<A>(getParsed(pr));
+        });
+
+        return lstMapped;
+    };
+    psfst::ParserFST<PL, ParserT<ParseResult<A>>> r2 = { r };
+    auto rMapped = psfst::fmap<PL, ParserLST<PL, ParseResult<A>>, ParserLST<PL, A>>(df, r2);
+    return ParserT<A> { FreeFST<PL, A> { rMapped } };
 }
 
 template <typename A>
@@ -206,11 +230,11 @@ const auto symbolPL = [](Char ch) {
 //    return evalP<Char>(symbolPL(ch));
 //};
 
-const ParserT<ParseResult<Char>> digit    = evalP<Char>(digitPL);
-const ParserT<ParseResult<Char>> lower    = evalP<Char>(lowerPL);
-const ParserT<ParseResult<Char>> upper    = evalP<Char>(upperPL);
-const ParserT<ParseResult<Char>> letter   = evalP<Char>(letterPL);
-const ParserT<ParseResult<Char>> alphaNum = evalP<Char>(alphaNumPL);
+const ParserT<Char> digit    = evalP<Char>(digitPL);
+const ParserT<Char> lower    = evalP<Char>(lowerPL);
+const ParserT<Char> upper    = evalP<Char>(upperPL);
+const ParserT<Char> letter   = evalP<Char>(letterPL);
+const ParserT<Char> alphaNum = evalP<Char>(alphaNumPL);
 
 const auto symbol = [](Char ch) {
     return evalP<Char>(symbolPL(ch));
@@ -226,9 +250,16 @@ ParseResult<A> parseP(
     if (s.empty())
         return { ParseError { "Source string is empty." }};
 
-    ParserRuntime runtime(s, State {0});
-    ParseResult<A> res = runParserT<PL, A>(runtime, pst);
-    return res;
+    try
+    {
+        ParserRuntime runtime(s, State {0});
+        ParseResult<A> res = runParserT<PL, A>(runtime, pst);
+        return res;
+    }
+    catch (std::runtime_error err)
+    {
+        return ParseError { err.what() };
+    }
 }
 
 template <typename A>
@@ -249,7 +280,6 @@ ParseResult<A> parse(
     }
 }
 
-// Unsafe!
 template <typename A>
 ParseResult<A> parse(
         const ParserT<A>& pst,

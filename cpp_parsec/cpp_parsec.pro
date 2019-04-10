@@ -40,7 +40,8 @@ HEADERS += \
     ps/free/parserlst.h \
     ps/free/interpreterst.h \
     ps/free/bindst.h \
-    ps/free/parserl_functor.h
+    ps/free/parserl_functor.h \
+    ps/free/parserlst_functor.h
 
 unix {
     target.path = /usr/lib

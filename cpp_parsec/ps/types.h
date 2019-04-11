@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <variant>
+#include <list>
 #include <any>
 #include <vector>
 
@@ -18,7 +19,7 @@ using Char = char;
 using Pos = size_t;
 
 template <typename T>
-using Many = std::vector<T>;
+using Many = std::list<T>;
 
 struct Unit
 {

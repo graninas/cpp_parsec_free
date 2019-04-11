@@ -169,6 +169,50 @@ ParserL<Char> parseSymbolCond(
                 });
 }
 
+template <typename A>
+struct Acc
+{
+    Many<A> acc;
+    ParseResult<A> pr;
+};
+
+template <typename A>
+const std::function<ParserT<Many<A>>(Many<A>, ParserT<ParseResult<A>>)> rec
+    = [](const Many<A>& acc, const ParserT<ParseResult<A>>& p)
+{
+    ParserT<Many<A>> pt = bind<ParseResult<A>, Many<A>>(
+                p,
+                [=](const ParseResult<A>& pr)
+    {
+        if (isLeft(pr))
+        {
+            return pure<Many<A>>(acc);
+        }
+        else
+        {
+            Many<A> acc2 = acc;
+            acc2.push_back(getParsed(pr));
+            return rec<A>(acc2, p);
+        }
+    });
+    return pt;
+};
+
+
+template <typename A>
+ParserT<Many<A>> parseMany(const ParserT<ParseResult<A>>& p)
+{
+    return rec<A>(Many<A> {}, p);
+}
+
+template <typename A>
+ParserT<Many<A>> parseMany(const ParserL<A>& p)
+{
+    ParserT<ParseResult<A>> pt = tryP(p);
+
+    return parseMany(pt);
+}
+
 std::function<bool(char)> chEq(char ch)
 {
     return [=](char ch1) { return ch1 == ch; };
@@ -209,6 +253,10 @@ const auto symbolPL = [](Char ch) {
     return parseSymbolCond(std::string() + ch, chEq(ch));
 };
 
+template <typename A>
+const auto manyPL = [](const ParserL<A>& p) {
+    return parseMany<A>(p);
+};
 
 const ParserT<ParseResult<Char>> digitP    = tryP<Char>(digitPL);
 const ParserT<ParseResult<Char>> lowerP    = tryP<Char>(lowerPL);

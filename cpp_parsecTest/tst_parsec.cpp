@@ -21,6 +21,7 @@ private Q_SLOTS:
     void lowerCaseCharParserTest();
     void upperCaseCharParserTest();
     void symbolParserTest();
+    void manyCombinatorTest();
     void parseFailureTest();
     void tryPTest();
     void stateTest();
@@ -31,7 +32,6 @@ private Q_SLOTS:
     void alt1Test();
     void alt2Test();
     void internalParsersTest();
-//    void manyCombinatorTest();
 };
 
 PSTest::PSTest()
@@ -103,6 +103,32 @@ void PSTest::symbolParserTest()
     QVERIFY(isRight(result));
     Char r = getParsed<Char>(result);
     QVERIFY(r == 'B');
+}
+
+struct R2
+{
+    ps::Many<ps::Char> ds;
+    ps::Char ch;
+};
+
+void PSTest::manyCombinatorTest()
+{
+    using namespace ps;
+
+    ParserT<Many<Char>> p = manyPL<Char>(digitPL);
+
+    ParseResult<Many<Char>> result = parse(p, "4321");
+
+    QVERIFY(isRight(result));
+    Many<Char> parsed = getParsed(result);
+    QVERIFY(parsed.size() == 4);
+    QVERIFY(parsed.front() == '4');
+    parsed.pop_front();
+    QVERIFY(parsed.front() == '3');
+    parsed.pop_front();
+    QVERIFY(parsed.front() == '2');
+    parsed.pop_front();
+    QVERIFY(parsed.front() == '1');
 }
 
 void PSTest::parseFailureTest()
@@ -242,30 +268,6 @@ void PSTest::internalParsersTest()
     Char ch = getParsed<Char>(result);
     QVERIFY(ch == 'A');
 }
-
-
-//struct R2
-//{
-//    ps::Many<ps::Char> ds;
-//    ps::Char ch;
-//};
-
-//void PSTest::manyCombinatorTest()
-//{
-//    using namespace ps;
-
-//    const std::string s = "1234b2";
-
-////    ParserL<R> p = ps::bind<Many<Digit>, R2>(many(digit),   [=](const Many<Digit>& ds) { return
-////                   ps::bind<Char,        R2>(lowerCaseChar, [=](Char ch1)                     { return
-////                   ps::pure<R2>(R2{ds, ch1}); }); });
-
-////    ParseResult<R> result = parse(p, s);
-
-////    QVERIFY(isRight(result));
-////    QVERIFY(std::get<R>(result).ch == 'b');
-////    QVERIFY(std::get<R>(result).d == 1);
-//}
 
 QTEST_APPLESS_MAIN(PSTest)
 

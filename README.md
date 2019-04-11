@@ -3,7 +3,7 @@ C++ Monadic Parsers library
 
 Experimental implementation of monadic parsers similar to Haskell's Parsec but in C++ using Free monads as engine.
 
-The design of the library is not ideal for now.
+The design of the library is not finished for now. Combinators are currently divided into two layers: `ParserL` and `ParserT`. These layers should be unified to eliminate the difference in usage.
 
 Requirements
 ------------
@@ -53,50 +53,46 @@ QVERIFY(getParsed(result2) == 'a');
 ### `try` and `safe` combinators
 
 ```cpp
-    auto f = [](ParserResult<Unit>) {
-        throw std::runtime_error("err2");
-        return pure(unit);
-    };
+auto f = [](ParserResult<Unit>) {
+    throw std::runtime_error("err2");
+    return pure(unit);
+};
 
-    ParserL<Unit> internalP =
-            bind<Char, Unit>(digitThrowPL, [](Char) { return
-            bind<Char, Unit>(digitThrowPL, [](Char) {
-                throw std::runtime_error("err1");
-                return purePL(unit);
-        });
+ParserL<Unit> internalP =
+        bind<Char, Unit>(digitThrowPL, [](Char) { return
+        bind<Char, Unit>(digitThrowPL, [](Char) {
+            throw std::runtime_error("err1");
+            return purePL(unit);
     });
+});
 
-    ParserT<Unit> triedP = bind<ParserResult<Unit>, Unit>(tryP(internalP), f);
-    ParserT<Unit> safedP = bind<ParserResult<Unit>, Unit>(safeP(internalP), f);
+ParserT<Unit> triedP = bind<ParserResult<Unit>, Unit>(tryP(internalP), f);
+ParserT<Unit> safedP = bind<ParserResult<Unit>, Unit>(safeP(internalP), f);
 
-    auto result1 = parse(triedP, "123");
-    auto result2 = parse(safedP, "123");
+auto result1 = parse(triedP, "123");
+auto result2 = parse(safedP, "123");
 
-    QVERIFY(isLeft(result1));
-    QVERIFY(getError(result1).message == "err1");
-    QVERIFY(isLeft(result2));
-    QVERIFY(getError(result2).message == "err2");
+QVERIFY(isLeft(result1));
+QVERIFY(getError(result1).message == "err1");
+QVERIFY(isLeft(result2));
+QVERIFY(getError(result2).message == "err2");
 ```
 
 ### `many` combinator
 
 ```cpp
+ParserT<Many<Char>> p = manyPL<Char>(digitThrowPL);
 
-    ParserT<Many<Char>> p = manyPL<Char>(digitThrowPL);
+ParserResult<Many<Char>> result = parse(p, "4321");
 
-    ParserResult<Many<Char>> result = parse(p, "4321");
-
-    QVERIFY(isRight(result));
-    Many<Char> parsed = getParsed(result);
-    QVERIFY(parsed.size() == 4);
-    QVERIFY(parsed.front() == '4');
-    parsed.pop_front();
-    QVERIFY(parsed.front() == '3');
-    parsed.pop_front();
-    QVERIFY(parsed.front() == '2');
-    parsed.pop_front();
-    QVERIFY(parsed.front() == '1');
- 
- ```
-
-
+QVERIFY(isRight(result));
+Many<Char> parsed = getParsed(result);
+QVERIFY(parsed.size() == 4);
+QVERIFY(parsed.front() == '4');
+parsed.pop_front();
+QVERIFY(parsed.front() == '3');
+parsed.pop_front();
+QVERIFY(parsed.front() == '2');
+parsed.pop_front();
+QVERIFY(parsed.front() == '1');
+```

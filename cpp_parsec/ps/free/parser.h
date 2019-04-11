@@ -53,7 +53,7 @@ ParserT<B> bind(
 
 // Special hacky function, do not use it.
 template <typename A, typename B>
-ParserT<B> bindTry(
+ParserT<B> bindSafe(
         const ParserT<ParserResult<A>>& ma,
         const ParserT<ParserResult<A>>& mOnFail,
         const std::function<ParserT<B>(A)>& f)
@@ -168,20 +168,20 @@ ParserT<ParserResult<A>> tryP(const PL<A>& parser)
     return { FreeFST<ParserResult<A>> { r2 } };
 }
 
-// This is experiment.
-template <typename A>
-ParserT<ParserResult<A>> tryP(const ParserT<A>& parser)
-{
-    ParserL<Unit> dummy = purePL(unit);
-    ParserT<ParserResult<Unit>> dummyP = tryP(dummy);
-    return bind<ParserResult<Unit>, ParserResult<A>>(dummyP, [=](const ParserResult<Unit>&)
-    {
-        return bind<A, ParserResult<A>>(parser, [](const A& a)
-        {
-            return pure<ParserResult<A>>(ParserSucceeded<A> { a });
-        });
-    });
-}
+// This is experiment (it does not work)
+//template <typename A>
+//ParserT<ParserResult<A>> tryP(const ParserT<A>& parser)
+//{
+//    ParserL<Unit> dummy = purePL(unit);
+//    ParserT<ParserResult<Unit>> dummyP = tryP(dummy);
+//    return bind<ParserResult<Unit>, ParserResult<A>>(dummyP, [=](const ParserResult<Unit>&)
+//    {
+//        return bind<A, ParserResult<A>>(parser, [](const A& a)
+//        {
+//            return pure<ParserResult<A>>(ParserSucceeded<A> { a });
+//        });
+//    });
+//}
 
 template <typename A>
 ParserT<ParserResult<A>> safeP(const PL<A>& parser)
@@ -249,7 +249,7 @@ ParserT<Many<A>> parseMany(const ParserT<ParserResult<A>>& p)
 template <typename A>
 ParserT<Many<A>> parseMany(const ParserL<A>& p)
 {
-    ParserT<ParserResult<A>> pt = tryP(p);
+    ParserT<ParserResult<A>> pt = safeP(p);
 
     return parseMany(pt);
 }
@@ -257,6 +257,11 @@ ParserT<Many<A>> parseMany(const ParserL<A>& p)
 template <typename A>
 const auto manyPL = [](const ParserL<A>& p) {
     return parseMany<A>(p);
+};
+
+template <typename A>
+const auto many = [](const ParserT<A>& p) {
+    return parseMany<A>(tryP(p));
 };
 
 std::function<bool(char)> chEq(char ch)
@@ -381,11 +386,11 @@ ParserResult<A> parse(
 template <typename A>
 ParserT<A> alt(const ParserL<A>& l, const ParserL<A>& r)
 {
-    ParserT<ParserResult<A>> lp = tryP(l);
-    ParserT<ParserResult<A>> rp = tryP(r);
+    ParserT<ParserResult<A>> lp = safeP(l);
+    ParserT<ParserResult<A>> rp = safeP(r);
 
     std::function<ParserT<A>(A)> f = [](const A& a) { return pure(a); };
-    return bindTry(lp, rp, f);
+    return bindSafe(lp, rp, f);
 }
 
 template <typename A>
@@ -393,7 +398,7 @@ ParserT<A> alt(const ParserT<ParserResult<A>>& l,
                const ParserT<ParserResult<A>>& r)
 {
     std::function<ParserT<A>(A)> f = [](const A& a) { return pure(a); };
-    return bindTry(l, r, f);
+    return bindSafe(l, r, f);
 }
 
 } // namespace free

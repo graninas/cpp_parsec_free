@@ -25,7 +25,7 @@ private Q_SLOTS:
     void parseFailureTest();
     void tryThrowParserLTest();
     void tryThrowParserTTest();
-    void stateTest();
+    void safeVSTryPTest();
 
     void bindPureTest();
     void sequencedParsersTest();
@@ -114,22 +114,22 @@ struct R2
 
 void PSTest::manyCombinatorTest()
 {
-//    using namespace ps;
+    using namespace ps;
 
-//    ParserT<Many<Char>> p = manyPL<Char>(digitPL);
+    ParserT<Many<Char>> p = manyPL<Char>(digitThrowPL);
 
-//    ParserResult<Many<Char>> result = parse(p, "4321");
+    ParserResult<Many<Char>> result = parse(p, "4321");
 
-//    QVERIFY(isRight(result));
-//    Many<Char> parsed = getParsed(result);
-//    QVERIFY(parsed.size() == 4);
-//    QVERIFY(parsed.front() == '4');
-//    parsed.pop_front();
-//    QVERIFY(parsed.front() == '3');
-//    parsed.pop_front();
-//    QVERIFY(parsed.front() == '2');
-//    parsed.pop_front();
-//    QVERIFY(parsed.front() == '1');
+    QVERIFY(isRight(result));
+    Many<Char> parsed = getParsed(result);
+    QVERIFY(parsed.size() == 4);
+    QVERIFY(parsed.front() == '4');
+    parsed.pop_front();
+    QVERIFY(parsed.front() == '3');
+    parsed.pop_front();
+    QVERIFY(parsed.front() == '2');
+    parsed.pop_front();
+    QVERIFY(parsed.front() == '1');
 }
 
 void PSTest::parseFailureTest()
@@ -156,59 +156,69 @@ void PSTest::tryThrowParserLTest()
 
     auto result = parse(pt2, "abc");
 
-    QVERIFY(isRight(result));
-    QVERIFY(getParsed(result) == '1');
+    QVERIFY(isLeft(result));
+}
+
+void PSTest::tryThrowParserTTest()
+{
+// This does not work.
+//    using namespace ps;
+
+//    auto f = [](const ParserResult<Char>&)
+//        {
+//            return pure<ParserResult<Char>>(ParserSucceeded<Char> { '1' } );
+//        };
+
+//    ParserT<ParserResult<Char>> pt = tryP(digit);
+//    auto pt2 = bind<ParserResult<Char>, ParserResult<Char>>(pt, f);
+
+//    auto result = parse(pt2, "abc");
+
+//    QVERIFY(isRight(result));
+//    QVERIFY(getParsed(result) == '1');
 }
 
 /*
--- f will fail with err1
+
+-- f should fail with err1
 f = do
     try (parserA >> parserB >> fail err1)
-        >>= \eRes -> fail err2                  TODO: >>= \res -> fail err2
+        >>= \eRes -> fail err2
 
--- g will fail with err2
+-- g should fail with err2
 g = do
     safe (parserA >> parserB >> fail err1)
         >>= \eRes -> fail err2
 
--- h will fail with err1
-h = do
-    parserA
-    fail err1
-    fail err2
 */
 
-void PSTest::tryThrowParserTTest()
+void PSTest::safeVSTryPTest()
 {
     using namespace ps;
 
-    auto f = [](const ParserResult<Char>&)
-        {
-            return pure<ParserResult<Char>>(ParserSucceeded<Char> { '1' } );
-        };
+    auto f = [](ParserResult<Unit>) {
+        throw std::runtime_error("err2");
+        return pure(unit);
+    };
 
-    ParserT<ParserResult<Char>> pt = tryP(digit);
-    auto pt2 = bind<ParserResult<Char>, ParserResult<Char>>(pt, f);
+    ParserL<Unit> internalP =
+            bind<Char, Unit>(digitThrowPL, [](Char) { return
+            bind<Char, Unit>(digitThrowPL, [](Char) {
+                throw std::runtime_error("err1");
+                return purePL(unit);
+        });
+    });
 
-    auto result = parse(pt2, "abc");
+    ParserT<Unit> triedP = bind<ParserResult<Unit>, Unit>(tryP(internalP), f);
+    ParserT<Unit> safedP = bind<ParserResult<Unit>, Unit>(safeP(internalP), f);
 
-    QVERIFY(isRight(result));
-    QVERIFY(getParsed(result) == '1');
-}
+    auto result1 = parse(triedP, "123");
+    auto result2 = parse(safedP, "123");
 
-void PSTest::stateTest()
-{
-//    using namespace ps;
-
-//    auto p = bind<Char, R>(getSt
-//                digit,         [=](Char dg0) { return
-//             bind<Char, R>(lower,         [=](Char ch1) { return
-//             bind<Char, R>(symbol('2'),   [=](Char ch2) { return
-//             pure<R>(R{dg0, ch1, ch2});
-//            }); }); });
-
-//    QVERIFY(isLeft(result));
-//    QVERIFY(std::get<ParserFailed>(result).message == "Failed to parse digit: not a digit.");
+    QVERIFY(isLeft(result1));
+    QVERIFY(getError(result1).message == "err1");
+    QVERIFY(isLeft(result2));
+    QVERIFY(getError(result2).message == "err2");
 }
 
 struct R

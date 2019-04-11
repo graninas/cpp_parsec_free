@@ -39,7 +39,20 @@ struct ParserFSTVisitor
     template <typename A>
     void operator()(const psfst::SafeP<A, ParserLST<Ret>>& f)
     {
+        State currentSt = _runtime.get_state();
+        try
+        {
+            ParserResult<A> pr1 = runParserL(_runtime, f.parser);
+            ParserLST<Ret> pr2 = f.next(pr1);
+            result = runParserT<Ret>(_runtime, pr2);
+        }
+        catch (const std::runtime_error& err)
+        {
+            _runtime.put_state(currentSt);
 
+            ParserLST<Ret> pr2 = f.next(ParserFailed { err.what() });
+            result = runParserT<Ret>(_runtime, pr2);
+        }
     }
 
     template <typename A>
@@ -56,8 +69,9 @@ struct ParserFSTVisitor
         {
             _runtime.put_state(currentSt);
 
-            ParserLST<Ret> pr2 = f.next(ParserFailed { err.what() });
-            result = runParserT<Ret>(_runtime, pr2);
+//            ParserLST<Ret> pr2 = f.next(ParserFailed { err.what() });
+//            result = runParserT<Ret>(_runtime, pr2);
+            throw std::runtime_error(err.what());
         }
     }
 

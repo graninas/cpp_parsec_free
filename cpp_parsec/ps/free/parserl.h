@@ -36,6 +36,13 @@ struct ParserL
     std::variant<PureF<A>, FreeF<A>> psl;
 };
 
+
+template <typename A>
+ParserL<A> runPurePL(const A& a)
+{
+    return { PureF<A>{ a } };
+}
+
 } // namespace free
 } // namespace ps
 

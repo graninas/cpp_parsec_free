@@ -28,7 +28,7 @@ public:
 
 
 template <typename Single>
-ParseResult<Single> parseSingle(
+ParserResult<Single> parseSingle(
         ParserRuntime& runtime,
         const std::function<bool(char)>& validator,
         const std::function<Single(char)>& converter,
@@ -40,14 +40,14 @@ ParseResult<Single> parseSingle(
 
     if (s.empty())
     {
-        return { ParseError {failedMsg + ": end of imput."} };
+        return { ParserFailed {failedMsg + ": end of imput."} };
     }
     else if (!validator(s.at(0)))
     {
-        return { ParseError {failedMsg + ": not a " + name + "."} };
+        return { ParserFailed {failedMsg + ": not a " + name + "."} };
     }
 
-    ParseSuccess<Single> r;
+    ParserSucceeded<Single> r;
     r.parsed = converter(s.at(0));
     return { r };
 }

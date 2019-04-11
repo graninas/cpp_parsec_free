@@ -38,7 +38,7 @@ struct BindParserFVisitor
         psf::ParseSymbolCond<ParserL<B>> fb;
         fb.validator = fa.validator;
         fb.name = fa.name;
-        fb.next = [=](Char ch)
+        fb.next = [=](const ParserResult<Char>& ch)
         {
             ParserL<A> nextA = fa.next(ch);
             return runBind<A, B>(nextA, f);
@@ -46,12 +46,14 @@ struct BindParserFVisitor
         result.psf = fb;
     }
 
-    void operator()(const psf::GetSt<ParserL<A>>& fa)
+    void operator()(const psf::GetSt<ParserL<A>>&)
     {
+        throw std::runtime_error("GetSt bind not implemented.");
     }
 
-    void operator()(const psf::PutSt<ParserL<A>>& fa)
+    void operator()(const psf::PutSt<ParserL<A>>&)
     {
+        throw std::runtime_error("PutSt bind not implemented.");
     }
 };
 

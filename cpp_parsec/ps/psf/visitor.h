@@ -27,7 +27,7 @@ struct ParserFVisitor
         ParseSymbolCond<B> fb;
         fb.name = fa.name;
         fb.validator = fa.validator;
-        fb.next = [=](const Char d)
+        fb.next = [=](const ParserResult<Char>& d)
         {
             A faResult = fa.next(d);
             B gResult = g(faResult);
@@ -41,9 +41,9 @@ struct ParserFVisitor
         MapFunc<A, B> g = fTemplate;
         PutSt<B> fb;
         fb.st = fa.st;
-        fb.next = [=](const Unit&)
+        fb.next = [=](const ParserResult<Unit>&)
         {
-            A faResult = fa.next(unit);
+            A faResult = fa.next(ParserSucceeded<Unit> { unit });
             B gResult = g(faResult);
             return gResult;
         };
@@ -54,7 +54,7 @@ struct ParserFVisitor
     {
         MapFunc<A, B> g = fTemplate;
         GetSt<B> fb;
-        fb.next = [=](const State& st)
+        fb.next = [=](const ParserResult<State>& st)
         {
             A faResult = fa.next(st);
             B gResult = g(faResult);

@@ -14,7 +14,7 @@ namespace ps
 {
 
 //template <typename A>
-//ParseResult<A> runParser(const ps::church::ParserL<A>& p,
+//ParserResult<A> runParser(const ps::church::ParserL<A>& p,
 //            const std::string& s)
 //{
 //    while (true)

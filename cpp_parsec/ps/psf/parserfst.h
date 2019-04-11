@@ -2,37 +2,39 @@
 #define PS_PSF_PSFST_H
 
 #include "../types.h"
+#include "../free/parserl.h"
 
 namespace ps
 {
 namespace psfst
 {
 
-template <template <typename> class P,
-          typename A,
-          typename Next>
-struct TryP
-{
-    P<A> parser;
-    std::function<Next(ParseResult<A>)> next;
+template <typename A>
+using PSL = ps::free::ParserL<A>;
 
-    static TryP<P, Any, Next> toAny(
-            const P<A>& p,
-            const std::function<P<Any>(P<A>)>& pToAny,
-            const std::function<Next(ParseResult<A>)>& next)
+template <typename A, typename Next>
+struct SafeP
+{
+    ps::free::ParserL<A> parser;
+    std::function<Next(ParserResult<A>)> next;
+
+    static SafeP<Any, Next> toAny(
+            const PSL<A>& p,
+            const std::function<PSL<Any>(PSL<A>)>& pToAny,
+            const std::function<Next(ParserResult<A>)>& next)
     {
-        std::function<Next(ParseResult<A>)> nextCopy = next;
+        std::function<Next(ParserResult<A>)> nextCopy = next;
 
         std::function<A(Any)> fromAny = [](const Any& any)
         {
             return std::any_cast<A>(any);
         };
 
-        TryP<P, Any, Next> m;
+        SafeP<Any, Next> m;
         m.parser = pToAny(p);  // cast to any
-        m.next = [=](const ParseResult<Any>& resultAny)
+        m.next = [=](const ParserResult<Any>& resultAny)
         {
-            ParseResult<A> result =
+            ParserResult<A> result =
                     fmapPR<Any, A>(fromAny, resultAny); // cast from any
             return nextCopy(result);
         };
@@ -40,32 +42,59 @@ struct TryP
     }
 };
 
-
-template <template <typename> class P,
-          typename A,
-          typename Next>
-struct EvalP
+template <typename A, typename Next>
+struct TryP
 {
-    P<A> parser;
-    std::function<Next(ParseResult<A>)> next;
+    PSL<A> parser;
+    std::function<Next(ParserResult<A>)> next;
 
-    static EvalP<P, Any, Next> toAny(
-            const P<A>& p,
-            const std::function<P<Any>(P<A>)>& pToAny,
-            const std::function<Next(ParseResult<A>)>& next)
+    static TryP<Any, Next> toAny(
+            const PSL<A>& p,
+            const std::function<PSL<Any>(PSL<A>)>& pToAny,
+            const std::function<Next(ParserResult<A>)>& next)
     {
-        std::function<Next(ParseResult<A>)> nextCopy = next;
+        std::function<Next(ParserResult<A>)> nextCopy = next;
 
         std::function<A(Any)> fromAny = [](const Any& any)
         {
             return std::any_cast<A>(any);
         };
 
-        EvalP<P, Any, Next> m;
+        TryP<Any, Next> m;
         m.parser = pToAny(p);  // cast to any
-        m.next = [=](const ParseResult<Any>& resultAny)
+        m.next = [=](const ParserResult<Any>& resultAny)
         {
-            ParseResult<A> result =
+            ParserResult<A> result =
+                    fmapPR<Any, A>(fromAny, resultAny); // cast from any
+            return nextCopy(result);
+        };
+        return m;
+    }
+};
+
+template <typename A, typename Next>
+struct EvalP
+{
+    PSL<A> parser;
+    std::function<Next(ParserResult<A>)> next;
+
+    static EvalP<Any, Next> toAny(
+            const PSL<A>& p,
+            const std::function<PSL<Any>(PSL<A>)>& pToAny,
+            const std::function<Next(ParserResult<A>)>& next)
+    {
+        std::function<Next(ParserResult<A>)> nextCopy = next;
+
+        std::function<A(Any)> fromAny = [](const Any& any)
+        {
+            return std::any_cast<A>(any);
+        };
+
+        EvalP<Any, Next> m;
+        m.parser = pToAny(p);  // cast to any
+        m.next = [=](const ParserResult<Any>& resultAny)
+        {
+            ParserResult<A> result =
                     fmapPR<Any, A>(fromAny, resultAny); // cast from any
             return nextCopy(result);
         };
@@ -75,20 +104,24 @@ struct EvalP
 
 // Any
 
-template <template <typename> class P, typename Next>
-using TryPA = TryP<P, Any, Next>;
+template <typename Next>
+using SafePA = SafeP<Any, Next>;
 
-template <template <typename> class P, typename Next>
-using EvalPA = EvalP<P, Any, Next>;
+template <typename Next>
+using TryPA = TryP<Any, Next>;
+
+template <typename Next>
+using EvalPA = EvalP<Any, Next>;
 
 // Algebra
 
-template <template <typename> class P, class Ret>
+template <class Ret>
 struct ParserFST
 {
     std::variant<
-        TryPA<P, Ret>,
-        EvalPA<P, Ret>
+        SafePA<Ret>,
+        TryPA<Ret>,
+        EvalPA<Ret>
     > psfst;
 };
 

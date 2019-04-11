@@ -12,7 +12,7 @@ namespace church
 
 // PS Free Church-encoded
 
-using PRA = ParseResult<Any>;
+using PRA = ParserResult<Any>;
 
 template <typename A>
 using ParserFunc = std::function<

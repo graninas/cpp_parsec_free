@@ -16,20 +16,20 @@ struct ParseSymbolCond
     std::string name;
     std::function<bool(char)> validator;
 
-    std::function<Next(Char)> next;
+    std::function<Next(ParserResult<Char>)> next;
 };
 
 template <typename Next>
 struct PutSt
 {
     State st;
-    std::function<Next(Unit)> next;
+    std::function<Next(ParserResult<Unit>)> next;
 };
 
 template <typename Next>
 struct GetSt
 {
-    std::function<Next(State)> next;
+    std::function<Next(ParserResult<State>)> next;
 };
 
 // PSF algebraic data type

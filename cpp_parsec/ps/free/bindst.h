@@ -10,94 +10,97 @@ namespace free
 {
 
 // forward declaration for bind
-template <template <typename> class P,
-          typename A,
-          typename B>
+template <typename A, typename B>
 struct BindParserLSTVisitor;
 
-template <template <typename> class P,
-          typename A,
-          typename B>
-using ArrowFuncST = std::function<ParserLST<P, B>(A)>;
+template <typename A, typename B>
+using ArrowFuncST = std::function<ParserLST<B>(A)>;
 
-template <template <typename> class P,
-          typename A,
-          typename B>
-ParserLST<P, B> runBindST(
-        const ParserLST<P, A>& pslst,
-        const ArrowFuncST<P, A, B>& f)
+template <typename A, typename B>
+ParserLST<B> runBindST(
+        const ParserLST<A>& pslst,
+        const ArrowFuncST<A, B>& f)
 {
-    BindParserLSTVisitor<P, A, B> visitor(f);
+    BindParserLSTVisitor<A, B> visitor(f);
     std::visit(visitor, pslst.pslst);
     return visitor.result;
 }
 
 
-template <template <typename> class P,
-          typename A,
-          typename B>
+template <typename A, typename B>
 struct BindParserFSTVisitor
 {
-    ArrowFuncST<P, A, B> fTemplate;
-    psfst::ParserFST<P, ParserLST<P, B>> result;
+    ArrowFuncST<A, B> fTemplate;
+    psfst::ParserFST<ParserLST<B>> result;
 
-    BindParserFSTVisitor(const ArrowFuncST<P, A, B>& func)
+    BindParserFSTVisitor(const ArrowFuncST<A, B>& func)
         : fTemplate(func)
     {}
 
-    void operator()(const psfst::TryPA<P, ParserLST<P, A>>& fa)
+    void operator()(const psfst::SafePA<ParserLST<A>>& fa)
     {
-        ArrowFuncST<P, A, B> f = fTemplate;
-        psfst::TryPA<P, ParserLST<P, B>> fb;
+        ArrowFuncST<A, B> f = fTemplate;
+        psfst::SafePA<ParserLST<B>> fb;
         fb.parser = fa.parser;
-        fb.next = [=](const ParseResult<Any>& result)
+        fb.next = [=](const ParserResult<Any>& result)
         {
-            ParserLST<P, A> nextA = fa.next(result);
-            return runBindST<P, A, B>(nextA, f);
+            ParserLST<A> nextA = fa.next(result);
+            return runBindST<A, B>(nextA, f);
         };
         result.psfst = fb;
     }
 
-    void operator()(const psfst::EvalPA<P, ParserLST<P, A>>& fa)
+    void operator()(const psfst::TryPA<ParserLST<A>>& fa)
     {
-        ArrowFuncST<P, A, B> f = fTemplate;
-        psfst::EvalPA<P, ParserLST<P, B>> fb;
+        ArrowFuncST<A, B> f = fTemplate;
+        psfst::TryPA<ParserLST<B>> fb;
         fb.parser = fa.parser;
-        fb.next = [=](const ParseResult<Any>& result)
+        fb.next = [=](const ParserResult<Any>& result)
         {
-            ParserLST<P, A> nextA = fa.next(result);
-            return runBindST<P, A, B>(nextA, f);
+            ParserLST<A> nextA = fa.next(result);
+            return runBindST<A, B>(nextA, f);
+        };
+        result.psfst = fb;
+    }
+
+    void operator()(const psfst::EvalPA<ParserLST<A>>& fa)
+    {
+        ArrowFuncST<A, B> f = fTemplate;
+        psfst::EvalPA<ParserLST<B>> fb;
+        fb.parser = fa.parser;
+        fb.next = [=](const ParserResult<Any>& result)
+        {
+            ParserLST<A> nextA = fa.next(result);
+            return runBindST<A, B>(nextA, f);
         };
         result.psfst = fb;
     }
 };
 
-template <template <typename> class P,
-          typename A,
-          typename B>
+template <typename A, typename B>
 struct BindParserLSTVisitor
 {
-    ArrowFuncST<P, A, B> fTemplate;
-    ParserLST<P, B> result;
+    ArrowFuncST<A, B> fTemplate;
+    ParserLST<B> result;
 
-    BindParserLSTVisitor(const ArrowFuncST<P, A, B>& func)
+    BindParserLSTVisitor(const ArrowFuncST<A, B>& func)
         : fTemplate(func)
     {}
 
-    void operator()(const PureFST<P, A>& fa)
+    void operator()(const PureFST<A>& fa)
     {
-        ArrowFuncST<P, A, B> f = fTemplate;
+        ArrowFuncST<A, B> f = fTemplate;
         result = f(fa.ret);
     }
 
-    void operator()(const FreeFST<P, A>& fa)
+    void operator()(const FreeFST<A>& fa)
     {
-        ArrowFuncST<P, A, B> f = fTemplate;
-        BindParserFSTVisitor<P, A, B> visitor(f);
+        ArrowFuncST<A, B> f = fTemplate;
+        BindParserFSTVisitor<A, B> visitor(f);
         std::visit(visitor, fa.psfst.psfst);
-        psfst::ParserFST<P, ParserLST<P, B>> visited
+        psfst::ParserFST<ParserLST<B>> visited
                 = visitor.result;
-        result.pslst = FreeFST<P, B> { visited };
+        result.pslst = FreeFST<B> { visited };
     }
 };
 

@@ -46,41 +46,41 @@ bool isLeft(const Either<E,T>& e)
     return std::holds_alternative<E>(e);
 }
 
-struct ParseError
+struct ParserFailed
 {
     std::string message;
 };
 
 template <typename T>
-struct ParseSuccess
+struct ParserSucceeded
 {
     T parsed;
 };
 
 template <typename T>
-using ParseResult = Either<ParseError, ParseSuccess<T>>;
+using ParserResult = Either<ParserFailed, ParserSucceeded<T>>;
 
 // unsafe get parsed
 template <typename T>
-T getParsed(const ps::ParseResult<T>& r)
+T getParsed(const ps::ParserResult<T>& r)
 {
-    ParseSuccess<T> s = std::get<ps::ParseSuccess<T>>(r);
+    ParserSucceeded<T> s = std::get<ps::ParserSucceeded<T>>(r);
     return s.parsed;
 }
 
 // unsafe get error
 template <typename T>
-ParseError getError(const ps::ParseResult<T>& r)
+ParserFailed getError(const ps::ParserResult<T>& r)
 {
-    return std::get<ParseError>(r);
+    return std::get<ParserFailed>(r);
 }
 
 // fmap
 
 template <typename A, typename B>
-ParseResult<B> fmapPR(
+ParserResult<B> fmapPR(
         const std::function<B(A)>& f,
-        const ParseResult<A>& pr)
+        const ParserResult<A>& pr)
 {
     if (isLeft(pr))
     {
@@ -88,7 +88,7 @@ ParseResult<B> fmapPR(
     }
 
     A parsed = getParsed(pr);
-    return ParseSuccess<B> { f(parsed) };
+    return ParserSucceeded<B> { f(parsed) };
 }
 
 // state

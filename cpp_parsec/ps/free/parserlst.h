@@ -12,28 +12,31 @@ namespace free
 // TODO: unify
 
 // Forward declaration
-template <template <typename> class P, typename A>
+template <typename A>
 struct ParserLST;
 
 // Free methods
 
-template <template <typename> class P, typename Ret>
+template <typename Ret>
 struct PureFST
 {
     Ret ret;
 };
 
-template <template <typename> class P, typename Ret>
+template <typename Ret>
 struct FreeFST
 {
-    psfst::ParserFST<P, ParserLST<P, Ret>> psfst;
+    psfst::ParserFST<ParserLST<Ret>> psfst;
 };
 
-template <template <typename> class P, typename A>
+template <typename A>
 struct ParserLST
 {
-    std::variant<PureFST<P, A>, FreeFST<P, A>> pslst;
+    std::variant<PureFST<A>, FreeFST<A>> pslst;
 };
+
+template <typename A>
+using ParserT = ParserLST<A>;
 
 } // namespace free
 } // namespace ps

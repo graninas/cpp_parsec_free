@@ -147,12 +147,12 @@ const auto symbol = [](Char ch) {
 /// ParserL evaluation
 
 template <typename A>
-ps::ParseResult<A> parse(
+ps::ParserResult<A> parse(
         const ParserL<A>& psl,
         const std::string& s)
 {
     if (s.empty())
-        return { ParseError { "Source string is empty." }};
+        return { ParserFailed { "Source string is empty." }};
 
     ParserRuntime runtime(s, 0);
     return runParserL<A>(runtime, psl);

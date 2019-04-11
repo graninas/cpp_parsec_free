@@ -16,7 +16,7 @@ template <typename Ret>
 struct ParserFVisitor;
 
 template <typename A>
-ParseResult<A> runParserF(
+ParserResult<A> runParserF(
         ParserRuntime& runtime,
         const psf::ParserF<A>& psf)
 {
@@ -26,19 +26,19 @@ ParseResult<A> runParserF(
 }
 
 template <typename A>
-ParseResult<A> runParserL(ParserRuntime& runtime,
+ParserResult<A> runParserL(ParserRuntime& runtime,
                           const ParserL<A>& psl)
 {
     std::function<PRA(A)> pureAny = [](const A& a)
             {
                 // cast to any
-                return ParseSuccess<Any> { a };
+                return ParserSucceeded<Any> { a };
             };
 
     std::function<PRA(psf::ParserF<PRA>)> g
             = [&](const psf::ParserF<PRA>& psf)
     {
-        ParseResult<PRA> r = runParserF<PRA>(runtime, psf);
+        ParserResult<PRA> r = runParserF<PRA>(runtime, psf);
         if (isLeft(r))
         {
             return PRA { getError(r) };
@@ -52,7 +52,7 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
     try
     {
         PRA anyResult = psl.runF(pureAny, g);
-        if (std::holds_alternative<ParseError>(anyResult))
+        if (std::holds_alternative<ParserFailed>(anyResult))
         {
             return { getError(anyResult) };
         }
@@ -61,12 +61,12 @@ ParseResult<A> runParserL(ParserRuntime& runtime,
             Any parsed = getParsed<Any>(anyResult);
             // cast from any
             A a = std::any_cast<A>(parsed);
-            return ParseSuccess<A> { a };
+            return ParserSucceeded<A> { a };
         }
     }
     catch (std::exception ex)
     {
-        return { ParseError {ex.what()} };
+        return { ParserFailed {ex.what()} };
     }
 }
 
@@ -74,7 +74,7 @@ template <typename Ret>
 struct ParserFVisitor
 {
     ParserRuntime& _runtime;
-    ParseResult<Ret> result;
+    ParserResult<Ret> result;
 
     ParserFVisitor(ParserRuntime& runtime)
         : _runtime(runtime)
@@ -83,14 +83,14 @@ struct ParserFVisitor
 
     void operator()(const psf::ParseSymbolCond<Ret>& f)
     {
-        ParseResult<Char> r = parseSingle<Char>(_runtime, f.validator, id, f.name);
+        ParserResult<Char> r = parseSingle<Char>(_runtime, f.validator, id, f.name);
 
         if (isLeft(r))
-            result = { std::get<ParseError>(r) };
+            result = { std::get<ParserFailed>(r) };
         else
         {
             _runtime.advance(1);
-            ParseSuccess<Ret> s;
+            ParserSucceeded<Ret> s;
             s.parsed = f.next(getParsed<Char>(r));
             result = { s };
         }

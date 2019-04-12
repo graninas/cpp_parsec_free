@@ -28,6 +28,7 @@ private Q_SLOTS:
     void safeVSTryPTest();
 
     void bindPureTest();
+    void applicativeTest();
     void sequencedParsersTest();
 
     void alt1Test();
@@ -235,6 +236,23 @@ void PSTest::bindPureTest()
     auto p = bind<Char, R>(digit,       [=](Char d1) { return
              pure<R>(R{d1, 'a', '0'});
              });
+
+    ParserResult<R> result = parse(p, "1b2");
+
+    QVERIFY(isRight(result));
+    R r = getParsed<R>(result);
+    QVERIFY(r.dg0 == '1');
+    QVERIFY(r.ch1 == 'a');
+    QVERIFY(r.ch2 == '0');
+}
+
+void PSTest::applicativeTest()
+{
+    using namespace ps;
+
+    auto mkR = [](Char dg0, Char ch1, Char ch2) { return R { dg0, ch1, ch2 }; };
+
+    auto p = app<R, Char, Char, Char>(mkR, digit, lower, digit);
 
     ParserResult<R> result = parse(p, "1b2");
 

@@ -335,6 +335,104 @@ const auto symbol = [](Char ch) {
     return evalP<Char>(symbolThrowPL(ch));
 };
 
+template <typename A>
+ParserT<A> alt(const ParserL<A>& l, const ParserL<A>& r)
+{
+    ParserT<ParserResult<A>> lp = safeP(l);
+    ParserT<ParserResult<A>> rp = safeP(r);
+
+    std::function<ParserT<A>(A)> f = [](const A& a) { return pure(a); };
+    return bindSafe(lp, rp, f);
+}
+
+template <typename A>
+ParserT<A> alt(const ParserT<ParserResult<A>>& l,
+               const ParserT<ParserResult<A>>& r)
+{
+    std::function<ParserT<A>(A)> f = [](const A& a) { return pure(a); };
+    return bindSafe(l, r, f);
+}
+
+template <typename A>
+ParserT<Unit> skip(const ParserT<A>& p)
+{
+    return bind<A, Unit>(p, [](const A&) { return pure(unit); });
+}
+
+const auto constF = [](const auto& p){ return [&](auto) { return p; }; };
+
+template <typename A, typename B>
+ParserT<B> forgetFirst(const ParserT<A>& p1, const ParserT<A>& p2)
+{
+    return bind<A, Unit>(skip(p1), constF(p2));
+}
+
+// TODO: this can be made better with variadic templates and varargs
+template <typename R, typename A1>
+using F1 = std::function<R(A1)>;
+
+template <typename R, typename A1, typename A2>
+using F2 = std::function<R(A1, A2)>;
+
+template <typename R, typename A1, typename A2, typename A3>
+using F3 = std::function<R(A1, A2, A3)>;
+
+template <typename R, typename A1, typename A2, typename A3, typename A4>
+using F4 = std::function<R(A1, A2, A3, A4)>;
+
+template <typename R, typename A1>
+ParserT<R> app(const F1<R, A1>& mk,
+               const ParserT<A1>& p1)
+{
+    return
+        bind<R, A1>(p1, [&](const A1& a1) {
+            return pure(mk(a1));
+            });
+}
+
+template <typename R, typename A1, typename A2>
+ParserT<R> app(const F2<R, A1, A2>& mk,
+               const ParserT<A1>& p1,
+               const ParserT<A2>& p2)
+{
+    return
+        bind<R, A1>(p1, [&](const A1& a1) {
+        bind<R, A2>(p2, [&](const A2& a2) {
+            return pure(mk(a1, a2));
+            }); });
+}
+
+template <typename R, typename A1, typename A2, typename A3>
+ParserT<R> app(const F3<R, A1, A2, A3>& mk,
+               const ParserT<A1>& p1,
+               const ParserT<A2>& p2,
+               const ParserT<A3>& p3)
+{
+    return
+        bind<R, A1>(p1, [&](const A1& a1) {
+        bind<R, A2>(p2, [&](const A2& a2) {
+        bind<R, A3>(p3, [&](const A3& a3) {
+            return pure(mk(a1, a2, a3));
+            }); }); });
+}
+
+template <typename R, typename A1, typename A2, typename A3, typename A4>
+ParserT<R> app(const F4<R, A1, A2, A3, A4>& mk,
+               const ParserT<A1>& p1,
+               const ParserT<A2>& p2,
+               const ParserT<A3>& p3,
+               const ParserT<A4>& p4)
+{
+    return
+        bind<R, A1>(p1, [&](const A1& a1) {
+        bind<R, A2>(p2, [&](const A2& a2) {
+        bind<R, A3>(p3, [&](const A3& a3) {
+        bind<R, A4>(p4, [&](const A4& a4) {
+            return pure(mk(a1, a2, a3, a4));
+            }); }); }); });
+}
+
+
 /// ParserL evaluation
 
 template <typename A>
@@ -381,24 +479,6 @@ ParserResult<A> parse(
         const std::string& s)
 {
     return parseP(pst, s);
-}
-
-template <typename A>
-ParserT<A> alt(const ParserL<A>& l, const ParserL<A>& r)
-{
-    ParserT<ParserResult<A>> lp = safeP(l);
-    ParserT<ParserResult<A>> rp = safeP(r);
-
-    std::function<ParserT<A>(A)> f = [](const A& a) { return pure(a); };
-    return bindSafe(lp, rp, f);
-}
-
-template <typename A>
-ParserT<A> alt(const ParserT<ParserResult<A>>& l,
-               const ParserT<ParserResult<A>>& r)
-{
-    std::function<ParserT<A>(A)> f = [](const A& a) { return pure(a); };
-    return bindSafe(l, r, f);
 }
 
 } // namespace free

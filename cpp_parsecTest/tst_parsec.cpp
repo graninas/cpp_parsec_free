@@ -364,26 +364,37 @@ void PSTest::employeeTest()
 {
     using namespace ps;
 
-    auto mk = [](
-            int age,
-            const std::string& sn,
-            const std::string& fn,
-            double s)
-    {
-        return Employee{age, sn, fn, s};
+    auto mkEmployee = [](
+        int age, const string& sn, const string& fn, double s) {
+        return Employee {age, sn, fn, s};
     };
 
-    ParserT<Char> comma = symbol(',');
-    ParserT<std::string> quoted = seq(symbol('"'), fst(strP, symbol('"')));
-    ParserT<int> ageP = seq(lit("employee"), symbol('{'), fst(intP, comma));
+    auto prefix = lit("employee") >> between(spaces, symbol('{'));
+    auto postfix = between(spaces, symbol('}'));
+    auto comma = between(spaces, symbol(','));
 
-    ParserT<Employee> p = app<Employee, int, std::string, std::string, double>(
-                mk,
-                ageP,
-                fst(quoted, comma),
-                fst(quoted, comma),
-                fst(doubleP, symbol('}'))
-                );
+    auto age = intP;
+    auto firstName = quotedString;
+    auto lastName = quotedString;
+    auto salary = doubleP;
+
+    ParserT<Employee> employeeParser =
+        app<Employee, int, string, string, double>(
+            mkEmployee,
+            prefix >> intP,                 // age
+            comma >> quotedString,          // first name
+            comma >> quotedString,          // last name
+            comma >> (doubleP << postfix)); // salary
+
+    auto s = "employee {35, “Jane”, “Street”, 50000.0}";
+    ParserResult<Employee> result = parse(employeeParser, s);
+
+    if (isLeft(result)) {
+        cout << "Parse error: " << getError(result);
+    }
+    else {
+        Employee employee = getParsed(result);
+    }
 }
 
 

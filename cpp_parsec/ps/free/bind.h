@@ -46,6 +46,19 @@ struct BindParserFVisitor
         result.psf = fb;
     }
 
+    void operator()(const psf::ParseLit<ParserL<A>>& fa)
+    {
+        std::function<ParserL<B>(A)> f = fTemplate;
+        psf::ParseLit<ParserL<B>> fb;
+        fb.s = fa.s;
+        fb.next = [=](const ParserResult<std::string>& resS)
+        {
+            ParserL<A> nextA = fa.next(resS);
+            return runBind<A, B>(nextA, f);
+        };
+        result.psf = fb;
+    }
+
     void operator()(const psf::GetSt<ParserL<A>>&)
     {
         throw std::runtime_error("GetSt bind not implemented.");

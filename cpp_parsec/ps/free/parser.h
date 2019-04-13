@@ -217,6 +217,16 @@ ParserL<ParserResult<Char>> parseSymbolCond(
                 });
 }
 
+ParserL<ParserResult<std::string>> parseLit(const std::string& s)
+{
+    return wrap(psf::ParseLit<ParserL<ParserResult<std::string>>>{
+                      s,
+                      [](const ParserResult<std::string>& resS) {
+                          return purePL<ParserResult<std::string>>(resS);
+                      }
+                });
+}
+
 template <typename A>
 const std::function<ParserT<Many<A>>(Many<A>, ParserT<ParserResult<A>>)> rec
     = [](const Many<A>& acc, const ParserT<ParserResult<A>>& p)
@@ -258,10 +268,10 @@ const auto manyPL = [](const ParserL<A>& p) {
     return parseMany<A>(p);
 };
 
-template <typename A>
-const auto many = [](const ParserT<A>& p) {
-    return parseMany<A>(tryP(p));
-};
+//template <typename A>
+//const auto many = [](const ParserT<A>& p) {
+//    return parseMany<A>(sa(p));
+//};
 
 std::function<bool(char)> chEq(char ch)
 {
@@ -293,14 +303,38 @@ const auto isAlphaNum = [](char ch)
     return isAlpha(ch) || isDigit(ch);
 };
 
+const auto isSpace = [](char ch)
+{
+    return ch == ' ';
+};
+
+const auto isEol = [](char ch)
+{
+    return ch == '\n';
+};
+
+const auto isCr = [](char ch)
+{
+    return ch == '\r';
+};
+
+// TODO: unify the parsers.
+
 const ParserL<ParserResult<Char>> digitPL    = parseSymbolCond("digit",    isDigit);
 const ParserL<ParserResult<Char>> lowerPL    = parseSymbolCond("lower",    isLower);
 const ParserL<ParserResult<Char>> upperPL    = parseSymbolCond("upper",    isUpper);
 const ParserL<ParserResult<Char>> letterPL   = parseSymbolCond("letter",   isAlpha);
 const ParserL<ParserResult<Char>> alphaNumPL = parseSymbolCond("alphaNum", isAlphaNum);
+const ParserL<ParserResult<Char>> spacePL    = parseSymbolCond("space",    isSpace);
+const ParserL<ParserResult<Char>> eolPL      = parseSymbolCond("ln",       isEol);
+const ParserL<ParserResult<Char>> crPL       = parseSymbolCond("cr",       isCr);
 
 const auto symbolPL = [](Char ch) {
     return parseSymbolCond(std::string() + ch, chEq(ch));
+};
+
+const auto litPL = [](const std::string& s) {
+    return parseLit(s);
 };
 
 const ParserT<ParserResult<Char>> digitSafe    = evalP<ParserResult<Char>>(digitPL);
@@ -308,9 +342,16 @@ const ParserT<ParserResult<Char>> lowerSafe    = evalP<ParserResult<Char>>(lower
 const ParserT<ParserResult<Char>> upperSafe    = evalP<ParserResult<Char>>(upperPL);
 const ParserT<ParserResult<Char>> letterSafe   = evalP<ParserResult<Char>>(letterPL);
 const ParserT<ParserResult<Char>> alphaNumSafe = evalP<ParserResult<Char>>(alphaNumPL);
+const ParserT<ParserResult<Char>> spaceSafe    = evalP<ParserResult<Char>>(spacePL);
+const ParserT<ParserResult<Char>> eolSafe      = evalP<ParserResult<Char>>(eolPL);
+const ParserT<ParserResult<Char>> crSafe       = evalP<ParserResult<Char>>(crPL);
 
 const auto symbolSafe = [](Char ch) {
     return evalP<ParserResult<Char>>(symbolPL(ch));
+};
+
+const auto litSafe = [](const std::string& s) {
+    return evalP<ParserResult<std::string>>(litPL(s));
 };
 
 const ParserL<Char> digitThrowPL    = evalOrThrow<Char>(digitPL);
@@ -318,27 +359,38 @@ const ParserL<Char> lowerThrowPL    = evalOrThrow<Char>(lowerPL);
 const ParserL<Char> upperThrowPL    = evalOrThrow<Char>(upperPL);
 const ParserL<Char> letterThrowPL   = evalOrThrow<Char>(letterPL);
 const ParserL<Char> alphaNumThrowPL = evalOrThrow<Char>(alphaNumPL);
+const ParserL<Char> spaceThrowPL    = evalOrThrow<Char>(spacePL);
+const ParserL<Char> eolThrowPL      = evalOrThrow<Char>(eolPL);
+const ParserL<Char> crThrowPL       = evalOrThrow<Char>(crPL);
 
 const auto symbolThrowPL = [](Char ch) {
     return evalOrThrow<Char>(symbolPL(ch));
 };
 
+const auto litThrowPL = [](const std::string& s) {
+    return evalOrThrow<std::string>(litPL(s));
+};
 
 const ParserT<Char> digit    = evalP<Char>(digitThrowPL);
 const ParserT<Char> lower    = evalP<Char>(lowerThrowPL);
 const ParserT<Char> upper    = evalP<Char>(upperThrowPL);
 const ParserT<Char> letter   = evalP<Char>(letterThrowPL);
 const ParserT<Char> alphaNum = evalP<Char>(alphaNumThrowPL);
+const ParserT<Char> space    = evalP<Char>(spaceThrowPL);
+const ParserT<Char> eol      = evalP<Char>(eolThrowPL);
+const ParserT<Char> cr       = evalP<Char>(crThrowPL);
 
 const auto symbol = [](Char ch) {
     return evalP<Char>(symbolThrowPL(ch));
 };
 
+const auto lit = [](const std::string& s) {
+    return evalP<std::string>(litThrowPL(s));
+};
+
+const ParserT<Many<Char>> spaces = parseMany<Char>(spaceThrowPL);
+
 // dummy
-ParserT<std::string> lit(const std::string&)
-{
-    throw std::runtime_error("parseLit is not implemented yet.");
-}
 
 ParserT<std::string> parseString()
 {
@@ -397,19 +449,18 @@ ParserT<A> forgetSecond(const ParserT<A>& p1, const ParserT<B>& p2)
 template <typename A, typename B>
 ParserT<A> fst(const ParserT<A>& p1, const ParserT<B>& p2)
 {
-    return bind<A, A>(p1, [=](const A& a)
-    {
-        return bind<B, A>(p2, constF(pure(a)));
-    });
+    return forgetSecond(p1, p2);
 }
 
 template <typename A, typename B>
 ParserT<B> snd(const ParserT<A>& p1, const ParserT<B>& p2)
 {
-    return bind<A, B>(p1, constF(p2));
+    return forgetFirst(p1, p2);
 }
 
+// Applicative-like and sequential combinators.
 // TODO: this can be made better with variadic templates and varargs
+
 template <typename R, typename A1>
 using F1 = std::function<R(A1)>;
 
@@ -480,7 +531,6 @@ ParserT<A2> seq(const ParserT<A1>& p1, const ParserT<A2>& p2)
     return snd(p1, p2);
 }
 
-
 template <typename A1, typename A2, typename A3>
 ParserT<A3> seq(
         const ParserT<A1>& p1,
@@ -500,6 +550,28 @@ ParserT<A4> seq(
     return snd(p1, snd(p2, snd(p3, p4)));
 }
 
+// More combinators
+
+template <typename A, typename B>
+ParserT<B> operator>> (const ParserT<A>& l, const ParserT<B>& r)
+{
+    return snd(l, r);
+}
+
+template <typename A, typename B>
+ParserT<A> operator<< (const ParserT<A>& l, const ParserT<B>& r)
+{
+    return fst(l, r);
+}
+
+template <typename A, typename B>
+ParserT<B> between(const ParserT<A>& bracketP,
+                   const ParserT<B>& p)
+{
+    return seq(bracketP, fst(p, bracketP));
+}
+
+
 /// ParserL evaluation
 
 template <typename A>
@@ -516,7 +588,7 @@ ParserResult<A> parseP(
         ParserResult<A> res = runParserT<A>(runtime, pst);
         return res;
     }
-    catch (std::runtime_error err)
+    catch (const std::runtime_error& err)
     {
         return ParserFailed { err.what() };
     }

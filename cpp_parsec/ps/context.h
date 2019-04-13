@@ -52,6 +52,10 @@ ParserResult<Single> parseSingle(
     return { r };
 }
 
+ParserResult<std::string> parseLit(
+        ParserRuntime& runtime,
+        const std::string& litS
+        );
 } // namespace ps
 
 #endif // PS_CONTEXT_H

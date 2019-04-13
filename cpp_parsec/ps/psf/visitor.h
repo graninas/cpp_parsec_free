@@ -8,6 +8,7 @@ namespace ps
 namespace psf
 {
 
+// TODO: remove this, use bind instead.
 template <typename A, typename B>
 using MapFunc = std::function<B(A)>;
 
@@ -28,6 +29,20 @@ struct ParserFVisitor
         fb.name = fa.name;
         fb.validator = fa.validator;
         fb.next = [=](const ParserResult<Char>& d)
+        {
+            A faResult = fa.next(d);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
+
+    void operator()(const ParseLit<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        ParseLit<B> fb;
+        fb.s = fa.s;
+        fb.next = [=](const ParserResult<std::string>& d)
         {
             A faResult = fa.next(d);
             B gResult = g(faResult);

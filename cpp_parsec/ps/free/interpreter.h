@@ -43,8 +43,20 @@ struct ParserFVisitor
         else
         {
             _runtime.advance(1);
+            ParserL<Ret> rNext = f.next(r);
+            result = runParserL<Ret>(_runtime, rNext);
+        }
+    }
 
-//            Char ch = std::get<ParserSucceeded<Char>>(r).parsed;
+    void operator()(const psf::ParseLit<ParserL<Ret>>& f)
+    {
+        ParserResult<std::string> r = parseLit(_runtime, f.s);
+
+        if (isLeft(r))
+            throw std::runtime_error(getError(r).message);
+        else
+        {
+            _runtime.advance(f.s.size());
             ParserL<Ret> rNext = f.next(r);
             result = runParserL<Ret>(_runtime, rNext);
         }

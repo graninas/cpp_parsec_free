@@ -18,6 +18,7 @@ private Q_SLOTS:
 
     void singleDigitParserTest();
     void digitParserTest();
+    void litParserTest();
     void lowerCaseCharParserTest();
     void upperCaseCharParserTest();
     void symbolParserTest();
@@ -75,6 +76,17 @@ void PSTest::digitParserTest()
     QVERIFY(isRight(result));
     Char r = getParsed<Char>(result);
     QVERIFY(r == '1');
+}
+
+void PSTest::litParserTest()
+{
+    using namespace ps;
+
+    ParserResult<std::string> result = parse<std::string>(lit("str"), "str12");
+
+    QVERIFY(isRight(result));
+    std::string r = getParsed<std::string>(result);
+    QVERIFY(r == "abc");
 }
 
 void PSTest::lowerCaseCharParserTest()
@@ -365,10 +377,11 @@ void PSTest::employeeTest()
     using namespace ps;
 
     auto mkEmployee = [](
-        int age, const string& sn, const string& fn, double s) {
-        return Employee {age, sn, fn, s};
+        int a, const std::string& sn, const std::string& fn, double s) {
+        return Employee {a, sn, fn, s};
     };
 
+    auto quotedString = between(symbol('"'), strP);
     auto prefix = lit("employee") >> between(spaces, symbol('{'));
     auto postfix = between(spaces, symbol('}'));
     auto comma = between(spaces, symbol(','));
@@ -379,7 +392,7 @@ void PSTest::employeeTest()
     auto salary = doubleP;
 
     ParserT<Employee> employeeParser =
-        app<Employee, int, string, string, double>(
+        app<Employee, int, std::string, std::string, double>(
             mkEmployee,
             prefix >> intP,                 // age
             comma >> quotedString,          // first name
@@ -390,7 +403,7 @@ void PSTest::employeeTest()
     ParserResult<Employee> result = parse(employeeParser, s);
 
     if (isLeft(result)) {
-        cout << "Parse error: " << getError(result);
+        std::cout << "Parse error: " << getError(result).message;
     }
     else {
         Employee employee = getParsed(result);

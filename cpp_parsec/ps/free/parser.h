@@ -260,7 +260,7 @@ ParserT<Many<A>> parseMany(const ParserL<A>& p)
 {
     ParserT<ParserResult<A>> pt = safeP(p);
 
-    return parseMany(pt);
+    return parseMany<A>(pt);
 }
 
 template <typename A>
@@ -388,23 +388,27 @@ const auto lit = [](const std::string& s) {
     return evalP<std::string>(litThrowPL(s));
 };
 
-const ParserT<Many<Char>> spaces = parseMany<Char>(spaceThrowPL);
+//const ParserT<Many<Char>> spaces = manyPL<Char>(spaceThrowPL);
+ParserT<Many<Char>> spaces()
+{
+    return manyPL<Char>(spaceThrowPL);
+}
 
 // dummy
 
 ParserT<std::string> parseString()
 {
-    throw std::runtime_error("parseString is not implemented yet.");
+
 }
 
 ParserT<int> parseInt()
 {
-    throw std::runtime_error("parseInt is not implemented yet.");
+
 }
 
 ParserT<double> parseDouble()
 {
-    throw std::runtime_error("parseDouble is not implemented yet.");
+
 }
 
 const ParserT<std::string> strP = parseString();

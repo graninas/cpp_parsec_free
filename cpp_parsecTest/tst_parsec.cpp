@@ -32,6 +32,8 @@ private Q_SLOTS:
     void applicativeTest();
     void sequencedParsersTest();
     void forgetCombinatorsTest();
+    void seqCombinatorsTest();
+    void binarySeqCombinatorsTest();
 
     void alt1Test();
     void alt2Test();
@@ -86,7 +88,7 @@ void PSTest::litParserTest()
 
     QVERIFY(isRight(result));
     std::string r = getParsed<std::string>(result);
-    QVERIFY(r == "abc");
+    QVERIFY(r == "str");
 }
 
 void PSTest::lowerCaseCharParserTest()
@@ -313,6 +315,38 @@ void PSTest::forgetCombinatorsTest()
     QVERIFY(getParsed<Char>(result2) == 'a');
 }
 
+void PSTest::seqCombinatorsTest()
+{
+    using namespace ps;
+
+    ParserResult<Char> result1 = parse(seq(upper, lower), "Aa");
+    ParserResult<Char> result2 = parse(seq(upper, lower, digit), "Aa1");
+    ParserResult<Char> result3 = parse(seq(upper, lower, digit, symbol('!')), "Aa1!");
+
+    QVERIFY(isRight(result1));
+    QVERIFY(isRight(result2));
+    QVERIFY(isRight(result3));
+    QVERIFY(getParsed<Char>(result1) == 'a');
+    QVERIFY(getParsed<Char>(result2) == '1');
+    QVERIFY(getParsed<Char>(result3) == '!');
+}
+
+void PSTest::binarySeqCombinatorsTest()
+{
+    using namespace ps;
+
+    ParserResult<Char> result1 = parse(upper >> lower, "Aa");
+    ParserResult<Char> result2 = parse(upper >> lower >> digit, "Aa1");
+    ParserResult<Char> result3 = parse(upper >> (lower << digit), "Aa1");
+
+    QVERIFY(isRight(result1));
+    QVERIFY(isRight(result2));
+    QVERIFY(isRight(result3));
+    QVERIFY(getParsed<Char>(result1) == 'a');
+    QVERIFY(getParsed<Char>(result2) == '1');
+    QVERIFY(getParsed<Char>(result3) == 'a');
+}
+
 void PSTest::alt1Test()
 {
     using namespace ps;
@@ -367,47 +401,46 @@ void PSTest::internalParsersTest()
 struct Employee
 {
     int age;
-    std::string surname;
-    std::string forename;
+    std::string firstName;
+    std::string lastName;
     double salary;
 };
 
 void PSTest::employeeTest()
 {
-    using namespace ps;
+//    using namespace ps;
 
-    auto mkEmployee = [](
-        int a, const std::string& sn, const std::string& fn, double s) {
-        return Employee {a, sn, fn, s};
-    };
+//    auto mkEmployee = [](
+//        int a, const std::string& sn, const std::string& fn, double s) {
+//        return Employee {a, sn, fn, s};
+//    };
 
-    auto quotedString = between(symbol('"'), strP);
-    auto prefix = lit("employee") >> between(spaces, symbol('{'));
-    auto postfix = between(spaces, symbol('}'));
-    auto comma = between(spaces, symbol(','));
+//    auto quotedString = between(symbol('"'), strP);
+//    auto prefix = lit("employee") >> between(spaces(), symbol('{'));
+//    auto postfix = between(spaces(), symbol('}'));
+//    auto comma = between(spaces(), symbol(','));
 
-    auto age = intP;
-    auto firstName = quotedString;
-    auto lastName = quotedString;
-    auto salary = doubleP;
+//    ParserT<Employee> employeeParser =
+//        app<Employee, int, std::string, std::string, double>(
+//            mkEmployee,
+//            prefix >> intP,                 // age
+//            comma >> quotedString,          // first name
+//            comma >> quotedString,          // last name
+//            comma >> (doubleP << postfix)); // salary
 
-    ParserT<Employee> employeeParser =
-        app<Employee, int, std::string, std::string, double>(
-            mkEmployee,
-            prefix >> intP,                 // age
-            comma >> quotedString,          // first name
-            comma >> quotedString,          // last name
-            comma >> (doubleP << postfix)); // salary
+//    auto s = "employee {35, “Jane”, “Street”, 50000.0}";
+//    ParserResult<Employee> result = parse(employeeParser, s);
 
-    auto s = "employee {35, “Jane”, “Street”, 50000.0}";
-    ParserResult<Employee> result = parse(employeeParser, s);
-
-    if (isLeft(result)) {
-        std::cout << "Parse error: " << getError(result).message;
-    }
-    else {
-        Employee employee = getParsed(result);
-    }
+//    if (isLeft(result)) {
+//        std::cout << "Parse error: " << getError(result).message;
+//    }
+//    else {
+//        Employee employee = getParsed(result);
+//        QVERIFY(employee.age == 35);
+//        QVERIFY(employee.firstName == "Jane");
+//        QVERIFY(employee.lastName == "Street");
+//        QVERIFY(employee.salary >= 50000.0 && employee.salary <= 50000.1);
+//    }
 }
 
 

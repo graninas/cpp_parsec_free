@@ -8,6 +8,7 @@ namespace ps
 namespace psfst
 {
 
+// TODO: remove this, use bind instead.
 template <typename A, typename B>
 using MapFuncST = std::function<B(A)>;
 

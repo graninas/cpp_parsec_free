@@ -29,4 +29,25 @@ void ParserRuntime::put_state(const State& state)
     _state = state;
 }
 
+
+ParserResult<std::string> parseLit(
+        ParserRuntime& runtime,
+        const std::string& litS
+        )
+{
+    std::string_view s = runtime.get_view();
+    std::string failedMsg = std::string("Failed to parse ") + litS;
+
+    if (s.size() < litS.size())
+    {
+        return { ParserFailed {failedMsg + ": end of imput."} };
+    }
+    else if (s.find(litS) != 0)
+    {
+        return { ParserFailed {failedMsg} };
+    }
+
+    return ParserSucceeded<std::string>{ litS };
+}
+
 } // namespace ps

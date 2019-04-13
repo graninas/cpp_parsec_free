@@ -20,6 +20,14 @@ struct ParseSymbolCond
 };
 
 template <typename Next>
+struct ParseLit
+{
+    std::string s;
+
+    std::function<Next(ParserResult<std::string>)> next;
+};
+
+template <typename Next>
 struct PutSt
 {
     State st;
@@ -39,6 +47,7 @@ struct ParserF
 {
     std::variant<
         ParseSymbolCond<Ret>,
+        ParseLit<Ret>,
         PutSt<Ret>,
         GetSt<Ret>
     > psf;

@@ -259,8 +259,8 @@ void PSTest::applicativeTest()
     QVERIFY(isRight(result));
     R r = getParsed<R>(result);
     QVERIFY(r.dg0 == '1');
-    QVERIFY(r.ch1 == 'a');
-    QVERIFY(r.ch2 == '0');
+    QVERIFY(r.ch1 == 'b');
+    QVERIFY(r.ch2 == '2');
 }
 
 void PSTest::sequencedParsersTest()

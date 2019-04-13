@@ -385,7 +385,7 @@ ParserT<R> app(const F1<R, A1>& mk,
                const ParserT<A1>& p1)
 {
     return
-        bind<R, A1>(p1, [&](const A1& a1) {
+        bind<A1, R>(p1, [=](const A1& a1) {
             return pure(mk(a1));
             });
 }
@@ -396,10 +396,10 @@ ParserT<R> app(const F2<R, A1, A2>& mk,
                const ParserT<A2>& p2)
 {
     return
-        bind<R, A1>(p1, [&](const A1& a1) {
-        bind<R, A2>(p2, [&](const A2& a2) {
-            return pure(mk(a1, a2));
-            }); });
+        bind<A1, R>(p1, [=](const A1& a1) { return
+        bind<A2, R>(p2, [=](const A2& a2) { return
+        pure(mk(a1, a2));
+        }); });
 }
 
 template <typename R, typename A1, typename A2, typename A3>
@@ -409,11 +409,11 @@ ParserT<R> app(const F3<R, A1, A2, A3>& mk,
                const ParserT<A3>& p3)
 {
     return
-        bind<R, A1>(p1, [&](const A1& a1) {
-        bind<R, A2>(p2, [&](const A2& a2) {
-        bind<R, A3>(p3, [&](const A3& a3) {
-            return pure(mk(a1, a2, a3));
-            }); }); });
+        bind<A1, R>(p1, [=](const A1& a1) { return
+        bind<A2, R>(p2, [=](const A2& a2) { return
+        bind<A3, R>(p3, [=](const A3& a3) { return
+        pure(mk(a1, a2, a3));
+        }); }); });
 }
 
 template <typename R, typename A1, typename A2, typename A3, typename A4>
@@ -424,12 +424,12 @@ ParserT<R> app(const F4<R, A1, A2, A3, A4>& mk,
                const ParserT<A4>& p4)
 {
     return
-        bind<R, A1>(p1, [&](const A1& a1) {
-        bind<R, A2>(p2, [&](const A2& a2) {
-        bind<R, A3>(p3, [&](const A3& a3) {
-        bind<R, A4>(p4, [&](const A4& a4) {
-            return pure(mk(a1, a2, a3, a4));
-            }); }); }); });
+        bind<A1, R>(p1, [=](const A1& a1) { return
+        bind<A2, R>(p2, [=](const A2& a2) { return
+        bind<A3, R>(p3, [=](const A3& a3) { return
+        bind<A4, R>(p4, [=](const A4& a4) { return
+        pure(mk(a1, a2, a3, a4));
+        }); }); }); });
 }
 
 

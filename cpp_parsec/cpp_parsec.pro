@@ -11,28 +11,12 @@ SOURCES += \
 
 HEADERS += \
     ps/context.h \
-    ps/impl/runtime.h \
     ps/types.h \
-    ps/church/interpreter.h \
-    ps/church/functor.h \
     ps/ps.h \
-    ps2/tvar.h \
-    ps2/context.h \
-    ps2/psf/visitor.h \
-    ps2/psf/psf.h \
-    ps2/impl/runtime.h \
-    ps2/types.h \
-    ps2/church/psl.h \
-    ps2/church/interpreter.h \
-    ps2/church/functor.h \
-    ps2/church/ps.h \
-    ps2/ps.h \
     ps/free/interpreter.h \
     ps/free/bind.h \
     ps/free/parser.h \
     ps/free/parserl.h \
-    ps/church/parserl.h \
-    ps/church/parser.h \
     ps/psf/parserf.h \
     ps/psf/visitor.h \
     ps/psf/parserfst.h \

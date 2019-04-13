@@ -353,18 +353,21 @@ ParserT<A> alt(const ParserT<ParserResult<A>>& l,
     return bindSafe(l, r, f);
 }
 
-template <typename A>
-ParserT<Unit> skip(const ParserT<A>& p)
-{
-    return bind<A, Unit>(p, [](const A&) { return pure(unit); });
-}
-
-const auto constF = [](const auto& p){ return [&](auto) { return p; }; };
+const auto constF = [](const auto& p){ return [=](auto) { return p; }; };
 
 template <typename A, typename B>
-ParserT<B> forgetFirst(const ParserT<A>& p1, const ParserT<A>& p2)
+ParserT<B> forgetFirst(const ParserT<A>& p1, const ParserT<B>& p2)
 {
-    return bind<A, Unit>(skip(p1), constF(p2));
+    return bind<A, B>(p1, constF(p2));
+}
+
+template <typename A, typename B>
+ParserT<A> forgetSecond(const ParserT<A>& p1, const ParserT<B>& p2)
+{
+    return bind<A, A>(p1, [=](const A& a)
+    {
+        return bind<B, A>(p2, constF(pure(a)));
+    });
 }
 
 // TODO: this can be made better with variadic templates and varargs

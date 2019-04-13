@@ -30,6 +30,7 @@ private Q_SLOTS:
     void bindPureTest();
     void applicativeTest();
     void sequencedParsersTest();
+    void forgetCombinatorsTest();
 
     void alt1Test();
     void alt2Test();
@@ -280,6 +281,22 @@ void PSTest::sequencedParsersTest()
     QVERIFY(r.dg0 == '1');
     QVERIFY(r.ch1 == 'b');
     QVERIFY(r.ch2 == '2');
+}
+
+void PSTest::forgetCombinatorsTest()
+{
+    using namespace ps;
+
+    auto fst = forgetFirst(letter, digit);
+    auto snd = forgetSecond(letter, digit);
+
+    ParserResult<Char> result1 = parse(fst, "a1");
+    ParserResult<Char> result2 = parse(snd, "a1");
+
+    QVERIFY(isRight(result1));
+    QVERIFY(isRight(result2));
+    QVERIFY(getParsed<Char>(result1) == '1');
+    QVERIFY(getParsed<Char>(result2) == 'a');
 }
 
 void PSTest::alt1Test()

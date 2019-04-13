@@ -239,7 +239,6 @@ const std::function<ParserT<Many<A>>(Many<A>, ParserT<ParserResult<A>>)> rec
     return pt;
 };
 
-
 template <typename A>
 ParserT<Many<A>> parseMany(const ParserT<ParserResult<A>>& p)
 {
@@ -335,6 +334,31 @@ const auto symbol = [](Char ch) {
     return evalP<Char>(symbolThrowPL(ch));
 };
 
+// dummy
+ParserT<std::string> lit(const std::string&)
+{
+    throw std::runtime_error("parseLit is not implemented yet.");
+}
+
+ParserT<std::string> parseString()
+{
+    throw std::runtime_error("parseString is not implemented yet.");
+}
+
+ParserT<int> parseInt()
+{
+    throw std::runtime_error("parseInt is not implemented yet.");
+}
+
+ParserT<double> parseDouble()
+{
+    throw std::runtime_error("parseDouble is not implemented yet.");
+}
+
+const ParserT<std::string> strP = parseString();
+const ParserT<int> intP = parseInt();
+const ParserT<double> doubleP = parseDouble();
+
 template <typename A>
 ParserT<A> alt(const ParserL<A>& l, const ParserL<A>& r)
 {
@@ -368,6 +392,21 @@ ParserT<A> forgetSecond(const ParserT<A>& p1, const ParserT<B>& p2)
     {
         return bind<B, A>(p2, constF(pure(a)));
     });
+}
+
+template <typename A, typename B>
+ParserT<A> fst(const ParserT<A>& p1, const ParserT<B>& p2)
+{
+    return bind<A, A>(p1, [=](const A& a)
+    {
+        return bind<B, A>(p2, constF(pure(a)));
+    });
+}
+
+template <typename A, typename B>
+ParserT<B> snd(const ParserT<A>& p1, const ParserT<B>& p2)
+{
+    return bind<A, B>(p1, constF(p2));
 }
 
 // TODO: this can be made better with variadic templates and varargs
@@ -435,6 +474,31 @@ ParserT<R> app(const F4<R, A1, A2, A3, A4>& mk,
         }); }); }); });
 }
 
+template <typename A1, typename A2>
+ParserT<A2> seq(const ParserT<A1>& p1, const ParserT<A2>& p2)
+{
+    return snd(p1, p2);
+}
+
+
+template <typename A1, typename A2, typename A3>
+ParserT<A3> seq(
+        const ParserT<A1>& p1,
+        const ParserT<A2>& p2,
+        const ParserT<A3>& p3)
+{
+    return snd(p1, snd(p2, p3));
+}
+
+template <typename A1, typename A2, typename A3, typename A4>
+ParserT<A4> seq(
+        const ParserT<A1>& p1,
+        const ParserT<A2>& p2,
+        const ParserT<A3>& p3,
+        const ParserT<A4>& p4)
+{
+    return snd(p1, snd(p2, snd(p3, p4)));
+}
 
 /// ParserL evaluation
 

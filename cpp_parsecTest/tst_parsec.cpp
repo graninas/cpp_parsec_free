@@ -35,6 +35,8 @@ private Q_SLOTS:
     void alt1Test();
     void alt2Test();
     void internalParsersTest();
+
+    void employeeTest();
 };
 
 PSTest::PSTest()
@@ -349,6 +351,41 @@ void PSTest::internalParsersTest()
     Char ch = getParsed<Char>(result);
     QVERIFY(ch == 'A');
 }
+
+struct Employee
+{
+    int age;
+    std::string surname;
+    std::string forename;
+    double salary;
+};
+
+void PSTest::employeeTest()
+{
+    using namespace ps;
+
+    auto mk = [](
+            int age,
+            const std::string& sn,
+            const std::string& fn,
+            double s)
+    {
+        return Employee{age, sn, fn, s};
+    };
+
+    ParserT<Char> comma = symbol(',');
+    ParserT<std::string> quoted = seq(symbol('"'), fst(strP, symbol('"')));
+    ParserT<int> ageP = seq(lit("employee"), symbol('{'), fst(intP, comma));
+
+    ParserT<Employee> p = app<Employee, int, std::string, std::string, double>(
+                mk,
+                ageP,
+                fst(quoted, comma),
+                fst(quoted, comma),
+                fst(doubleP, symbol('}'))
+                );
+}
+
 
 QTEST_APPLESS_MAIN(PSTest)
 

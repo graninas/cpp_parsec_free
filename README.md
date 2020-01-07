@@ -6,7 +6,7 @@ Experimental implementation of monadic parsers similar to Haskell's Parsec but i
 The design of the library is not finished for now. Combinators are currently divided into two layers: `ParserL` and `ParserT`. These layers should be unified to eliminate the difference in usage.
 
 **Additional materials**
-- [Monadic Parsers in C++ (Talk, Rus)](https://www.youtube.com/watch?v=q39PHTJDaLE) | [Slides (Rus)](https://docs.google.com/presentation/d/1zlwKBX8-DYVWUYmzvmKm7ggDVBugEJzY6OFSWjeQOA4/edit?usp=sharing) | My talk about this implementation at C++ Russia 2019 Moscow.
+- [Monadic Parsers in C++ (Talk, Rus)](https://www.youtube.com/watch?v=q39PHTJDaLE) | [Slides (Eng)](https://docs.google.com/presentation/d/1zlwKBX8-DYVWUYmzvmKm7ggDVBugEJzY6OFSWjeQOA4/edit?usp=sharing) | My talk about this implementation at C++ Russia 2019 Moscow.
 - [cpp_stm_free](https://github.com/graninas/cpp_stm_free) | Software Transactional Memory with the same Free Monads approach
 
 Requirements

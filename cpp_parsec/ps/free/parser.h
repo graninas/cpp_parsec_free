@@ -25,18 +25,20 @@ namespace free
 template <typename A>
 ParserResult<A> parse(
         const ParserL<A>& pst,
-        const std::string& s)
+        const std::string& s,
+        Pos from = 0)
 {
     ParserRuntime runtime (s, State{0});
-    return runParser(runtime, pst, 0);
+    return runParser(runtime, pst, from);
 }
 
 template <typename A>
 ParserResult<A> parse_with_runtime(
     ParserRuntime &runtime,
-    const ParserL<A> &pst)
+    const ParserL<A> &pst,
+    Pos from = 0)
 {
-  return runParser(runtime, pst, 0);
+  return runParser(runtime, pst, from);
 }
 
 // Parsers

@@ -17,6 +17,7 @@ public:
 private Q_SLOTS:
 
   void singleDigitParserTest();
+  void singleDigitFromMiddleTest();
   void singleDigitFailureTest();
   void litParserTest();
   // void digitParserTest();
@@ -85,6 +86,32 @@ void PSTest::singleDigitParserTest()
   QVERIFY(r == '1');
 }
 
+void PSTest::singleDigitFromMiddleTest()
+{
+  using namespace ps;
+
+  auto src = "a1b";
+  std::string_view src_view(src);
+
+  ParserRuntime runtime(src, State{0});
+  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 1);
+
+  auto messages = runtime.get_messages();
+  for (const auto &msg : messages)
+  {
+      std::cout << msg << "\n";
+  }
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
+
+  std::cout << "Final position: " << parseSucceeded.to << "\n";
+  std::cout << "Parsed character: '" << r << "'\n";
+
+  QVERIFY(r == '1');
+}
+
 void PSTest::singleDigitFailureTest()
 {
   using namespace ps;
@@ -103,7 +130,6 @@ void PSTest::singleDigitFailureTest()
 
   QVERIFY(isLeft(result));
   auto parseFailed = getParseFailed(result);
-  std::cout << "Error message: " << parseFailed.message << "\n";
 }
 
 void PSTest::litParserTest()
@@ -123,17 +149,6 @@ void PSTest::litParserTest()
     std::string r = getParseSucceeded<std::string>(result).parsed;
     QVERIFY(r == "str");
 }
-
-// void PSTest::digitParserTest()
-// {
-//   using namespace ps;
-
-//   ParserResult<Char> result = parse<Char>(digit, "1abc");
-
-//   QVERIFY(isRight(result));
-//   Char r = getParseSucceeded<Char>(result).parsed;
-//   QVERIFY(r == '1');
-// }
 
 
 // void PSTest::lowerCaseCharParserTest()

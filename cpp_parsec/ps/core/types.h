@@ -1,5 +1,5 @@
-#ifndef PS_TYPES_H
-#define PS_TYPES_H
+#ifndef PS_CORE_TYPES_H
+#define PS_CORE_TYPES_H
 
 #include <functional>
 #include <string>
@@ -9,6 +9,8 @@
 #include <vector>
 
 namespace ps
+{
+namespace core
 {
 
 // Short definitions
@@ -65,14 +67,14 @@ using ParserResult = Either<ParserFailed, ParserSucceeded<T>>;
 
 // unsafe get parsed
 template <typename T>
-ParserSucceeded<T> getParseSucceeded(const ps::ParserResult<T>& r)
+ParserSucceeded<T> getParseSucceeded(const ParserResult<T>& r)
 {
-    return std::get<ps::ParserSucceeded<T>>(r);
+    return std::get<ParserSucceeded<T>>(r);
 }
 
 // unsafe convert success
 template <typename A, typename B>
-ParserSucceeded<B> convertParseSucceeded(const ps::ParserResult<A>& r,
+ParserSucceeded<B> convertParseSucceeded(const ParserResult<A>& r,
                                        const std::function<B(A)>& f)
 {
   ParserSucceeded<A> s = getParseSucceeded(r);
@@ -85,33 +87,21 @@ ParserSucceeded<B> convertParseSucceeded(const ps::ParserResult<A>& r,
 
 // unsafe get error
 template <typename T>
-ParserFailed getParseFailed(const ps::ParserResult<T>& r)
+ParserFailed getParseFailed(const ParserResult<T>& r)
 {
     return std::get<ParserFailed>(r);
 }
 
-// // fmap
-
-// template <typename A, typename B>
-// ParserResult<B> fmapPR(
-//         const std::function<B(A)>& f,
-//         const ParserResult<A>& pr)
-// {
-//     if (isLeft(pr))
-//     {
-//       return getParseFailed(pr);
-//     }
-
-//     return convertParseSucceeded<A, B>(pr, f);
-// }
-
 // state
+
+// TODO: redesign
 
 struct State
 {
-    Pos pos;
+    Pos pos;      // Not needed
 };
 
+} // namespace core
 } // namespace ps
 
-#endif // PS_TYPES_H
+#endif // PS_CORE_TYPES_H

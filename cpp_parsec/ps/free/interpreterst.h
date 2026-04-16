@@ -1,116 +1,116 @@
-#ifndef PS_FREE_INTERPRETERST_H
-#define PS_FREE_INTERPRETERST_H
+// #ifndef PS_FREE_INTERPRETERST_H
+// #define PS_FREE_INTERPRETERST_H
 
-#include "parserlst.h"
-#include "../context.h"
-#include "interpreter.h"
-#include "bind.h"
+// #include "parserlst.h"
+// #include "../context.h"
+// #include "interpreter.h"
+// #include "bind.h"
 
-namespace ps
-{
-namespace free
-{
-
-// // Forward declaration
-// template <typename Ret>
-// struct ParserLSTVisitor;
-
-// template <typename Ret>
-// ParserResult<Ret> runParserT(
-//         ParserRuntime& runtime,
-//         const ParserLST<Ret>& pslst)
+// namespace ps
 // {
-//     ParserLSTVisitor<Ret> visitor(runtime);
-//     std::visit(visitor, pslst.pslst);
-//     return visitor.result;
-// }
-
-// template <typename Ret>
-// struct ParserFSTVisitor
+// namespace free
 // {
-//     ParserRuntime& _runtime;
-//     ParserResult<Ret> result;
 
-//     ParserFSTVisitor(ParserRuntime& runtime)
-//         : _runtime(runtime)
-//     {
-//     }
+// // // Forward declaration
+// // template <typename Ret>
+// // struct ParserLSTVisitor;
 
-//     template <typename A>
-//     void operator()(const psfst::SafeP<A, ParserLST<Ret>>& f)
-//     {
-//         State currentSt = _runtime.get_state();
-//         try
-//         {
-//             ParserResult<A> pr1 = runParserL(_runtime, f.parser);
-//             ParserLST<Ret> pr2 = f.next(pr1);
-//             result = runParserT<Ret>(_runtime, pr2);
-//         }
-//         catch (const std::runtime_error& err)
-//         {
-//             _runtime.put_state(currentSt);
+// // template <typename Ret>
+// // ParserResult<Ret> runParserT(
+// //         ParserRuntime& runtime,
+// //         const ParserLST<Ret>& pslst)
+// // {
+// //     ParserLSTVisitor<Ret> visitor(runtime);
+// //     std::visit(visitor, pslst.pslst);
+// //     return visitor.result;
+// // }
 
-//             ParserLST<Ret> pr2 = f.next(ParserFailed { err.what(), currentSt.pos });
-//             result = runParserT<Ret>(_runtime, pr2);
-//         }
-//     }
+// // template <typename Ret>
+// // struct ParserFSTVisitor
+// // {
+// //     ParserRuntime& _runtime;
+// //     ParserResult<Ret> result;
 
-//     template <typename A>
-//     void operator()(const psfst::TryP<A, ParserLST<Ret>>& f)
-//     {
-//         State currentSt = _runtime.get_state();
-//         try
-//         {
-//             ParserResult<A> pr1 = runParserL(_runtime, f.parser);
-//             ParserLST<Ret> pr2 = f.next(pr1);
-//             result = runParserT<Ret>(_runtime, pr2);
-//         }
-//         catch (const std::runtime_error& err)
-//         {
-//             _runtime.put_state(currentSt);
+// //     ParserFSTVisitor(ParserRuntime& runtime)
+// //         : _runtime(runtime)
+// //     {
+// //     }
 
-// //            ParserLST<Ret> pr2 = f.next(ParserFailed { err.what() });
-// //            result = runParserT<Ret>(_runtime, pr2);
+// //     template <typename A>
+// //     void operator()(const psfst::SafeP<A, ParserLST<Ret>>& f)
+// //     {
+// //         State currentSt = _runtime.get_state();
+// //         try
+// //         {
+// //             ParserResult<A> pr1 = runParserL(_runtime, f.parser);
+// //             ParserLST<Ret> pr2 = f.next(pr1);
+// //             result = runParserT<Ret>(_runtime, pr2);
+// //         }
+// //         catch (const std::runtime_error& err)
+// //         {
+// //             _runtime.put_state(currentSt);
 
-//             // TODO: investigate if this is correct for tryP
-//             throw std::runtime_error(err.what());
-//         }
-//     }
+// //             ParserLST<Ret> pr2 = f.next(ParserFailed { err.what(), currentSt.pos });
+// //             result = runParserT<Ret>(_runtime, pr2);
+// //         }
+// //     }
 
-//     template <typename A>
-//     void operator()(const psfst::EvalP<A, ParserLST<Ret>>& f)
-//     {
-//         ParserResult<A> pr1 = runParserL(_runtime, f.parser);
-//         ParserLST<Ret> pr2 = f.next(pr1);
-//         result = runParserT<Ret>(_runtime, pr2);
-//     }
-// };
+// //     template <typename A>
+// //     void operator()(const psfst::TryP<A, ParserLST<Ret>>& f)
+// //     {
+// //         State currentSt = _runtime.get_state();
+// //         try
+// //         {
+// //             ParserResult<A> pr1 = runParserL(_runtime, f.parser);
+// //             ParserLST<Ret> pr2 = f.next(pr1);
+// //             result = runParserT<Ret>(_runtime, pr2);
+// //         }
+// //         catch (const std::runtime_error& err)
+// //         {
+// //             _runtime.put_state(currentSt);
 
-// template <typename Ret>
-// struct ParserLSTVisitor
-// {
-//     ParserRuntime& _runtime;
-//     ParserResult<Ret> result;
+// // //            ParserLST<Ret> pr2 = f.next(ParserFailed { err.what() });
+// // //            result = runParserT<Ret>(_runtime, pr2);
 
-//     ParserLSTVisitor(ParserRuntime& runtime)
-//         : _runtime(runtime)
-//     {
-//     }
+// //             // TODO: investigate if this is correct for tryP
+// //             throw std::runtime_error(err.what());
+// //         }
+// //     }
 
-//     void operator()(const PureFST<Ret>& p)
-//     {
-//         result = ParserSucceeded<Ret> { p.ret, _runtime.get_state().pos, _runtime.get_state().pos };
-//     }
+// //     template <typename A>
+// //     void operator()(const psfst::EvalP<A, ParserLST<Ret>>& f)
+// //     {
+// //         ParserResult<A> pr1 = runParserL(_runtime, f.parser);
+// //         ParserLST<Ret> pr2 = f.next(pr1);
+// //         result = runParserT<Ret>(_runtime, pr2);
+// //     }
+// // };
 
-//     void operator()(const FreeFST<Ret>& f)
-//     {
-//         ParserFSTVisitor<Ret> visitor(_runtime);
-//         std::visit(visitor, f.psfst.psfst);
-//         result = visitor.result;
-//     }
-// };
+// // template <typename Ret>
+// // struct ParserLSTVisitor
+// // {
+// //     ParserRuntime& _runtime;
+// //     ParserResult<Ret> result;
 
-} // namespace free
-} // namespace ps
+// //     ParserLSTVisitor(ParserRuntime& runtime)
+// //         : _runtime(runtime)
+// //     {
+// //     }
 
-#endif // PS_FREE_INTERPRETERST_H
+// //     void operator()(const PureFST<Ret>& p)
+// //     {
+// //         result = ParserSucceeded<Ret> { p.ret, _runtime.get_state().pos, _runtime.get_state().pos };
+// //     }
+
+// //     void operator()(const FreeFST<Ret>& f)
+// //     {
+// //         ParserFSTVisitor<Ret> visitor(_runtime);
+// //         std::visit(visitor, f.psfst.psfst);
+// //         result = visitor.result;
+// //     }
+// // };
+
+// } // namespace free
+// } // namespace ps
+
+// #endif // PS_FREE_INTERPRETERST_H

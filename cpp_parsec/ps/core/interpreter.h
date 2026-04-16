@@ -1,29 +1,19 @@
-#ifndef PS_FREE_INTERPRETER_H
-#define PS_FREE_INTERPRETER_H
+#ifndef PS_CORE_INTERPRETER_H
+#define PS_CORE_INTERPRETER_H
 
-#include "parserl.h"
-#include "../context.h"
-#include "../core_parsers.h"
+#include "runtime.h"
+#include "raw_parsers.h"
+#include "./adt/methods.h"
+#include "./adt/parser.h"
 
 namespace ps
 {
-namespace free
+namespace core
 {
 
 // Forward declaration
 template <typename Ret>
-struct ParserLVisitor;
-
-
-
-
-
-
-
-
-
-
-
+struct InterpretingVisitor;
 
 
 template <typename Ret>
@@ -32,39 +22,27 @@ ParserResult<Ret> runParser(
         const ParserL<Ret>& next,
         Pos start_from)
 {
-  ParserLVisitor<Ret> visitor(runtime, start_from);
+  InterpretingVisitor<Ret> visitor(runtime, start_from);
   std::visit(visitor, next.psl);
   return visitor.result;
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 template <typename Ret>
-struct ParserADTVisitor
+struct InterpretingADTVisitor
 {
     ParserRuntime& _runtime;
     ParserResult<Ret> result;
     Pos _start_from;
 
-    ParserADTVisitor(ParserRuntime& runtime, Pos start_from)
+    InterpretingADTVisitor(ParserRuntime& runtime, Pos start_from)
         : _runtime(runtime), _start_from(start_from)
     {
     }
 
-    void operator()(const psf::ParseSymbolCond<ParserL<Ret>>& method)
+    void operator()(const ParseSymbolCond<ParserL<Ret>>& method)
     {
-        ParserResult<Char> r = ps::core::parseSingle<Char>(
+        ParserResult<Char> r = parseSingle<Char>(
           _runtime, _start_from, method.validator, id, method.name);
 
         if (isLeft(r))
@@ -80,9 +58,9 @@ struct ParserADTVisitor
         }
     }
 
-    void operator()(const psf::ParseLit<ParserL<Ret>>& method)
+    void operator()(const ParseLit<ParserL<Ret>>& method)
     {
-      ParserResult<std::string> r = ps::core::parseLit<std::string>(_runtime, _start_from, method.s);
+      ParserResult<std::string> r = parseLit<std::string>(_runtime, _start_from, method.s);
 
       if (isLeft(r))
       {
@@ -97,13 +75,13 @@ struct ParserADTVisitor
       }
     }
 
-    void operator()(const psf::GetSt<ParserL<Ret>>& method)
+    void operator()(const GetSt<ParserL<Ret>>& method)
     {
         auto rNext = method.next(_runtime.get_state());
         result = runParser<Ret>(_runtime, rNext, _start_from);
     }
 
-    void operator()(const psf::PutSt<ParserL<Ret>>& method)
+    void operator()(const PutSt<ParserL<Ret>>& method)
     {
         _runtime.put_state(method.st);
         auto rNext = method.next(unit);
@@ -112,13 +90,13 @@ struct ParserADTVisitor
 };
 
 template <typename Ret>
-struct ParserLVisitor
+struct InterpretingVisitor
 {
     ParserRuntime& _runtime;
     ParserResult<Ret> result;
     Pos _start_from;
 
-    ParserLVisitor(ParserRuntime& runtime, Pos start_from)
+    InterpretingVisitor(ParserRuntime& runtime, Pos start_from)
         : _runtime(runtime), _start_from(start_from)
     {
     }
@@ -130,13 +108,13 @@ struct ParserLVisitor
 
     void operator()(const FreeF<Ret>& f)
     {
-      ParserADTVisitor<Ret> visitor(_runtime, _start_from);
+      InterpretingADTVisitor<Ret> visitor(_runtime, _start_from);
       std::visit(visitor, f.psf.psf);
       result = visitor.result;
     }
 };
 
-} // namespace free
+} // namespace core
 } // namespace ps
 
-#endif // PS_FREE_INTERPRETER_H
+#endif // PS_CORE_INTERPRETER_H

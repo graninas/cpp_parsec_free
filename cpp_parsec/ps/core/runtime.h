@@ -1,14 +1,15 @@
-#ifndef PS_CONTEXT_H
-#define PS_CONTEXT_H
+#ifndef PS_CORE_RUNTIME_H
+#define PS_CORE_RUNTIME_H
 
 #include <string_view>
 
 #include "types.h"
 
+
 namespace ps
 {
-
-// UTF-8 is not supported
+namespace core
+{
 
 class ParserRuntime
 {
@@ -22,7 +23,6 @@ public:
     ParserRuntime(const std::string& source, const State& state);
 
     std::string_view get_view() const;
-    // void advance(size_t count);  // This is not needed, since the parsers will return the new position to advance to, and the runtime will update the state accordingly.
 
     State get_state() const;
     void put_state(const State& state);
@@ -31,6 +31,7 @@ public:
     const std::vector<std::string>& get_messages() const;
 };
 
+} // namespace core
 } // namespace ps
 
-#endif // PS_CONTEXT_H
+#endif // PS_CORE_RUNTIME_H

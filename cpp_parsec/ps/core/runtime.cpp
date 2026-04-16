@@ -1,6 +1,8 @@
-#include "context.h"
+#include "runtime.h"
 
 namespace ps
+{
+namespace core
 {
 
 ParserRuntime::ParserRuntime(const std::string& source, const State& state)
@@ -39,4 +41,5 @@ const std::vector<std::string>& ParserRuntime::get_messages() const
     return _messages;
 }
 
+} // namespace core
 } // namespace ps

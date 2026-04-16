@@ -49,8 +49,8 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = ps/context.cpp 
-OBJECTS       = context.o
+SOURCES       = ps/core/runtime.cpp 
+OBJECTS       = runtime.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -123,22 +123,16 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
-		cpp_parsec.pro ps/context.h \
-		ps/core_parsers.h \
-		ps/types.h \
-		ps/ps.h \
-		ps/free/interpreter.h \
-		ps/free/bind.h \
-		ps/free/parser.h \
-		ps/free/parserl.h \
-		ps/psf/parser_adt.h \
-		ps/psf/visitor.h \
-		ps/psf/parserfst.h \
-		ps/psf/visitorst.h \
-		ps/free/parserlst.h \
-		ps/free/interpreterst.h \
-		ps/free/bindst.h \
-		ps/free/parserl_functor.h ps/context.cpp
+		cpp_parsec.pro ps/core/types.h \
+		ps/core/runtime.h \
+		ps/core/adt/methods.h \
+		ps/core/adt/parser.h \
+		ps/core/conds.h \
+		ps/core/interpreter.h \
+		ps/core/methods_functor.h \
+		ps/core/raw_parsers.h \
+		ps/core/parser.h \
+		ps/ps.h ps/core/runtime.cpp
 QMAKE_TARGET  = cpp_parsec
 DESTDIR       = 
 TARGET        = libcpp_parsec.a
@@ -343,9 +337,9 @@ compiler_clean:
 
 ####### Compile
 
-context.o: ps/context.cpp ps/context.h \
-		ps/types.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o context.o ps/context.cpp
+runtime.o: ps/core/runtime.cpp ps/core/runtime.h \
+		ps/core/types.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o runtime.o ps/core/runtime.cpp
 
 ####### Install
 

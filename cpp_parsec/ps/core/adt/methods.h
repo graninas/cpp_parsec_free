@@ -1,11 +1,11 @@
-#ifndef PS_PSF_PARSER_ADT_H
-#define PS_PSF_PARSER_ADT_H
+#ifndef PS_CORE_ADT_METHODS_H
+#define PS_CORE_ADT_METHODS_H
 
 #include "../types.h"
 
 namespace ps
 {
-namespace psf
+namespace core
 {
 
 // PS methods
@@ -45,10 +45,8 @@ struct PutSt
 };
 
 
-// PSF algebraic data type
-
 template <class Ret>
-struct ParserADT
+struct ParserADT        // TODO: rename to Methods
 {
     std::variant<
         ParseSymbolCond<Ret>,
@@ -58,8 +56,7 @@ struct ParserADT
     > psf;
 };
 
-} // namespace psf
+} // namespace core
 } // namespace ps
 
-#endif // PS_PSF_PARSER_ADT_H
-
+#endif // PS_CORE_ADT_METHODS_H

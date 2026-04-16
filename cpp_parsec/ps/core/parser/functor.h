@@ -13,21 +13,6 @@ namespace core
 template <typename A, typename B>
 using MapFunc = std::function<B(A)>;
 
-// Forward
-template <typename A, typename B>
-struct FunctorParserLVisitor;
-
-template <typename A, typename B>
-ParserL<B> fmap(
-    const std::function<B(A)> &f,
-    const ParserL<A> &psl)
-{
-  FunctorParserLVisitor<A, B> visitor(f);
-  std::visit(visitor, psl.psl);
-  return visitor.result;
-
-  return {};
-}
 
 // Methods functor
 
@@ -56,79 +41,47 @@ struct ParserADTVisitor
       result.psf = fb;
     }
 
-    void operator()(const ParseLit<A>& fa)
-    {
-        MapFunc<A, B> g = fTemplate;
-        ParseLit<B> fb;
-        fb.s = fa.s;
-        fb.next = [=](const std::string& d)
-        {
-            A faResult = fa.next(d);
-            B gResult = g(faResult);
-            return gResult;
-        };
-        result.psf = fb;
-    }
+    // void operator()(const ParseLit<A>& fa)
+    // {
+    //     MapFunc<A, B> g = fTemplate;
+    //     ParseLit<B> fb;
+    //     fb.s = fa.s;
+    //     fb.next = [=](const std::string& d)
+    //     {
+    //         A faResult = fa.next(d);
+    //         B gResult = g(faResult);
+    //         return gResult;
+    //     };
+    //     result.psf = fb;
+    // }
 
-    void operator()(const GetSt<A> &fa)
-    {
-      MapFunc<A, B> g = fTemplate;
-      GetSt<B> fb;
-      fb.next = [=](const State &st)
-      {
-        A faResult = fa.next(st);
-        B gResult = g(faResult);
-        return gResult;
-      };
-      result.psf = fb;
-    }
+    // void operator()(const GetSt<A> &fa)
+    // {
+    //   MapFunc<A, B> g = fTemplate;
+    //   GetSt<B> fb;
+    //   fb.next = [=](const State &st)
+    //   {
+    //     A faResult = fa.next(st);
+    //     B gResult = g(faResult);
+    //     return gResult;
+    //   };
+    //   result.psf = fb;
+    // }
 
-    void operator()(const PutSt<A>& fa)
-    {
-        MapFunc<A, B> g = fTemplate;
-        PutSt<B> fb;
-        fb.st = fa.st;
-        fb.next = [=](const Unit& unit)
-        {
-            A faResult = fa.next(unit);
-            B gResult = g(faResult);
-            return gResult;
-        };
-        result.psf = fb;
-    }
+    // void operator()(const PutSt<A>& fa)
+    // {
+    //     MapFunc<A, B> g = fTemplate;
+    //     PutSt<B> fb;
+    //     fb.st = fa.st;
+    //     fb.next = [=](const Unit& unit)
+    //     {
+    //         A faResult = fa.next(unit);
+    //         B gResult = g(faResult);
+    //         return gResult;
+    //     };
+    //     result.psf = fb;
+    // }
 
-    void operator()(const ParseManyF<A>& fa)
-    {
-        MapFunc<A, B> g = fTemplate;
-        ParseManyF<B> fb;
-        fb.p = [=](Unit)
-            {
-                std::function<ParserL<B>(Unit)> newP = [=](Unit)
-                {
-                  ParserL<Any> oldPResult = fa.p(unit);
-                  ParserL<B> newPResult = fmap<Any, B>([=](const Any& anyA)
-                  {
-                    A a = std::any_cast<A>(anyA);
-                    B b = g(a);
-                    return b;
-                  }, oldPResult);
-                  return newPResult;
-                };
-                return newP(unit);
-            };
-
-        fb.next = [=](const Many<Any>& chs)
-        {
-          Many<B> result;
-          for (const Any& anyCh : chs) {
-              A a = std::any_cast<A>(anyCh);
-              B b = g(a);
-              result.push_back(b);
-          }
-          return result;
-        };
-        result.psf = fb;
-      }
 };
 
 template <typename A, typename B>
@@ -141,6 +94,23 @@ ParserADT<B> methods_fmap(const MapFunc<A, B> &f,
 }
 
 // // Free functor
+
+// Forward
+template <typename A, typename B>
+struct FunctorParserLVisitor;
+
+template <typename A, typename B>
+ParserL<B> fmap(
+    const std::function<B(A)> &f,
+    const ParserL<A> &psl)
+{
+  FunctorParserLVisitor<A, B> visitor(f);
+  std::visit(visitor, psl.psl);
+  return visitor.result;
+
+  return {};
+}
+
 template <typename A, typename B>
 struct FunctorParserLVisitor
 {
@@ -169,6 +139,7 @@ struct FunctorParserLVisitor
         ParserADT<ParserL<B>> visited = methods_fmap(f2, fa.psf);
         result = ParserL<B> { FreeF<B> { visited } };
     }
+
 };
 
 } // namespace core

@@ -57,59 +57,36 @@ struct InterpretingADTVisitor
         }
     }
 
-    void operator()(const ParseLit<ParserL<Ret>>& method)
-    {
-      ParserResult<std::string> r = parseLit<std::string>(_runtime, _start_from, method.s);
+    // void operator()(const ParseLit<ParserL<Ret>>& method)
+    // {
+    //   ParserResult<std::string> r = parseLit<std::string>(_runtime, _start_from, method.s);
 
-      if (isLeft(r))
-      {
-        ParserFailed failed = getParseFailed(r);
-        result = ParserFailed { failed.message, failed.pos };
-      }
-      else
-      {
-        ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
-        ParserL<Ret> rNext = method.next(succeeded.parsed);
-        result = runParser<Ret>(_runtime, rNext, succeeded.to);
-      }
-    }
+    //   if (isLeft(r))
+    //   {
+    //     ParserFailed failed = getParseFailed(r);
+    //     result = ParserFailed { failed.message, failed.pos };
+    //   }
+    //   else
+    //   {
+    //     ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
+    //     ParserL<Ret> rNext = method.next(succeeded.parsed);
+    //     result = runParser<Ret>(_runtime, rNext, succeeded.to);
+    //   }
+    // }
 
-    void operator()(const GetSt<ParserL<Ret>>& method)
-    {
-        auto rNext = method.next(_runtime.get_state());
-        result = runParser<Ret>(_runtime, rNext, _start_from);
-    }
+    // void operator()(const GetSt<ParserL<Ret>>& method)
+    // {
+    //     auto rNext = method.next(_runtime.get_state());
+    //     result = runParser<Ret>(_runtime, rNext, _start_from);
+    // }
 
-    void operator()(const PutSt<ParserL<Ret>>& method)
-    {
-        _runtime.put_state(method.st);
-        auto rNext = method.next(unit);
-        result = runParser<Ret>(_runtime, rNext, _start_from);
-    }
+    // void operator()(const PutSt<ParserL<Ret>>& method)
+    // {
+    //     _runtime.put_state(method.st);
+    //     auto rNext = method.next(unit);
+    //     result = runParser<Ret>(_runtime, rNext, _start_from);
+    // }
 
-    void operator()(const ParseManyF<ParserL<Ret>> &method)
-    {
-        ParserL<Any> pAny = method.p(unit);
-        Pos current = _start_from;
-
-        Many<Any> acc;
-        while (true)
-        {
-            ParserResult<Any> r = runParser<Any>(_runtime, pAny, current);
-            if (isLeft(r))
-            {
-                break;
-            }
-            else
-            {
-                ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-                acc.push_back(succeeded.parsed);
-                current = succeeded.to;
-            }
-        }
-        auto rNext = method.next(acc);
-        result = runParser<Ret>(_runtime, rNext, current);
-    }
 
 };
 
@@ -136,6 +113,8 @@ struct InterpretingVisitor
       std::visit(visitor, f.psf.psf);
       result = visitor.result;
     }
+
+
 };
 
 } // namespace core

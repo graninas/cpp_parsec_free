@@ -19,7 +19,7 @@ private Q_SLOTS:
   void singleDigitParserTest();
   void singleDigitFromMiddleTest();
   void singleDigitFailureTest();
-  void litParserTest();
+  // void litParserTest();
 
 
   void digitCastTest();
@@ -138,23 +138,23 @@ void PSTest::singleDigitFailureTest()
   auto parseFailed = getParseFailed(result);
 }
 
-void PSTest::litParserTest()
-{
-    using namespace ps;
+// void PSTest::litParserTest()
+// {
+//     using namespace ps;
 
-    auto src = "str12";
-    std::string_view src_view(src);
+//     auto src = "str12";
+//     std::string_view src_view(src);
 
-    auto my_lit = parseLit("str");
+//     auto my_lit = parseLit("str");
 
-    ParserRuntime runtime(src, State{0});
-    ParserResult<std::string> result =
-        parse_with_runtime<std::string>(runtime, my_lit);
+//     ParserRuntime runtime(src, State{0});
+//     ParserResult<std::string> result =
+//         parse_with_runtime<std::string>(runtime, my_lit);
 
-    QVERIFY(isRight(result));
-    std::string r = getParseSucceeded<std::string>(result).parsed;
-    QVERIFY(r == "str");
-}
+//     QVERIFY(isRight(result));
+//     std::string r = getParseSucceeded<std::string>(result).parsed;
+//     QVERIFY(r == "str");
+// }
 
 
 void PSTest::digitCastTest()
@@ -213,22 +213,25 @@ void PSTest::manyDigitsTest()
   std::string_view src_view(src);
 
   ParserRuntime runtime(src, State{0});
-  ParserResult<Many<Char>> result = parse_with_runtime<Many<Char>>(runtime, many(digit));
 
-  auto messages = runtime.get_messages();
-  for (const auto &msg : messages)
-  {
-      std::cout << msg << "\n";
-  }
+  // ParserL<Many<Char>> manyDigits = many(digit);
 
-  QVERIFY(isRight(result));
-  Many<Char> parsed = getParseSucceeded(result).parsed;
-  QVERIFY(parsed.size() == 3);
-  QVERIFY(parsed.front() == '1');
-  parsed.pop_front();
-  QVERIFY(parsed.front() == '2');
-  parsed.pop_front();
-  QVERIFY(parsed.front() == '3');
+  // ParserResult<Many<Char>> result = parse_with_runtime<Many<Char>>(runtime, many(digit));
+
+  // auto messages = runtime.get_messages();
+  // for (const auto &msg : messages)
+  // {
+  //     std::cout << msg << "\n";
+  // }
+
+  // QVERIFY(isRight(result));
+  // Many<Char> parsed = getParseSucceeded(result).parsed;
+  // QVERIFY(parsed.size() == 3);
+  // QVERIFY(parsed.front() == '1');
+  // parsed.pop_front();
+  // QVERIFY(parsed.front() == '2');
+  // parsed.pop_front();
+  // QVERIFY(parsed.front() == '3');
 }
 
 // void PSTest::lowerCaseCharParserTest()

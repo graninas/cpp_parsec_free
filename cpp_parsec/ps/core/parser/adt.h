@@ -24,47 +24,39 @@ struct ParseSymbolCond
     std::function<Next(Any)> next;
 };
 
-template <typename Next>
-struct ParseLit
-{
-  Pos from;
+// template <typename Next>
+// struct ParseLit
+// {
+//   Pos from;
 
-  std::string s;
-  std::function<Next(std::string)> next;
-};
+//   std::string s;
+//   std::function<Next(std::string)> next;
+// };
 
-template <typename Next>
-struct GetSt
-{
-  Pos from;
-  std::function<Next(State)> next;
-};
+// template <typename Next>
+// struct GetSt
+// {
+//   Pos from;
+//   std::function<Next(State)> next;
+// };
 
-template <typename Next>
-struct PutSt
-{
-    Pos from;
-    State st;
-    std::function<Next(Unit)> next;
-};
-
-template <typename Next>
-struct ParseManyF
-{
-  std::function<ParserL<Any>(Unit)> p;
-  std::function<Next(Many<Any>)> next;
-};
+// template <typename Next>
+// struct PutSt
+// {
+//     Pos from;
+//     State st;
+//     std::function<Next(Unit)> next;
+// };
 
 
 template <class Ret>
 struct ParserADT        // TODO: rename to Methods
 {
     std::variant<
-        ParseSymbolCond<Ret>,
-        ParseLit<Ret>,
-        GetSt<Ret>,
-        PutSt<Ret>,
-        ParseManyF<Ret>
+        ParseSymbolCond<Ret>
+        // ParseLit<Ret>,
+        // GetSt<Ret>,
+        // PutSt<Ret>
     > psf;
 };
 
@@ -91,6 +83,7 @@ struct ParserL
 {
   std::variant<PureF<A>, FreeF<A>> psl;
 };
+
 
 template <typename A>
 ParserL<A> make_pure(const A &a, Pos from, Pos to)

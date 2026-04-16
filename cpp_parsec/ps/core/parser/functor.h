@@ -13,11 +13,23 @@ namespace core
 template <typename A, typename B>
 using MapFunc = std::function<B(A)>;
 
+// Forward
+template <typename A, typename B>
+struct FunctorParserLVisitor;
+
+template <typename A, typename B>
+ParserL<B> fmap(
+    const std::function<B(A)> &f,
+    const ParserL<A> &psl)
+{
+  FunctorParserLVisitor<A, B> visitor(f);
+  std::visit(visitor, psl.psl);
+  return visitor.result;
+
+  return {};
+}
 
 // Methods functor
-
-// A == char
-// B == int
 
 template <typename A, typename B>
 struct ParserADTVisitor
@@ -84,10 +96,40 @@ struct ParserADTVisitor
         };
         result.psf = fb;
     }
-};
 
-// A == char
-// B == int
+    void operator()(const ParseManyF<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        ParseManyF<B> fb;
+        fb.p = [=](Unit)
+            {
+                std::function<ParserL<B>(Unit)> newP = [=](Unit)
+                {
+                  ParserL<Any> oldPResult = fa.p(unit);
+                  ParserL<B> newPResult = fmap<Any, B>([=](const Any& anyA)
+                  {
+                    A a = std::any_cast<A>(anyA);
+                    B b = g(a);
+                    return b;
+                  }, oldPResult);
+                  return newPResult;
+                };
+                return newP(unit);
+            };
+
+        fb.next = [=](const Many<Any>& chs)
+        {
+          Many<B> result;
+          for (const Any& anyCh : chs) {
+              A a = std::any_cast<A>(anyCh);
+              B b = g(a);
+              result.push_back(b);
+          }
+          return result;
+        };
+        result.psf = fb;
+      }
+};
 
 template <typename A, typename B>
 ParserADT<B> methods_fmap(const MapFunc<A, B> &f,
@@ -98,28 +140,7 @@ ParserADT<B> methods_fmap(const MapFunc<A, B> &f,
     return visitor.result;
 }
 
-
 // // Free functor
-
-// Forward
-template <typename A, typename B>
-struct FunctorParserLVisitor;
-
-// // A == char
-// // B == int
-
-template <typename A, typename B>
-ParserL<B> fmap(
-        const std::function<B(A)>& f,
-        const ParserL<A>& psl)
-{
-    FunctorParserLVisitor<A, B> visitor(f);
-    std::visit(visitor, psl.psl);
-    return visitor.result;
-
-    return {};
-}
-
 template <typename A, typename B>
 struct FunctorParserLVisitor
 {

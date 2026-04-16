@@ -5,6 +5,7 @@
 #include "runtime.h"
 #include "conds.h"
 #include "parser/adt.h"
+#include "parser/functor.h"
 #include "interpreter.h"
 
 namespace ps
@@ -76,6 +77,48 @@ ParserL<std::string> parseLit(const std::string& s)
 const ParserL<Char> digit = parseSymbolCond("digit", isDigit);
 const ParserL<Char> upper = parseSymbolCond("upper", isUpper);
 const ParserL<Char> lower = parseSymbolCond("lower", isLower);
+
+ParserL<Many<Char>> many(const ParserL<Char> &p)
+{
+  std::function<ParserL<Any>(Unit)> pAny = [=](Unit) {
+    auto f = [](const Char& ch) { return ch; };
+    return fmap<Char, Any>(f, p);
+  };
+
+  return make_free(ParseManyF<ParserL<Many<Char>>>{
+    pAny,
+    [](const Many<Any>& chs) {
+        Many<Char> result;
+        for (const Any& anyCh : chs) {
+            char ch = std::any_cast<char>(anyCh);
+            result.push_back(ch);
+        }
+        return make_pure(result, 0, 0);
+    }
+  });
+}
+
+////////////////
+//////////
+// ‘function<ps::core::ParserL<char>(ps::core::Unit)>’ to
+// ‘function<ps::core::ParserL<ps::core::ParserL<std::__cxx11::list<char, std::allocator<char>>>>(ps::core::Unit)>’
+///
+
+// ParserL<std::vector<Char>> many1(const ParserL<Char>& p)
+// {
+//   throw std::runtime_error("many1 is not implemented yet");
+
+//     return bind<Char, std::vector<Char>>(p, [=](const Char& ch)
+//     {
+//         return bind<std::vector<Char>, std::vector<Char>>(many(p), [=](const std::vector<Char>& chs)
+//         {
+//             std::vector<Char> result;
+//             result.push_back(ch);
+//             result.insert(result.end(), chs.begin(), chs.end());
+//             return make_pure(result, 0, 0);
+//         });
+//     });
+// }
 
 // Old design
 

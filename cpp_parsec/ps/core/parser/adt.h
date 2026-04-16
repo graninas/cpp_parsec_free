@@ -8,6 +8,10 @@ namespace ps
 namespace core
 {
 
+// Forward declaration
+template <typename A>
+struct ParserL;
+
 // PS methods
 
 template <typename Next>
@@ -44,6 +48,13 @@ struct PutSt
     std::function<Next(Unit)> next;
 };
 
+template <typename Next>
+struct ParseManyF
+{
+  std::function<ParserL<Any>(Unit)> p;
+  std::function<Next(Many<Any>)> next;
+};
+
 
 template <class Ret>
 struct ParserADT        // TODO: rename to Methods
@@ -52,15 +63,12 @@ struct ParserADT        // TODO: rename to Methods
         ParseSymbolCond<Ret>,
         ParseLit<Ret>,
         GetSt<Ret>,
-        PutSt<Ret>
+        PutSt<Ret>,
+        ParseManyF<Ret>
     > psf;
 };
 
 // Free language
-
-// Forward declaration
-template <typename A>
-struct ParserL;
 
 // Free methods
 
@@ -96,6 +104,8 @@ ParserL<A> make_free(const Method<ParserL<A>> &method)
 {
   return {FreeF<A>{ParserADT<ParserL<A>>{method}}};
 }
+
+
 
 } // namespace core
 } // namespace ps

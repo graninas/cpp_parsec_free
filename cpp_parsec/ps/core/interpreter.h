@@ -86,6 +86,31 @@ struct InterpretingADTVisitor
         auto rNext = method.next(unit);
         result = runParser<Ret>(_runtime, rNext, _start_from);
     }
+
+    void operator()(const ParseManyF<ParserL<Ret>> &method)
+    {
+        ParserL<Any> pAny = method.p(unit);
+        Pos current = _start_from;
+
+        Many<Any> acc;
+        while (true)
+        {
+            ParserResult<Any> r = runParser<Any>(_runtime, pAny, current);
+            if (isLeft(r))
+            {
+                break;
+            }
+            else
+            {
+                ParserSucceeded<Any> succeeded = getParseSucceeded(r);
+                acc.push_back(succeeded.parsed);
+                current = succeeded.to;
+            }
+        }
+        auto rNext = method.next(acc);
+        result = runParser<Ret>(_runtime, rNext, current);
+    }
+
 };
 
 template <typename Ret>

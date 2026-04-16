@@ -24,6 +24,8 @@ private Q_SLOTS:
 
   void digitCastTest();
 
+  void manyDigitsTest();
+
   // void digitParserTest();
   // void lowerCaseCharParserTest();
   // void tryPTTest();
@@ -201,6 +203,32 @@ void PSTest::digitCastTest()
 
   QVERIFY(isRight(result));
   QVERIFY(getParseSucceeded(result).parsed == 1);
+}
+
+void PSTest::manyDigitsTest()
+{
+  using namespace ps;
+
+  auto src = "123";
+  std::string_view src_view(src);
+
+  ParserRuntime runtime(src, State{0});
+  ParserResult<Many<Char>> result = parse_with_runtime<Many<Char>>(runtime, many(digit));
+
+  auto messages = runtime.get_messages();
+  for (const auto &msg : messages)
+  {
+      std::cout << msg << "\n";
+  }
+
+  QVERIFY(isRight(result));
+  Many<Char> parsed = getParseSucceeded(result).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == '1');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '2');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '3');
 }
 
 // void PSTest::lowerCaseCharParserTest()

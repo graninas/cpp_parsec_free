@@ -45,6 +45,7 @@ private Q_SLOTS:
   void internalParsersTest();
 
   void employeeTest();
+  void parserRuntimeTest();
 };
 
 PSTest::PSTest()
@@ -496,6 +497,31 @@ void PSTest::employeeTest()
   //        QVERIFY(employee.lastName == "Street");
   //        QVERIFY(employee.salary >= 50000.0 && employee.salary <= 50000.1);
   //    }
+}
+
+void PSTest::parserRuntimeTest()
+{
+  using namespace ps;
+
+  std::string src = "hello world";
+  State st{5};
+  ParserRuntime runtime(src, st);
+
+  // view starts at position 5 -> " world"
+  std::string_view v = runtime.get_view();
+  QVERIFY(v == std::string_view(" world"));
+
+  // advance by 3 -> pos = 8 -> "rld"
+  runtime.advance(3);
+  State s1 = runtime.get_state();
+  QVERIFY(s1.pos == 8);
+  QVERIFY(runtime.get_view() == std::string_view("rld"));
+
+  // put_state to 2 -> "llo world"
+  State s2{2};
+  runtime.put_state(s2);
+  QVERIFY(runtime.get_state().pos == 2);
+  QVERIFY(runtime.get_view() == std::string_view("llo world"));
 }
 
 QTEST_APPLESS_MAIN(PSTest)

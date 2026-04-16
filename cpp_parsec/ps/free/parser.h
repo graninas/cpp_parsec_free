@@ -398,26 +398,26 @@ ParserT<Many<Char>> spaces()
     return manyPL<Char>(spaceThrowPL);
 }
 
-// dummy
+// // dummy
 
-ParserT<std::string> parseString()
-{
+// ParserT<std::string> parseString()
+// {
+//   return digit; // TODO
+// }
 
-}
+// ParserT<int> parseInt()
+// {
+//   return digit; // TODO
+// }
 
-ParserT<int> parseInt()
-{
+// ParserT<double> parseDouble()
+// {
+//   return digit; // TODO
+// }
 
-}
-
-ParserT<double> parseDouble()
-{
-
-}
-
-const ParserT<std::string> strP = parseString();
-const ParserT<int> intP = parseInt();
-const ParserT<double> doubleP = parseDouble();
+// const ParserT<std::string> strP = parseString();
+// const ParserT<int> intP = parseInt();
+// const ParserT<double> doubleP = parseDouble();
 
 template <typename A>
 ParserT<A> alt(const ParserL<A>& l, const ParserL<A>& r)

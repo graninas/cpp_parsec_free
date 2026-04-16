@@ -184,23 +184,23 @@ void PSTest::digitCastTest()
 
   ParserADT<int> digitIntADT = methods_fmap<char, int>(charToInt, digitADT);
 
-auto src = "1";
-std::string_view src_view(src);
+  auto src = "1";
+  std::string_view src_view(src);
 
-ParserL<int> digit_casted = fmap<Char, int>(charToInt, digit);
+  ParserL<int> digit_casted = fmap<Char, int>(charToInt, digit);
 
 
-ParserRuntime runtime(src, State{0});
-ParserResult<int> result = parse_with_runtime<int>(runtime, digit_casted);
+  ParserRuntime runtime(src, State{0});
+  ParserResult<int> result = parse_with_runtime<int>(runtime, digit_casted);
 
-auto messages = runtime.get_messages();
-for (const auto &msg : messages)
-{
-    std::cout << msg << "\n";
-}
+  auto messages = runtime.get_messages();
+  for (const auto &msg : messages)
+  {
+      std::cout << msg << "\n";
+  }
 
-QVERIFY(isRight(result));
-
+  QVERIFY(isRight(result));
+  QVERIFY(getParseSucceeded(result).parsed == 1);
 }
 
 // void PSTest::lowerCaseCharParserTest()

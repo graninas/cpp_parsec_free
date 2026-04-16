@@ -21,10 +21,10 @@ private Q_SLOTS:
   void litParserTest();
   void lowerCaseCharParserTest();
   void tryPTTest();
-  void oneOfFirstParserTest();
-  void oneOfSecondParserTest();
-  void oneOfThirdParserTest();
-  void oneOfNoMatchTest();
+  // void oneOfFirstParserTest();
+  // void oneOfSecondParserTest();
+  // void oneOfThirdParserTest();
+  // void oneOfNoMatchTest();
   void upperCaseCharParserTest();
   void symbolParserTest();
   void manyCombinatorTest();
@@ -121,39 +121,39 @@ void PSTest::tryPTTest()
   QVERIFY(r1 == '1');
 }
 
-void PSTest::oneOfFirstParserTest()
-{
-  // using namespace ps;
-  // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "6bC");
-  // QVERIFY(isRight(result));
-  // if (isRight(result))
-  //   QVERIFY(getParsed(result) == '6');
-}
+// void PSTest::oneOfFirstParserTest()
+// {
+//   // using namespace ps;
+//   // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "6bC");
+//   // QVERIFY(isRight(result));
+//   // if (isRight(result))
+//   //   QVERIFY(getParsed(result) == '6');
+// }
 
-void PSTest::oneOfSecondParserTest()
-{
-  // using namespace ps;
-  // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "a6C");
-  // QVERIFY(isRight(result));
-  // if (isRight(result))
-  //   QVERIFY(getParsed(result) == 'a');
-}
+// void PSTest::oneOfSecondParserTest()
+// {
+//   // using namespace ps;
+//   // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "a6C");
+//   // QVERIFY(isRight(result));
+//   // if (isRight(result))
+//   //   QVERIFY(getParsed(result) == 'a');
+// }
 
-void PSTest::oneOfThirdParserTest()
-{
-  // using namespace ps;
-  // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "Ab6");
-  // QVERIFY(isRight(result));
-  // if (isRight(result))
-  //   QVERIFY(getParsed(result) == 'A');
-}
+// void PSTest::oneOfThirdParserTest()
+// {
+//   // using namespace ps;
+//   // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "Ab6");
+//   // QVERIFY(isRight(result));
+//   // if (isRight(result))
+//   //   QVERIFY(getParsed(result) == 'A');
+// }
 
-void PSTest::oneOfNoMatchTest()
-{
-  // using namespace ps;
-  // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "?#^");
-  // QVERIFY(isLeft(result));
-}
+// void PSTest::oneOfNoMatchTest()
+// {
+//   // using namespace ps;
+//   // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "?#^");
+//   // QVERIFY(isLeft(result));
+// }
 
 void PSTest::upperCaseCharParserTest()
 {

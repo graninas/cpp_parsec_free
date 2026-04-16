@@ -40,15 +40,17 @@ ParserResult<Single> parseSingle(
 
     if (s.empty())
     {
-        return { ParserFailed {failedMsg + ": end of imput."} };
+        return { ParserFailed {failedMsg + ": end of input.", runtime.get_state().pos} };
     }
     else if (!validator(s.at(0)))
     {
-        return { ParserFailed {failedMsg + ": not a " + name + "."} };
+        return { ParserFailed {failedMsg + ": not a " + name + ".", runtime.get_state().pos} };
     }
 
     ParserSucceeded<Single> r;
     r.parsed = converter(s.at(0));
+    r.from = runtime.get_state().pos;
+    r.to = runtime.get_state().pos + 1;
     return { r };
 }
 

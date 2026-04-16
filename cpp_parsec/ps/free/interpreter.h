@@ -39,7 +39,7 @@ struct ParserFVisitor
         ParserResult<Char> r = parseSingle<Char>(_runtime, f.validator, id, f.name);
 
         if (isLeft(r))
-            throw std::runtime_error(getError(r).message);
+          throw std::runtime_error(getParseFailed(r).message);
         else
         {
             _runtime.advance(1);
@@ -53,7 +53,7 @@ struct ParserFVisitor
         ParserResult<std::string> r = parseLit(_runtime, f.s);
 
         if (isLeft(r))
-            throw std::runtime_error(getError(r).message);
+          throw std::runtime_error(getParseFailed(r).message);
         else
         {
             _runtime.advance(f.s.size());

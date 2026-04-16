@@ -49,12 +49,15 @@ bool isLeft(const Either<E,T>& e)
 struct ParserFailed
 {
     std::string message;
+    Pos position;
 };
 
 template <typename T>
 struct ParserSucceeded
 {
     T parsed;
+    Pos from;
+    Pos to;
 };
 
 template <typename T>
@@ -62,15 +65,22 @@ using ParserResult = Either<ParserFailed, ParserSucceeded<T>>;
 
 // unsafe get parsed
 template <typename T>
-T getParsed(const ps::ParserResult<T>& r)
+ParserSucceeded<T> getParseSucceeded(const ps::ParserResult<T>& r)
 {
-    ParserSucceeded<T> s = std::get<ps::ParserSucceeded<T>>(r);
-    return s.parsed;
+    return std::get<ps::ParserSucceeded<T>>(r);
+}
+
+// unsafe convert success
+template <typename A, typename B>
+ParserSucceeded<B> convertParseSucceeded(const ps::ParserResult<A>& r)
+{
+    auto s = getParseSucceeded(r);
+    return ParserSucceeded<B> { static_cast<B>(s.parsed), s.from, s.to };
 }
 
 // unsafe get error
 template <typename T>
-ParserFailed getError(const ps::ParserResult<T>& r)
+ParserFailed getParseFailed(const ps::ParserResult<T>& r)
 {
     return std::get<ParserFailed>(r);
 }
@@ -84,11 +94,11 @@ ParserResult<B> fmapPR(
 {
     if (isLeft(pr))
     {
-        return getError(pr);
+      return getParseFailed(pr);
     }
 
-    A parsed = getParsed(pr);
-    return ParserSucceeded<B> { f(parsed) };
+    auto s = getParseSucceeded(pr);
+    return ParserSucceeded<B> { f(s.parsed), s.from, s.to };
 }
 
 // state

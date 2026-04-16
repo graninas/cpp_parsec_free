@@ -40,14 +40,14 @@ ParserResult<std::string> parseLit(
 
     if (s.size() < litS.size())
     {
-        return { ParserFailed {failedMsg + ": end of imput."} };
+        return { ParserFailed {failedMsg + ": end of input.", runtime.get_state().pos} };
     }
     else if (s.find(litS) != 0)
     {
-        return { ParserFailed {failedMsg} };
+        return { ParserFailed {failedMsg, runtime.get_state().pos} };
     }
 
-    return ParserSucceeded<std::string>{ litS };
+    return ParserSucceeded<std::string>{ litS, runtime.get_state().pos, runtime.get_state().pos + litS.size() };
 }
 
 } // namespace ps

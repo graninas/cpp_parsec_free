@@ -56,7 +56,7 @@ void printError(const ps::ParserResult<A> &pr)
 {
   if (isLeft(pr))
   {
-    auto err = ps::getError(pr);
+    auto err = ps::getParseFailed(pr);
     std::cout << "\nError:\n"
               << err.message << "\n";
   }
@@ -71,7 +71,7 @@ void PSTest::singleDigitParserTest()
   printError(result);
 
   QVERIFY(isRight(result));
-  Char r = getParsed<Char>(result);
+  Char r = getParseSucceeded<Char>(result).parsed;
   QVERIFY(r == '1');
 }
 
@@ -82,7 +82,7 @@ void PSTest::digitParserTest()
   ParserResult<Char> result = parse<Char>(digit, "1abc");
 
   QVERIFY(isRight(result));
-  Char r = getParsed<Char>(result);
+  Char r = getParseSucceeded<Char>(result).parsed;
   QVERIFY(r == '1');
 }
 
@@ -93,7 +93,7 @@ void PSTest::litParserTest()
   ParserResult<std::string> result = parse<std::string>(lit("str"), "str12");
 
   QVERIFY(isRight(result));
-  std::string r = getParsed<std::string>(result);
+  std::string r = getParseSucceeded<std::string>(result).parsed;
   QVERIFY(r == "str");
 }
 
@@ -104,7 +104,7 @@ void PSTest::lowerCaseCharParserTest()
   ParserResult<Char> result = parse<Char>(lower, "abc");
 
   QVERIFY(isRight(result));
-  Char r = getParsed<Char>(result);
+  Char r = getParseSucceeded<Char>(result).parsed;
   QVERIFY(r == 'a');
 }
 
@@ -117,7 +117,7 @@ void PSTest::tryPTTest()
 
   QVERIFY(isRight(result1));
   QVERIFY(isLeft(result2));
-  Char r1 = getParsed<Char>(result1);
+  Char r1 = getParseSucceeded<Char>(result1).parsed;
   QVERIFY(r1 == '1');
 }
 
@@ -127,7 +127,7 @@ void PSTest::tryPTTest()
 //   // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "6bC");
 //   // QVERIFY(isRight(result));
 //   // if (isRight(result))
-//   //   QVERIFY(getParsed(result) == '6');
+//   //   QVERIFY(getParseSucceeded(result).parsed == '6');
 // }
 
 // void PSTest::oneOfSecondParserTest()
@@ -136,7 +136,7 @@ void PSTest::tryPTTest()
 //   // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "a6C");
 //   // QVERIFY(isRight(result));
 //   // if (isRight(result))
-//   //   QVERIFY(getParsed(result) == 'a');
+//   //   QVERIFY(getParseSucceeded(result).parsed == 'a');
 // }
 
 // void PSTest::oneOfThirdParserTest()
@@ -145,7 +145,7 @@ void PSTest::tryPTTest()
 //   // ParserResult<Char> result = parse<Char>(oneOf<Char>({digit, lower, upper}), "Ab6");
 //   // QVERIFY(isRight(result));
 //   // if (isRight(result))
-//   //   QVERIFY(getParsed(result) == 'A');
+//   //   QVERIFY(getParseSucceeded(result).parsed == 'A');
 // }
 
 // void PSTest::oneOfNoMatchTest()
@@ -162,7 +162,7 @@ void PSTest::upperCaseCharParserTest()
   ParserResult<Char> result = parse<Char>(upper, "BCD");
 
   QVERIFY(isRight(result));
-  Char r = getParsed<Char>(result);
+  Char r = getParseSucceeded<Char>(result).parsed;
   QVERIFY(r == 'B');
 }
 
@@ -173,7 +173,7 @@ void PSTest::symbolParserTest()
   ParserResult<Char> result = parse<Char>(symbol('B'), "BCD");
 
   QVERIFY(isRight(result));
-  Char r = getParsed<Char>(result);
+  Char r = getParseSucceeded<Char>(result).parsed;
   QVERIFY(r == 'B');
 }
 
@@ -192,7 +192,7 @@ void PSTest::manyCombinatorTest()
   ParserResult<Many<Char>> result = parse(p, "4321");
 
   QVERIFY(isRight(result));
-  Many<Char> parsed = getParsed(result);
+  Many<Char> parsed = getParseSucceeded(result).parsed;
   QVERIFY(parsed.size() == 4);
   QVERIFY(parsed.front() == '4');
   parsed.pop_front();
@@ -246,7 +246,7 @@ void PSTest::tryThrowParserTTest()
   //    auto result = parse(pt2, "abc");
 
   //    QVERIFY(isRight(result));
-  //    QVERIFY(getParsed(result) == '1');
+  //    QVERIFY(getParseSucceeded(result).parsed == '1');
 }
 
 /*
@@ -287,9 +287,9 @@ void PSTest::safeVSTryPTest()
   auto result2 = parse(safedP, "123");
 
   QVERIFY(isLeft(result1));
-  QVERIFY(getError(result1).message == "err1");
+  QVERIFY(getParseFailed(result1).message == "err1");
   QVERIFY(isLeft(result2));
-  QVERIFY(getError(result2).message == "err2");
+  QVERIFY(getParseFailed(result2).message == "err2");
 }
 
 struct R
@@ -309,7 +309,7 @@ void PSTest::bindPureTest()
   ParserResult<R> result = parse(p, "1b2");
 
   QVERIFY(isRight(result));
-  R r = getParsed<R>(result);
+  R r = getParseSucceeded<R>(result).parsed;
   QVERIFY(r.dg0 == '1');
   QVERIFY(r.ch1 == 'a');
   QVERIFY(r.ch2 == '0');
@@ -327,7 +327,7 @@ void PSTest::applicativeTest()
   ParserResult<R> result = parse(p, "1b2");
 
   QVERIFY(isRight(result));
-  R r = getParsed<R>(result);
+  R r = getParseSucceeded<R>(result).parsed;
   QVERIFY(r.dg0 == '1');
   QVERIFY(r.ch1 == 'b');
   QVERIFY(r.ch2 == '2');
@@ -345,7 +345,7 @@ void PSTest::sequencedParsersTest()
   ParserResult<R> result = parse(p, "1b2");
 
   QVERIFY(isRight(result));
-  R r = getParsed<R>(result);
+  R r = getParseSucceeded<R>(result).parsed;
   QVERIFY(r.dg0 == '1');
   QVERIFY(r.ch1 == 'b');
   QVERIFY(r.ch2 == '2');
@@ -363,8 +363,8 @@ void PSTest::forgetCombinatorsTest()
 
   QVERIFY(isRight(result1));
   QVERIFY(isRight(result2));
-  QVERIFY(getParsed<Char>(result1) == '1');
-  QVERIFY(getParsed<Char>(result2) == 'a');
+  QVERIFY(getParseSucceeded<Char>(result1).parsed == '1');
+  QVERIFY(getParseSucceeded<Char>(result2).parsed == 'a');
 }
 
 void PSTest::seqCombinatorsTest()
@@ -378,9 +378,9 @@ void PSTest::seqCombinatorsTest()
   QVERIFY(isRight(result1));
   QVERIFY(isRight(result2));
   QVERIFY(isRight(result3));
-  QVERIFY(getParsed<Char>(result1) == 'a');
-  QVERIFY(getParsed<Char>(result2) == '1');
-  QVERIFY(getParsed<Char>(result3) == '!');
+  QVERIFY(getParseSucceeded<Char>(result1).parsed == 'a');
+  QVERIFY(getParseSucceeded<Char>(result2).parsed == '1');
+  QVERIFY(getParseSucceeded<Char>(result3).parsed == '!');
 }
 
 void PSTest::binarySeqCombinatorsTest()
@@ -394,9 +394,9 @@ void PSTest::binarySeqCombinatorsTest()
   QVERIFY(isRight(result1));
   QVERIFY(isRight(result2));
   QVERIFY(isRight(result3));
-  QVERIFY(getParsed<Char>(result1) == 'a');
-  QVERIFY(getParsed<Char>(result2) == '1');
-  QVERIFY(getParsed<Char>(result3) == 'a');
+  QVERIFY(getParseSucceeded<Char>(result1).parsed == 'a');
+  QVERIFY(getParseSucceeded<Char>(result2).parsed == '1');
+  QVERIFY(getParseSucceeded<Char>(result3).parsed == 'a');
 }
 
 void PSTest::alt1Test()
@@ -408,8 +408,8 @@ void PSTest::alt1Test()
 
   QVERIFY(isRight(result1));
   QVERIFY(isRight(result2));
-  QVERIFY(getParsed(result1) == 'A');
-  QVERIFY(getParsed(result2) == 'a');
+  QVERIFY(getParseSucceeded(result1).parsed == 'A');
+  QVERIFY(getParseSucceeded(result2).parsed == 'a');
 }
 
 void PSTest::alt2Test()
@@ -421,8 +421,8 @@ void PSTest::alt2Test()
 
   QVERIFY(isRight(result1));
   QVERIFY(isRight(result2));
-  QVERIFY(getParsed(result1) == 'A');
-  QVERIFY(getParsed(result2) == 'a');
+  QVERIFY(getParseSucceeded(result1).parsed == 'A');
+  QVERIFY(getParseSucceeded(result2).parsed == 'a');
 }
 
 void PSTest::internalParsersTest()
@@ -449,7 +449,7 @@ void PSTest::internalParsersTest()
   printError(result);
 
   QVERIFY(isRight(result));
-  Char ch = getParsed<Char>(result);
+  Char ch = getParseSucceeded<Char>(result).parsed;
   QVERIFY(ch == 'A');
 }
 
@@ -487,10 +487,10 @@ void PSTest::employeeTest()
   //    ParserResult<Employee> result = parse(employeeParser, s);
 
   //    if (isLeft(result)) {
-  //        std::cout << "Parse error: " << getError(result).message;
+  //        std::cout << "Parse error: " << getParseFailed(result).message;
   //    }
   //    else {
-  //        Employee employee = getParsed(result);
+  //        Employee employee = getParseSucceeded(result).parsed;
   //        QVERIFY(employee.age == 35);
   //        QVERIFY(employee.firstName == "Jane");
   //        QVERIFY(employee.lastName == "Street");

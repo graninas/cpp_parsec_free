@@ -63,10 +63,11 @@ ParserT<B> bindSafe(
     {
         if (isLeft(res))
         {
-            throw std::runtime_error(getError(res).message);
+          throw std::runtime_error(getParseFailed(res).message);
         }
 
-        return f(getParsed(res));
+        // TODO: for new design
+        return f(getParseSucceeded(res).parsed);
     };
 
     std::function<ParserT<B>(ParserResult<A>)> f2 =
@@ -77,7 +78,8 @@ ParserT<B> bindSafe(
             return runBindST(mOnFail, f3);
         }
 
-        return f(getParsed(res));
+        // TODO: for new design
+        return f(getParseSucceeded(res).parsed);
     };
 
     return runBindST(ma, f2);
@@ -122,9 +124,10 @@ ParserT<A> evalP(const PL<A>& parser)
         {
             if (isLeft(pr))
             {
-                throw std::runtime_error(getError(pr).message);
+              throw std::runtime_error(getParseFailed(pr).message);
             }
-            return pure<A>(getParsed(pr));
+            // TODO: for new design
+            return pure<A>(getParseSucceeded(pr).parsed);
         });
 
         return lstMapped;
@@ -141,9 +144,10 @@ ParserL<A> evalOrThrow(const ParserL<ParserResult<A>>& parser)
     {
         if (isLeft(pr))
         {
-            throw std::runtime_error(getError(pr).message);
+          throw std::runtime_error(getParseFailed(pr).message);
         }
-        return purePL<A>(getParsed(pr));
+        // TODO: for new design
+        return purePL<A>(getParseSucceeded(pr).parsed);
     };
 
     return bind<ParserResult<A>, A>(parser, f);
@@ -246,7 +250,8 @@ const std::function<ParserT<Many<A>>(Many<A>, ParserT<ParserResult<A>>)> rec
         else
         {
             Many<A> acc2 = acc;
-            acc2.push_back(getParsed(pr));
+            // TODO: for new design
+            acc2.push_back(getParseSucceeded(pr).parsed);
             return rec<A>(acc2, p);
         }
     });
@@ -607,7 +612,8 @@ ParserT<ParserResult<A>> oneOrAnother(
             return ma2;
         }
 
-        return tryPT(pure(getParsed(res)));
+        //  TODO: for new design
+        return tryPT(pure(getParseSucceeded(res).parsed));
     };
 
     return runBindST(ma1, f2);
@@ -659,12 +665,13 @@ ParserResult<A> parse(
     ParserResult<ParserResult<A>> res = parseP(pst, s);
     if (isLeft(res))
     {
-        auto pe = getError(res);
-        return ParserFailed { pe.message };
+      auto pe = getParseFailed(res);
+      return ParserFailed{pe.message};
     }
     else
     {
-        auto se = getParsed(res);
+        // TODO: for new design
+        auto se = getParseSucceeded(res).parsed;
         return se;
     }
 }

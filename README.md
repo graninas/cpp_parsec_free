@@ -36,7 +36,7 @@ auto p = bind<Char, R>(digit,         [=](Char dg0) { return
 ParserResult<R> result = parse(p, "1b2");
 
 QVERIFY(isRight(result));
-R r = getParsed<R>(result);
+R r = getParseSucceeded<R>(result);
 QVERIFY(r.dg0 == '1');
 QVERIFY(r.ch1 == 'b');
 QVERIFY(r.ch2 == '2');
@@ -50,8 +50,8 @@ ParserResult<Char> result2 = parse(alt(upperPL, lowerPL), "a");
 
 QVERIFY(isRight(result1));
 QVERIFY(isRight(result2));
-QVERIFY(getParsed(result1) == 'A');
-QVERIFY(getParsed(result2) == 'a');
+QVERIFY(getParseSucceeded(result1) == 'A');
+QVERIFY(getParseSucceeded(result2) == 'a');
 ```
 
 ### `try` and `safe` combinators
@@ -77,9 +77,9 @@ auto result1 = parse(triedP, "123");
 auto result2 = parse(safedP, "123");
 
 QVERIFY(isLeft(result1));
-QVERIFY(getError(result1).message == "err1");
+QVERIFY(getParseFailed(result1).message == "err1");
 QVERIFY(isLeft(result2));
-QVERIFY(getError(result2).message == "err2");
+QVERIFY(getParseFailed(result2).message == "err2");
 ```
 
 ### `many` combinator
@@ -90,7 +90,7 @@ ParserT<Many<Char>> p = manyPL<Char>(digitThrowPL);
 ParserResult<Many<Char>> result = parse(p, "4321");
 
 QVERIFY(isRight(result));
-Many<Char> parsed = getParsed(result);
+Many<Char> parsed = getParseSucceeded(result);
 QVERIFY(parsed.size() == 4);
 QVERIFY(parsed.front() == '4');
 parsed.pop_front();

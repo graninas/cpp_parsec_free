@@ -41,14 +41,24 @@ ParserL<Char> parseSymbolCond(
         const std::string& name,
         const std::function<bool(char)>& cond)
 {
+  std::function<bool(char)> cond_copy = cond;
+
+  std::function<bool(Any)> condAny = [=](const Any& any)  {
+      char ch = std::any_cast<char>(any);
+      return cond_copy(ch);
+  };
+
+
     return make_free(ParseSymbolCond<ParserL<Char>>{
                       0,
                       name,
-                      cond,
-                      [](const char ch)
+                      condAny,
+                      [](const Any& any)  {
+                          char ch = std::any_cast<char>(any);
                           {
                               return make_pure(ch, 0, 1);
                           }
+                      }
                 });
 }
 

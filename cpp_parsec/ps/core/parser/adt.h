@@ -16,8 +16,8 @@ struct ParseSymbolCond
     Pos from;
 
     std::string name;
-    std::function<bool(char)> validator;
-    std::function<Next(char)> next;
+    std::function<bool(Any)> validator;
+    std::function<Next(Any)> next;
 };
 
 template <typename Next>

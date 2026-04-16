@@ -41,8 +41,8 @@ struct InterpretingADTVisitor
 
     void operator()(const ParseSymbolCond<ParserL<Ret>>& method)
     {
-        ParserResult<Char> r = parseSingle<Char>(
-          _runtime, _start_from, method.validator, id, method.name);
+        ParserResult<Char> r = parseSingle<Unit>(
+          _runtime, _start_from, method.validator, method.name);
 
         if (isLeft(r))
         {

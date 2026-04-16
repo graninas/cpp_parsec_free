@@ -11,12 +11,11 @@ namespace ps
 namespace core
 {
 
-  template <typename Single>
-  ParserResult<Single> parseSingle(
+  template <typename Dummy>
+  ParserResult<char> parseSingle(
       ParserRuntime &runtime,
       Pos from,
       const std::function<bool(char)> &validator,
-      const std::function<Single(char)> &converter,
       const std::string &name)
   {
     std::string_view s = runtime.get_view().substr(from);
@@ -34,8 +33,8 @@ namespace core
       return {ParserFailed{failedMsg, runtime.get_state().pos}};
     }
 
-    ParserSucceeded<Single> r;
-    r.parsed = converter(s.at(0));
+    ParserSucceeded<char> r;
+    r.parsed = s.at(0);
     r.from = from;
     r.to = from + 1;
     runtime.push_message(std::string("Parsed ") + name + ": '" + s.substr(0, 1).data() + "'.");

@@ -159,21 +159,47 @@ void PSTest::digitCastTest()
 {
   using namespace ps;
 
-  auto src = "1";
-  std::string_view src_view(src);
+  std::function<bool(std::any)> cond = [](std::any any) {
+      char ch = std::any_cast<char>(any);
+      return ch >= '0' && ch <= '9';
+  };
 
-  ParserL<int> digit_casted = fmap<Char, int>([](char ch) -> int { return ch - '0'; }, digit);
+  std::function<int(char)> charToInt = [](char ch) -> int {
+      return ch - '0';
+  };
 
-  ParserRuntime runtime(src, State{0});
-  ParserResult<int> result = parse_with_runtime<int>(runtime, digit_casted);
-
-  auto messages = runtime.get_messages();
-  for (const auto &msg : messages)
+  ParserADT<char> digitADT =
   {
-      std::cout << msg << "\n";
-  }
+      ParseSymbolCond<char>{
+          0,
+          "",
+          cond,
+          [](const std::any& any)
+          {
+              char ch = std::any_cast<char>(any);
+              int digitValue = ch - '0';
+              return digitValue;
+          }}
+  };
 
-  QVERIFY(isRight(result));
+  ParserADT<int> digitIntADT = methods_fmap<char, int>(charToInt, digitADT);
+
+auto src = "1";
+std::string_view src_view(src);
+
+ParserL<int> digit_casted = fmap<Char, int>(charToInt, digit);
+
+
+ParserRuntime runtime(src, State{0});
+ParserResult<int> result = parse_with_runtime<int>(runtime, digit_casted);
+
+auto messages = runtime.get_messages();
+for (const auto &msg : messages)
+{
+    std::cout << msg << "\n";
+}
+
+QVERIFY(isRight(result));
 
 }
 

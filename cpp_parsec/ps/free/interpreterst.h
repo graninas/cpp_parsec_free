@@ -50,7 +50,7 @@ struct ParserFSTVisitor
         {
             _runtime.put_state(currentSt);
 
-            ParserLST<Ret> pr2 = f.next(ParserFailed { err.what() });
+            ParserLST<Ret> pr2 = f.next(ParserFailed { err.what(), currentSt.pos });
             result = runParserT<Ret>(_runtime, pr2);
         }
     }
@@ -71,6 +71,8 @@ struct ParserFSTVisitor
 
 //            ParserLST<Ret> pr2 = f.next(ParserFailed { err.what() });
 //            result = runParserT<Ret>(_runtime, pr2);
+
+            // TODO: investigate if this is correct for tryP
             throw std::runtime_error(err.what());
         }
     }
@@ -97,7 +99,7 @@ struct ParserLSTVisitor
 
     void operator()(const PureFST<Ret>& p)
     {
-        result = ParserSucceeded<Ret> { p.ret };
+        result = ParserSucceeded<Ret> { p.ret, _runtime.get_state().pos, _runtime.get_state().pos };
     }
 
     void operator()(const FreeFST<Ret>& f)

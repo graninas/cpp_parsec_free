@@ -1,0 +1,31 @@
+cd cpp_parsec/ && ( test -e Makefile || /usr/lib/qt5/bin/qmake -o Makefile /home/alexander/workspace/cpp_parsec_free/cpp_parsec/cpp_parsec.pro ) && make -f Makefile 
+make[1]: Entering directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsec'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsec'
+cd cpp_parsecTest/ && ( test -e Makefile || /usr/lib/qt5/bin/qmake -o Makefile /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/cpp_parsecTest.pro ) && make -f Makefile 
+make[1]: Entering directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest'
+g++ -c -pipe -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC -DSRCDIR=\"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/\" -DQT_NO_DEBUG -DQT_TESTLIB_LIB -DQT_CORE_LIB -DQT_TESTCASE_BUILDDIR='"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest"' -I. -I../cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -o tst_parsec.o tst_parsec.cpp
+cd cpp_parsec/ && ( test -e Makefile || /usr/lib/qt5/bin/qmake -o Makefile /home/alexander/workspace/cpp_parsec_free/cpp_parsec/cpp_parsec.pro ) && make -f Makefile 
+make[1]: Entering directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsec'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsec'
+cd cpp_parsecTest/ && ( test -e Makefile || /usr/lib/qt5/bin/qmake -o Makefile /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/cpp_parsecTest.pro ) && make -f Makefile 
+make[1]: Entering directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest'
+g++ -c -pipe -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC -DSRCDIR=\"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/\" -DQT_NO_DEBUG -DQT_TESTLIB_LIB -DQT_CORE_LIB -DQT_TESTCASE_BUILDDIR='"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest"' -I. -I../cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -o tst_parsec.o tst_parsec.cpp
+cd cpp_parsec/ && ( test -e Makefile || /usr/lib/qt5/bin/qmake -o Makefile /home/alexander/workspace/cpp_parsec_free/cpp_parsec/cpp_parsec.pro ) && make -f Makefile 
+make[1]: Entering directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsec'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsec'
+cd cpp_parsecTest/ && ( test -e Makefile || /usr/lib/qt5/bin/qmake -o Makefile /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/cpp_parsecTest.pro ) && make -f Makefile 
+make[1]: Entering directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest'
+/usr/lib/qt5/bin/moc -DSRCDIR=\"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/\" -DQT_NO_DEBUG -DQT_TESTLIB_LIB -DQT_CORE_LIB -DQT_TESTCASE_BUILDDIR='"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest"' --include /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest -I/home/alexander/workspace/cpp_parsec_free/cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include tst_parsec.cpp -o tst_parsec.moc
+g++ -c -pipe -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC -DSRCDIR=\"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/\" -DQT_NO_DEBUG -DQT_TESTLIB_LIB -DQT_CORE_LIB -DQT_TESTCASE_BUILDDIR='"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest"' -I. -I../cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -o tst_parsec.o tst_parsec.cpp
+make[1]: Leaving directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest'
+cd cpp_parsec/ && ( test -e Makefile || /usr/lib/qt5/bin/qmake -o Makefile /home/alexander/workspace/cpp_parsec_free/cpp_parsec/cpp_parsec.pro ) && make -f Makefile 
+make[1]: Entering directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsec'
+make[1]: Nothing to be done for 'first'.
+make[1]: Leaving directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsec'
+cd cpp_parsecTest/ && ( test -e Makefile || /usr/lib/qt5/bin/qmake -o Makefile /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/cpp_parsecTest.pro ) && make -f Makefile 
+make[1]: Entering directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest'
+g++ -c -pipe -O2 -std=gnu++1z -Wall -Wextra -D_REENTRANT -fPIC -DSRCDIR=\"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/\" -DQT_NO_DEBUG -DQT_TESTLIB_LIB -DQT_CORE_LIB -DQT_TESTCASE_BUILDDIR='"/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest"' -I. -I../cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -o tst_parsec.o tst_parsec.cpp
+make[1]: Leaving directory '/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest'

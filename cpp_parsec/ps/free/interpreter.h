@@ -3,6 +3,7 @@
 
 #include "parserl.h"
 #include "../context.h"
+#include "../core_parsers.h"
 
 namespace ps
 {
@@ -36,7 +37,7 @@ struct ParserFVisitor
 
     void operator()(const psf::ParseSymbolCond<ParserL<Ret>>& f)
     {
-        ParserResult<Char> r = parseSingle<Char>(_runtime, f.validator, id, f.name);
+        ParserResult<Char> r = ps::core::parseSingle<Char>(_runtime, f.validator, id, f.name);
 
         if (isLeft(r))
           throw std::runtime_error(getParseFailed(r).message);
@@ -50,16 +51,16 @@ struct ParserFVisitor
 
     void operator()(const psf::ParseLit<ParserL<Ret>>& f)
     {
-        ParserResult<std::string> r = parseLit(_runtime, f.s);
+      ParserResult<std::string> r = ps::core::parseLit<std::string>(_runtime, f.s);
 
-        if (isLeft(r))
-          throw std::runtime_error(getParseFailed(r).message);
-        else
-        {
-            _runtime.advance(f.s.size());
-            ParserL<Ret> rNext = f.next(r);
-            result = runParserL<Ret>(_runtime, rNext);
-        }
+      if (isLeft(r))
+        throw std::runtime_error(getParseFailed(r).message);
+      else
+      {
+        _runtime.advance(f.s.size());
+        ParserL<Ret> rNext = f.next(r);
+        result = runParserL<Ret>(_runtime, rNext);
+      }
     }
 
     void operator()(const psf::GetSt<ParserL<Ret>>& f)

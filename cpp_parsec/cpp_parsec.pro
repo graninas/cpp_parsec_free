@@ -11,6 +11,7 @@ SOURCES += \
 
 HEADERS += \
     ps/context.h \
+    ps/core_parsers.h \
     ps/types.h \
     ps/ps.h \
     ps/free/interpreter.h \

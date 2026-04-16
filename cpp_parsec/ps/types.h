@@ -72,10 +72,15 @@ ParserSucceeded<T> getParseSucceeded(const ps::ParserResult<T>& r)
 
 // unsafe convert success
 template <typename A, typename B>
-ParserSucceeded<B> convertParseSucceeded(const ps::ParserResult<A>& r)
+ParserSucceeded<B> convertParseSucceeded(const ps::ParserResult<A>& r,
+                                       const std::function<B(A)>& f)
 {
-    auto s = getParseSucceeded(r);
-    return ParserSucceeded<B> { static_cast<B>(s.parsed), s.from, s.to };
+  ParserSucceeded<A> s = getParseSucceeded(r);
+  ParserSucceeded<B> res;
+  res.parsed = f(s.parsed);
+  res.from = s.from;
+  res.to = s.to;
+  return res;
 }
 
 // unsafe get error
@@ -97,8 +102,7 @@ ParserResult<B> fmapPR(
       return getParseFailed(pr);
     }
 
-    auto s = getParseSucceeded(pr);
-    return ParserSucceeded<B> { f(s.parsed), s.from, s.to };
+    return convertParseSucceeded<A, B>(pr, f);
 }
 
 // state

@@ -124,6 +124,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		cpp_parsec.pro ps/context.h \
+		ps/core_parsers.h \
 		ps/types.h \
 		ps/ps.h \
 		ps/free/interpreter.h \

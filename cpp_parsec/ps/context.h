@@ -26,38 +26,6 @@ public:
     void put_state(const State& state);
 };
 
-
-template <typename Single>
-ParserResult<Single> parseSingle(
-        ParserRuntime& runtime,
-        const std::function<bool(char)>& validator,
-        const std::function<Single(char)>& converter,
-        const std::string& name
-        )
-{
-    std::string_view s = runtime.get_view();
-    std::string failedMsg = std::string("Failed to parse ") + name;
-
-    if (s.empty())
-    {
-        return { ParserFailed {failedMsg + ": end of input.", runtime.get_state().pos} };
-    }
-    else if (!validator(s.at(0)))
-    {
-        return { ParserFailed {failedMsg + ": not a " + name + ".", runtime.get_state().pos} };
-    }
-
-    ParserSucceeded<Single> r;
-    r.parsed = converter(s.at(0));
-    r.from = runtime.get_state().pos;
-    r.to = runtime.get_state().pos + 1;
-    return { r };
-}
-
-ParserResult<std::string> parseLit(
-        ParserRuntime& runtime,
-        const std::string& litS
-        );
 } // namespace ps
 
 #endif // PS_CONTEXT_H

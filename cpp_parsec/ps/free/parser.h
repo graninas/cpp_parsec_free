@@ -83,6 +83,7 @@ ParserT<B> bindSafe(
     return runBindST(ma, f2);
 }
 
+
 template <typename A,
           template <typename> class Method>
 static ParserL<A> wrap(const Method<ParserL<A>>& method)
@@ -168,20 +169,23 @@ ParserT<ParserResult<A>> tryP(const PL<A>& parser)
     return { FreeFST<ParserResult<A>> { r2 } };
 }
 
-// This is experiment (it does not work)
-//template <typename A>
-//ParserT<ParserResult<A>> tryP(const ParserT<A>& parser)
-//{
-//    ParserL<Unit> dummy = purePL(unit);
-//    ParserT<ParserResult<Unit>> dummyP = tryP(dummy);
-//    return bind<ParserResult<Unit>, ParserResult<A>>(dummyP, [=](const ParserResult<Unit>&)
-//    {
-//        return bind<A, ParserResult<A>>(parser, [](const A& a)
-//        {
-//            return pure<ParserResult<A>>(ParserSucceeded<A> { a });
-//        });
-//    });
-//}
+// N.B., this was commented out and said "this doesn't work.
+// But it turns out the tests pass.
+// After so much time, I don't really know what was wrong, and what in general
+// happens in this function.
+template <typename A>
+ParserT<ParserResult<A>> tryPT(const ParserT<A>& parser)
+{
+    ParserL<Unit> dummy = purePL(unit);
+    ParserT<ParserResult<Unit>> dummyP = tryP(dummy);
+    return bind<ParserResult<Unit>, ParserResult<A>>(dummyP, [=](const ParserResult<Unit>&)
+    {
+        return bind<A, ParserResult<A>>(parser, [](const A& a)
+        {
+            return pure<ParserResult<A>>(ParserSucceeded<A> { a });
+        });
+    });
+}
 
 template <typename A>
 ParserT<ParserResult<A>> safeP(const PL<A>& parser)
@@ -573,6 +577,55 @@ ParserT<B> between(const ParserT<A>& bracketP,
                    const ParserT<B>& p)
 {
     return seq(bracketP, fst(p, bracketP));
+}
+
+// evalP: ParserT<A> evalP(const PL<A>& parser)
+// alt: ParserT<A> alt(const PL<A>& l, const PL<A>& r)
+// ParserT<A> alt(const ParserT<ParserResult<A>>& l,
+//                const ParserT<ParserResult<A>>& r)
+// ParserT<ParserResult<A>> tryP(const PL<A>& parser)
+
+// PL<A> -> PT<PR<A>>  (evalP)
+// PT<PR<A>> -> PT<A>  (alt)
+
+//?  PT<A> -> PL<A>
+//? PT<A> -> PT<ParserResult<A>>
+
+
+// Special hacky function, do not use it.
+// B == ParserResult<A>
+template <typename A>
+ParserT<ParserResult<A>> oneOrAnother(
+   const ParserT<ParserResult<A>>& ma1,
+   const ParserT<ParserResult<A>>& ma2)
+{
+    std::function<ParserT<ParserResult<A>>(ParserResult<A>)> f2 =
+            [=](const ParserResult<A>& res)
+    {
+        if (isLeft(res))
+        {
+            return ma2;
+        }
+
+        return tryPT(pure(getParsed(res)));
+    };
+
+    return runBindST(ma1, f2);
+}
+
+
+template <typename A>
+ParserT<ParserResult<A>> oneOf(const std::vector<ParserT<A>>& ps)
+{
+    if (ps.empty())
+        throw std::runtime_error("Parser list is empty");
+
+    auto resultP = tryPT(ps[0]);
+    for(auto it = ps.begin()+1; it != ps.end(); it++) {
+        resultP = oneOrAnother<A>(resultP, tryPT(*it) );
+    };
+
+    return resultP;
 }
 
 

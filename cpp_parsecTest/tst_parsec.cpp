@@ -20,6 +20,8 @@ private Q_SLOTS:
     void digitParserTest();
     void litParserTest();
     void lowerCaseCharParserTest();
+    void tryPTTest();
+    void oneOfTest();
     void upperCaseCharParserTest();
     void symbolParserTest();
     void manyCombinatorTest();
@@ -102,6 +104,51 @@ void PSTest::lowerCaseCharParserTest()
     QVERIFY(r == 'a');
 }
 
+
+void PSTest::tryPTTest()
+{
+    using namespace ps;
+
+    ParserResult<Char> result1 = parse<Char>({tryPT(digit)}, "1ab");
+    ParserResult<Char> result2 = parse<Char>({tryPT(digit)}, "ab");
+
+    QVERIFY(isRight(result1));
+    QVERIFY(isLeft(result2));
+    Char r1 = getParsed<Char>(result1);
+    QVERIFY(r1 == '1');
+}
+
+void PSTest::oneOfTest()
+{
+    using namespace ps;
+
+    ParserResult<Char> whenFirstParser = parse<Char>(
+                oneOf<Char>({digit, lower, upper})
+                , "6bC");
+
+    ParserResult<Char> whenSecondParser = parse<Char>(
+                oneOf<Char>({digit, lower, upper})
+                , "a6C");
+
+    ParserResult<Char> whenThirdParser = parse<Char>(
+                oneOf<Char>({digit, lower, upper})
+                , "Ab6");
+
+    ParserResult<Char> noMatch = parse<Char>(
+                oneOf<Char>({digit, lower, upper})
+                , "?#^");
+
+    QVERIFY(isRight(whenFirstParser));
+    QVERIFY(isRight(whenSecondParser));
+    QVERIFY(isRight(whenThirdParser));
+    QVERIFY(isLeft(noMatch));
+//    QVERIFY(isRight(result3));
+//    Char r1 = getParsed<Char>(result1);
+//    Char r3 = getParsed<Char>(result3);
+//    QVERIFY(r1 == 'a');
+//    QVERIFY(r3 == '6');
+}
+
 void PSTest::upperCaseCharParserTest()
 {
     using namespace ps;
@@ -149,6 +196,7 @@ void PSTest::manyCombinatorTest()
     parsed.pop_front();
     QVERIFY(parsed.front() == '1');
 }
+
 
 void PSTest::parseFailureTest()
 {

@@ -5,6 +5,7 @@
 #include "core/runtime.h"
 #include "core/interpreter.h"
 #include "core/parser.h"
+#include "core/parser/functor.h"
 
 namespace ps {
 

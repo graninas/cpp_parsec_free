@@ -358,8 +358,6 @@ tst_parsec.moc: tst_parsec.cpp \
 		../cpp_parsec/ps/core/runtime.h \
 		../cpp_parsec/ps/core/interpreter.h \
 		../cpp_parsec/ps/core/raw_parsers.h \
-		../cpp_parsec/ps/core/adt/methods.h \
-		../cpp_parsec/ps/core/adt/parser.h \
 		../cpp_parsec/ps/core/parser.h \
 		../cpp_parsec/ps/core/conds.h \
 		moc_predefs.h \
@@ -382,8 +380,6 @@ tst_parsec.o: tst_parsec.cpp common.h \
 		../cpp_parsec/ps/core/runtime.h \
 		../cpp_parsec/ps/core/interpreter.h \
 		../cpp_parsec/ps/core/raw_parsers.h \
-		../cpp_parsec/ps/core/adt/methods.h \
-		../cpp_parsec/ps/core/adt/parser.h \
 		../cpp_parsec/ps/core/parser.h \
 		../cpp_parsec/ps/core/conds.h \
 		tst_parsec.moc

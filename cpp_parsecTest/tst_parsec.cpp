@@ -20,6 +20,10 @@ private Q_SLOTS:
   void singleDigitFromMiddleTest();
   void singleDigitFailureTest();
   void litParserTest();
+
+
+  void digitCastTest();
+
   // void digitParserTest();
   // void lowerCaseCharParserTest();
   // void tryPTTest();
@@ -150,6 +154,28 @@ void PSTest::litParserTest()
     QVERIFY(r == "str");
 }
 
+
+void PSTest::digitCastTest()
+{
+  using namespace ps;
+
+  auto src = "1";
+  std::string_view src_view(src);
+
+  ParserL<int> digit_casted = fmap<Char, int>([](char ch) -> int { return ch - '0'; }, digit);
+
+  ParserRuntime runtime(src, State{0});
+  ParserResult<int> result = parse_with_runtime<int>(runtime, digit_casted);
+
+  auto messages = runtime.get_messages();
+  for (const auto &msg : messages)
+  {
+      std::cout << msg << "\n";
+  }
+
+  QVERIFY(isRight(result));
+
+}
 
 // void PSTest::lowerCaseCharParserTest()
 // {

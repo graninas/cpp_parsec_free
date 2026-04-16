@@ -12,11 +12,10 @@ SOURCES += \
 HEADERS += \
     ps/core/types.h \
     ps/core/runtime.h \
-    ps/core/adt/methods.h \
-    ps/core/adt/parser.h \
+    ps/core/parser/adt.h \
+    ps/core/parser/functor.h \
     ps/core/conds.h \
     ps/core/interpreter.h \
-    ps/core/methods_functor.h \
     ps/core/raw_parsers.h \
     ps/core/parser.h \
     ps/ps.h

@@ -4,8 +4,7 @@
 #include "types.h"
 #include "runtime.h"
 #include "conds.h"
-#include "adt/methods.h"
-#include "adt/parser.h"
+#include "parser/adt.h"
 #include "interpreter.h"
 
 namespace ps

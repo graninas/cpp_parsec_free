@@ -3,8 +3,7 @@
 
 #include "runtime.h"
 #include "raw_parsers.h"
-#include "./adt/methods.h"
-#include "./adt/parser.h"
+#include "parser/adt.h"
 
 namespace ps
 {

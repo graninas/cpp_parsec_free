@@ -43,14 +43,15 @@ namespace core
       const std::string &litS)
   {
     std::string_view s = runtime.get_view();
-    std::string failedMsg = std::string("Failed to parse ") + litS;
 
     if (s.size() < litS.size())
     {
+      std::string failedMsg = std::string("Failed to parse ") + litS;
       return {ParserFailed{failedMsg + ": end of input.", runtime.get_state().pos}};
     }
     else if (s.find(litS) != 0)
     {
+      std::string failedMsg = std::string("Failed to parse ") + litS;
       return {ParserFailed{failedMsg, runtime.get_state().pos}};
     }
 

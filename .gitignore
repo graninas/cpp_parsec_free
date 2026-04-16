@@ -1,1 +1,15 @@
 *.user
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.exe
+*.out
+
+# Common build directories
+build/
+bin/
+
+# Project test executable
+**/tst_parsectest

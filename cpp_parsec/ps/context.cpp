@@ -30,24 +30,5 @@ void ParserRuntime::put_state(const State& state)
 }
 
 
-ParserResult<std::string> parseLit(
-        ParserRuntime& runtime,
-        const std::string& litS
-        )
-{
-    std::string_view s = runtime.get_view();
-    std::string failedMsg = std::string("Failed to parse ") + litS;
-
-    if (s.size() < litS.size())
-    {
-        return { ParserFailed {failedMsg + ": end of input.", runtime.get_state().pos} };
-    }
-    else if (s.find(litS) != 0)
-    {
-        return { ParserFailed {failedMsg, runtime.get_state().pos} };
-    }
-
-    return ParserSucceeded<std::string>{ litS, runtime.get_state().pos, runtime.get_state().pos + litS.size() };
-}
 
 } // namespace ps

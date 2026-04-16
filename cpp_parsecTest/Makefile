@@ -40,9 +40,9 @@ DISTNAME      = tst_parsectest1.0.0
 DISTDIR = /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/.tmp/tst_parsectest1.0.0
 LINK          = g++
 LFLAGS        = -Wl,-O1
-LIBS          = $(SUBLIBS) -L/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/../cpp_parsec/ -lcpp_parsec /usr/lib/x86_64-linux-gnu/libQt5Test.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lpthread
+LIBS          = $(SUBLIBS) -L/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/../cpp_parsec/ -lcpp_parsec /usr/lib/x86_64-linux-gnu/libQt5Test.so /usr/lib/x86_64-linux-gnu/libQt5Core.so -lpthread   
 AR            = ar cqs
-RANLIB        =
+RANLIB        = 
 SED           = sed
 STRIP         = strip
 
@@ -52,7 +52,7 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = tst_parsec.cpp
+SOURCES       = tst_parsec.cpp 
 OBJECTS       = tst_parsec.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
@@ -132,14 +132,14 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		cpp_parsecTest.pro common.h tst_parsec.cpp
 QMAKE_TARGET  = tst_parsectest
-DESTDIR       =
+DESTDIR       = 
 TARGET        = tst_parsectest
 
 
 first: all
 ####### Build rules
 
-tst_parsectest: /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/../cpp_parsec/libcpp_parsec.a $(OBJECTS)
+tst_parsectest: /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/../cpp_parsec/libcpp_parsec.a $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 Makefile: cpp_parsecTest.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -316,13 +316,13 @@ distdir: FORCE
 	$(COPY_FILE) --parents tst_parsec.cpp $(DISTDIR)/
 
 
-clean: compiler_clean
+clean: compiler_clean 
 	-$(DEL_FILE) $(OBJECTS)
 	-$(DEL_FILE) *~ core *.core
 
 
-distclean: clean
-	-$(DEL_FILE) $(TARGET)
+distclean: clean 
+	-$(DEL_FILE) $(TARGET) 
 	-$(DEL_FILE) Makefile
 
 
@@ -357,6 +357,7 @@ tst_parsec.moc: tst_parsec.cpp \
 		../cpp_parsec/ps/free/parser.h \
 		../cpp_parsec/ps/types.h \
 		../cpp_parsec/ps/context.h \
+		../cpp_parsec/ps/free/conds.h \
 		../cpp_parsec/ps/free/parserl.h \
 		../cpp_parsec/ps/psf/parser_adt.h \
 		../cpp_parsec/ps/free/parserlst.h \
@@ -364,6 +365,7 @@ tst_parsec.moc: tst_parsec.cpp \
 		../cpp_parsec/ps/free/bind.h \
 		../cpp_parsec/ps/free/bindst.h \
 		../cpp_parsec/ps/free/interpreter.h \
+		../cpp_parsec/ps/core_parsers.h \
 		../cpp_parsec/ps/free/interpreterst.h \
 		../cpp_parsec/ps/free/parserl_functor.h \
 		../cpp_parsec/ps/psf/visitor.h \
@@ -378,7 +380,7 @@ compiler_yacc_impl_make_all:
 compiler_yacc_impl_clean:
 compiler_lex_make_all:
 compiler_lex_clean:
-compiler_clean: compiler_moc_predefs_clean compiler_moc_source_clean
+compiler_clean: compiler_moc_predefs_clean compiler_moc_source_clean 
 
 ####### Compile
 
@@ -387,6 +389,7 @@ tst_parsec.o: tst_parsec.cpp common.h \
 		../cpp_parsec/ps/free/parser.h \
 		../cpp_parsec/ps/types.h \
 		../cpp_parsec/ps/context.h \
+		../cpp_parsec/ps/free/conds.h \
 		../cpp_parsec/ps/free/parserl.h \
 		../cpp_parsec/ps/psf/parser_adt.h \
 		../cpp_parsec/ps/free/parserlst.h \
@@ -394,6 +397,7 @@ tst_parsec.o: tst_parsec.cpp common.h \
 		../cpp_parsec/ps/free/bind.h \
 		../cpp_parsec/ps/free/bindst.h \
 		../cpp_parsec/ps/free/interpreter.h \
+		../cpp_parsec/ps/core_parsers.h \
 		../cpp_parsec/ps/free/interpreterst.h \
 		../cpp_parsec/ps/free/parserl_functor.h \
 		../cpp_parsec/ps/psf/visitor.h \

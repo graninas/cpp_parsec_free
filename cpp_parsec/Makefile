@@ -131,7 +131,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		ps/free/bind.h \
 		ps/free/parser.h \
 		ps/free/parserl.h \
-		ps/psf/parserf.h \
+		ps/psf/parser_adt.h \
 		ps/psf/visitor.h \
 		ps/psf/parserfst.h \
 		ps/psf/visitorst.h \

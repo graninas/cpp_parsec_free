@@ -14,48 +14,62 @@ namespace core
   template <typename Single>
   ParserResult<Single> parseSingle(
       ParserRuntime &runtime,
+      Pos from,
       const std::function<bool(char)> &validator,
       const std::function<Single(char)> &converter,
       const std::string &name)
   {
-    std::string_view s = runtime.get_view();
-    std::string failedMsg = std::string("Failed to parse ") + name;
+    std::string_view s = runtime.get_view().substr(from);
 
     if (s.empty())
     {
-      return {ParserFailed{failedMsg + ": end of input.", runtime.get_state().pos}};
+      std::string failedMsg = std::string("Failed to parse ") + name + ": end of input.";
+      runtime.push_message(failedMsg);
+      return {ParserFailed{failedMsg, runtime.get_state().pos}};
     }
     else if (!validator(s.at(0)))
     {
-      return {ParserFailed{failedMsg + ": not a " + name + ".", runtime.get_state().pos}};
+      std::string failedMsg = std::string("Failed to parse ") + name + ": '" + s.substr(0, 1).data() + "' does not satisfy the condition.";
+      runtime.push_message(failedMsg);
+      return {ParserFailed{failedMsg, runtime.get_state().pos}};
     }
 
     ParserSucceeded<Single> r;
     r.parsed = converter(s.at(0));
-    r.from = runtime.get_state().pos;
-    r.to = runtime.get_state().pos + 1;
-    return {r};
+    r.from = from;
+    r.to = from + 1;
+    runtime.push_message(std::string("Parsed ") + name + ": '" + s.substr(0, 1).data() + "'.");
+    return r;
   }
 
+  // Dummy template parameter is for keeping it in the header file and not defining it in a .cpp file, since it's a template function.
   template <typename Dummy>
   ParserResult<std::string> parseLit(
       ParserRuntime &runtime,
+      Pos from,
       const std::string &litS)
   {
-    std::string_view s = runtime.get_view();
+    std::string_view s = runtime.get_view().substr(from);
 
     if (s.size() < litS.size())
     {
-      std::string failedMsg = std::string("Failed to parse ") + litS;
-      return {ParserFailed{failedMsg + ": end of input.", runtime.get_state().pos}};
+      std::string failedMsg = std::string("Failed to parse lit:") + litS + ": end of input.";
+      runtime.push_message(failedMsg);
+      return {ParserFailed{failedMsg, runtime.get_state().pos}};
     }
-    else if (s.find(litS) != 0)
+    else if (s.substr(0, litS.size()) != litS)
     {
-      std::string failedMsg = std::string("Failed to parse ") + litS;
+      std::string failedMsg = std::string("Failed to parse lit: ") + litS;
+      runtime.push_message(failedMsg);
       return {ParserFailed{failedMsg, runtime.get_state().pos}};
     }
 
-    return ParserSucceeded<std::string>{litS, runtime.get_state().pos, runtime.get_state().pos + litS.size()};
+    ParserSucceeded<std::string> r;
+    r.parsed = litS;
+    r.from = from;
+    r.to = from + litS.size();
+    runtime.push_message(std::string("Parsed lit: ") + litS + ".");
+    return r;
   }
 
 } // namespace core

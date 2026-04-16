@@ -49,13 +49,13 @@ bool isLeft(const Either<E,T>& e)
 struct ParserFailed
 {
     std::string message;
-    Pos position;
+    Pos pos;
 };
 
 template <typename T>
 struct ParserSucceeded
 {
-    T parsed;
+    T parsed;   // TODO: Might not be needed, but for now we keep it for simplicity
     Pos from;
     Pos to;
 };
@@ -90,20 +90,20 @@ ParserFailed getParseFailed(const ps::ParserResult<T>& r)
     return std::get<ParserFailed>(r);
 }
 
-// fmap
+// // fmap
 
-template <typename A, typename B>
-ParserResult<B> fmapPR(
-        const std::function<B(A)>& f,
-        const ParserResult<A>& pr)
-{
-    if (isLeft(pr))
-    {
-      return getParseFailed(pr);
-    }
+// template <typename A, typename B>
+// ParserResult<B> fmapPR(
+//         const std::function<B(A)>& f,
+//         const ParserResult<A>& pr)
+// {
+//     if (isLeft(pr))
+//     {
+//       return getParseFailed(pr);
+//     }
 
-    return convertParseSucceeded<A, B>(pr, f);
-}
+//     return convertParseSucceeded<A, B>(pr, f);
+// }
 
 // state
 

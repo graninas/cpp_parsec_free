@@ -9,34 +9,34 @@ namespace ps
 namespace free
 {
 
-// TODO: unify
+// // TODO: unify
 
-// Forward declaration
-template <typename A>
-struct ParserLST;
+// // Forward declaration
+// template <typename A>
+// struct ParserLST;
 
-// Free methods
+// // Free methods
 
-template <typename Ret>
-struct PureFST
-{
-    Ret ret;
-};
+// template <typename Ret>
+// struct PureFST
+// {
+//     Ret ret;
+// };
 
-template <typename Ret>
-struct FreeFST
-{
-    psfst::ParserFST<ParserLST<Ret>> psfst;
-};
+// template <typename Ret>
+// struct FreeFST
+// {
+//     psfst::ParserFST<ParserLST<Ret>> psfst;
+// };
 
-template <typename A>
-struct ParserLST
-{
-    std::variant<PureFST<A>, FreeFST<A>> pslst;
-};
+// template <typename A>
+// struct ParserLST
+// {
+//     std::variant<PureFST<A>, FreeFST<A>> pslst;
+// };
 
-template <typename A>
-using ParserT = ParserLST<A>;
+// template <typename A>
+// using ParserT = ParserLST<A>;
 
 } // namespace free
 } // namespace ps

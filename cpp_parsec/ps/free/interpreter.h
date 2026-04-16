@@ -14,66 +14,97 @@ namespace free
 template <typename Ret>
 struct ParserLVisitor;
 
-template <typename Ret>
-ParserResult<Ret> runParserL(
-        ParserRuntime& runtime,
-        const ParserL<Ret>& psl)
-{
-    ParserLVisitor<Ret> visitor(runtime);
-    std::visit(visitor, psl.psl);
-    return visitor.result;
-}
+
+
+
+
+
+
+
+
+
+
+
 
 template <typename Ret>
-struct ParserFVisitor
+ParserResult<Ret> runParser(
+        ParserRuntime& runtime,
+        const ParserL<Ret>& next,
+        Pos start_from)
+{
+  ParserLVisitor<Ret> visitor(runtime, start_from);
+  std::visit(visitor, next.psl);
+  return visitor.result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+template <typename Ret>
+struct ParserADTVisitor
 {
     ParserRuntime& _runtime;
     ParserResult<Ret> result;
+    Pos _start_from;
 
-    ParserFVisitor(ParserRuntime& runtime)
-        : _runtime(runtime)
+    ParserADTVisitor(ParserRuntime& runtime, Pos start_from)
+        : _runtime(runtime), _start_from(start_from)
     {
     }
 
-    void operator()(const psf::ParseSymbolCond<ParserL<Ret>>& f)
+    void operator()(const psf::ParseSymbolCond<ParserL<Ret>>& method)
     {
-        ParserResult<Char> r = ps::core::parseSingle<Char>(_runtime, f.validator, id, f.name);
+        ParserResult<Char> r = ps::core::parseSingle<Char>(
+          _runtime, _start_from, method.validator, id, method.name);
 
         if (isLeft(r))
-          throw std::runtime_error(getParseFailed(r).message);
+          throw std::runtime_error("ParseSymbolCond failed: " +
+            getParseFailed(r).message + " at position " +
+            std::to_string(getParseFailed(r).pos));
         else
         {
-            _runtime.advance(1);
-            ParserL<Ret> rNext = f.next(r);
-            result = runParserL<Ret>(_runtime, rNext);
+            ParserSucceeded<Char> succeeded = getParseSucceeded(r);
+            ParserL<Ret> rNext = method.next(succeeded.parsed);
+            result = runParser<Ret>(_runtime, rNext, succeeded.to);
         }
     }
 
-    void operator()(const psf::ParseLit<ParserL<Ret>>& f)
+    void operator()(const psf::ParseLit<ParserL<Ret>>& method)
     {
-      ParserResult<std::string> r = ps::core::parseLit<std::string>(_runtime, f.s);
+      ParserResult<std::string> r = ps::core::parseLit<std::string>(_runtime, _start_from, method.s);
 
       if (isLeft(r))
-        throw std::runtime_error(getParseFailed(r).message);
+        throw std::runtime_error("ParseLit failed: " + getParseFailed(r).message +
+          " at position " + std::to_string(getParseFailed(r).pos));
       else
       {
-        _runtime.advance(f.s.size());
-        ParserL<Ret> rNext = f.next(r);
-        result = runParserL<Ret>(_runtime, rNext);
+        ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
+        ParserL<Ret> rNext = method.next(succeeded.parsed);
+        result = runParser<Ret>(_runtime, rNext, succeeded.to);
       }
     }
 
-    void operator()(const psf::GetSt<ParserL<Ret>>& f)
+    void operator()(const psf::GetSt<ParserL<Ret>>& method)
     {
-        auto rNext = f.next(ParserSucceeded<State> { _runtime.get_state() });
-        result = runParserL<Ret>(_runtime, rNext);
+        auto rNext = method.next(_runtime.get_state());
+        result = runParser<Ret>(_runtime, rNext, _start_from);
     }
 
-    void operator()(const psf::PutSt<ParserL<Ret>>& f)
+    void operator()(const psf::PutSt<ParserL<Ret>>& method)
     {
-        _runtime.put_state(f.st);
-        auto rNext = f.next(ParserSucceeded<Unit> { unit });
-        result = runParserL<Ret>(_runtime, rNext);
+        _runtime.put_state(method.st);
+        auto rNext = method.next(unit);
+        result = runParser<Ret>(_runtime, rNext, _start_from);
     }
 };
 
@@ -82,22 +113,23 @@ struct ParserLVisitor
 {
     ParserRuntime& _runtime;
     ParserResult<Ret> result;
+    Pos _start_from;
 
-    ParserLVisitor(ParserRuntime& runtime)
-        : _runtime(runtime)
+    ParserLVisitor(ParserRuntime& runtime, Pos start_from)
+        : _runtime(runtime), _start_from(start_from)
     {
     }
 
     void operator()(const PureF<Ret>& p)
     {
-        result = ParserSucceeded<Ret> { p.ret };
+        result = ParserSucceeded<Ret> { p.ret, _start_from, p.to };
     }
 
     void operator()(const FreeF<Ret>& f)
     {
-        ParserFVisitor<Ret> visitor(_runtime);
-        std::visit(visitor, f.psf.psf);
-        result = visitor.result;
+      ParserADTVisitor<Ret> visitor(_runtime, _start_from);
+      std::visit(visitor, f.psf.psf);
+      result = visitor.result;
     }
 };
 

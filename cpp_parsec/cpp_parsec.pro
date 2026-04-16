@@ -18,7 +18,7 @@ HEADERS += \
     ps/free/bind.h \
     ps/free/parser.h \
     ps/free/parserl.h \
-    ps/psf/parserf.h \
+    ps/psf/parser_adt.h \
     ps/psf/visitor.h \
     ps/psf/parserfst.h \
     ps/psf/visitorst.h \

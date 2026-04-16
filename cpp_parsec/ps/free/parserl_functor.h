@@ -36,7 +36,7 @@ struct FunctorParserLVisitor
     void operator()(const PureF<A>& fa)
     {
         std::function<B(A)> f = fTemplate;
-        result = ParserL<B> { PureF<B> { f(fa.ret) } };
+        result = ParserL<B> { PureF<B> { f(fa.ret), fa.from, fa.to } };
     }
 
     void operator()(const FreeF<A>& fa)
@@ -48,7 +48,7 @@ struct FunctorParserLVisitor
             return fmap<A, B>(f, pslInt);
         };
 
-        psf::ParserF<ParserL<B>> visited = psf::fmap(f2, fa.psf);
+        psf::ParserADT<ParserL<B>> visited = psf::fmap(f2, fa.psf);
         result = ParserL<B> { FreeF<B> { visited } };
     }
 };

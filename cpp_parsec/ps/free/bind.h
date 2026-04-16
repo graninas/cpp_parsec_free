@@ -2,7 +2,7 @@
 #define PS_FREE_BIND_H
 
 #include "parserl.h"
-#include "../psf/parserf.h"
+#include "../psf/parser_adt.h"
 
 namespace ps
 {
@@ -23,12 +23,12 @@ ParserL<B> runBind(const ParserL<A>& psl,
 }
 
 template <typename A, typename B>
-struct BindParserFVisitor
+struct BindParserADTVisitor
 {
     std::function<ParserL<B>(A)> fTemplate;
-    psf::ParserF<ParserL<B>> result;
+    psf::ParserADT<ParserL<B>> newParserADT;
 
-    BindParserFVisitor(const std::function<ParserL<B>(A)>& func)
+    BindParserADTVisitor(const std::function<ParserL<B>(A)>& func)
         : fTemplate(func)
     {}
 
@@ -38,12 +38,13 @@ struct BindParserFVisitor
         psf::ParseSymbolCond<ParserL<B>> fb;
         fb.validator = fa.validator;
         fb.name = fa.name;
+        fb.from = fa.from;
         fb.next = [=](const ParserResult<Char>& ch)
         {
             ParserL<A> nextA = fa.next(ch);
             return runBind<A, B>(nextA, f);
         };
-        result.psf = fb;
+        newParserADT.psf = fb;
     }
 
     void operator()(const psf::ParseLit<ParserL<A>>& fa)
@@ -51,12 +52,13 @@ struct BindParserFVisitor
         std::function<ParserL<B>(A)> f = fTemplate;
         psf::ParseLit<ParserL<B>> fb;
         fb.s = fa.s;
+        fb.from = fa.from;
         fb.next = [=](const ParserResult<std::string>& resS)
         {
             ParserL<A> nextA = fa.next(resS);
             return runBind<A, B>(nextA, f);
         };
-        result.psf = fb;
+        newParserADT.psf = fb;
     }
 
     void operator()(const psf::GetSt<ParserL<A>>&)
@@ -74,7 +76,7 @@ template <typename A, typename B>
 struct BindParserLVisitor
 {
     std::function<ParserL<B>(A)> fTemplate;
-    ParserL<B> result;
+    ParserL<B> newParserFreeADT;
 
     BindParserLVisitor(const std::function<ParserL<B>(A)>& func)
         : fTemplate(func)
@@ -83,16 +85,16 @@ struct BindParserLVisitor
     void operator()(const PureF<A>& fa)
     {
         std::function<ParserL<B>(A)> f = fTemplate;
-        result = f(fa.ret);
+        newParserFreeADT = f(fa.ret);
     }
 
     void operator()(const FreeF<A>& fa)
     {
         std::function<ParserL<B>(A)> f = fTemplate;
-        BindParserFVisitor<A, B> visitor(f);
+        BindParserADTVisitor<A, B> visitor(f);
         std::visit(visitor, fa.psf.psf);
-        psf::ParserF<ParserL<B>> visited = visitor.result;
-        result.psl = FreeF<B> { visited };
+        psf::ParserADT<ParserL<B>> visited = visitor.result;
+        newParserFreeADT = FreeF<B> { visited };
     }
 };
 

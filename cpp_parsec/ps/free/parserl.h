@@ -2,7 +2,7 @@
 #define PS_FREE_PSL_H
 
 #include "../types.h"
-#include "../psf/parserf.h"
+#include "../psf/parser_adt.h"
 
 namespace ps
 {
@@ -20,12 +20,14 @@ template <typename Ret>
 struct PureF
 {
     Ret ret;
+    Pos from;
+    Pos to;
 };
 
 template <typename Ret>
 struct FreeF
 {
-    psf::ParserF<ParserL<Ret>> psf;
+  psf::ParserADT<ParserL<Ret>> psf;
 };
 
 // Recursive Free ParserL algebraic data type
@@ -37,10 +39,19 @@ struct ParserL
 };
 
 
+// Previously: purePL
 template <typename A>
-ParserL<A> runPurePL(const A& a)
+ParserL<A> make_pure(const A& a, Pos from, Pos to)
 {
-    return { PureF<A>{ a } };
+    return { PureF<A>{ a, from, to } };
+}
+
+// Previously: wrap
+template <typename A,
+          template <typename> class Method>
+ParserL<A> make_free(const Method<ParserL<A>> &method)
+{
+  return { FreeF<A>{psf::ParserADT<ParserL<A>>{method}} };
 }
 
 } // namespace free

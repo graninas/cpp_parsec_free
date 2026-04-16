@@ -1,24 +1,23 @@
-#ifndef PS_PSF_H
-#define PS_PSF_H
+#ifndef PS_PSF_VISITOR_H
+#define PS_PSF_VISITOR_H
 
-#include "parserf.h"
+#include "parser_adt.h"
 
 namespace ps
 {
 namespace psf
 {
 
-// TODO: remove this, use bind instead.
 template <typename A, typename B>
 using MapFunc = std::function<B(A)>;
 
 template <typename A, typename B>
-struct ParserFVisitor
+struct ParserADTVisitor
 {
     MapFunc<A, B> fTemplate;
-    ParserF<B> result;
+    ParserADT<B> result;
 
-    ParserFVisitor(const MapFunc<A, B>& func)
+    ParserADTVisitor(const MapFunc<A, B>& func)
         : fTemplate(func)
     {}
 
@@ -28,9 +27,9 @@ struct ParserFVisitor
         ParseSymbolCond<B> fb;
         fb.name = fa.name;
         fb.validator = fa.validator;
-        fb.next = [=](const ParserResult<Char>& d)
+        fb.next = [=](const Char d, Pos pos)
         {
-            A faResult = fa.next(d);
+            A faResult = fa.next(d, pos);
             B gResult = g(faResult);
             return gResult;
         };
@@ -42,13 +41,26 @@ struct ParserFVisitor
         MapFunc<A, B> g = fTemplate;
         ParseLit<B> fb;
         fb.s = fa.s;
-        fb.next = [=](const ParserResult<std::string>& d)
+        fb.next = [=](const std::string& d, Pos pos)
         {
-            A faResult = fa.next(d);
+            A faResult = fa.next(d, pos);
             B gResult = g(faResult);
             return gResult;
         };
         result.psf = fb;
+    }
+
+    void operator()(const GetSt<A> &fa)
+    {
+      MapFunc<A, B> g = fTemplate;
+      GetSt<B> fb;
+      fb.next = [=](const State &st, Pos pos)
+      {
+        A faResult = fa.next(st, pos);
+        B gResult = g(faResult);
+        return gResult;
+      };
+      result.psf = fb;
     }
 
     void operator()(const PutSt<A>& fa)
@@ -56,22 +68,9 @@ struct ParserFVisitor
         MapFunc<A, B> g = fTemplate;
         PutSt<B> fb;
         fb.st = fa.st;
-        fb.next = [=](const ParserResult<Unit>&)
+        fb.next = [=](const Unit& unit, Pos pos)
         {
-            A faResult = fa.next(ParserSucceeded<Unit> { unit });
-            B gResult = g(faResult);
-            return gResult;
-        };
-        result.psf = fb;
-    }
-
-    void operator()(const GetSt<A>& fa)
-    {
-        MapFunc<A, B> g = fTemplate;
-        GetSt<B> fb;
-        fb.next = [=](const ParserResult<State>& st)
-        {
-            A faResult = fa.next(st);
+            A faResult = fa.next(unit, pos);
             B gResult = g(faResult);
             return gResult;
         };
@@ -80,10 +79,10 @@ struct ParserFVisitor
 };
 
 template <typename A, typename B>
-ParserF<B> fmap(const MapFunc<A, B>& f,
-                const ParserF<A>& method)
+ParserADT<B> fmap(const MapFunc<A, B>& f,
+                const ParserADT<A>& method)
 {
-    ParserFVisitor<A, B> visitor(f);
+    ParserADTVisitor<A, B> visitor(f);
     std::visit(visitor, method.psf);
     return visitor.result;
 }
@@ -92,4 +91,4 @@ ParserF<B> fmap(const MapFunc<A, B>& f,
 } // namespace psf
 } // namespace ps
 
-#endif // PS_PSF_H
+#endif // PS_PSF_VISITOR_H

@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_PSTest_t {
-    QByteArrayData data[25];
-    char stringdata0[411];
+    QByteArrayData data[4];
+    char stringdata0[48];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -34,41 +34,11 @@ static const qt_meta_stringdata_PSTest_t qt_meta_stringdata_PSTest = {
 QT_MOC_LITERAL(0, 0, 6), // "PSTest"
 QT_MOC_LITERAL(1, 7, 21), // "singleDigitParserTest"
 QT_MOC_LITERAL(2, 29, 0), // ""
-QT_MOC_LITERAL(3, 30, 15), // "digitParserTest"
-QT_MOC_LITERAL(4, 46, 13), // "litParserTest"
-QT_MOC_LITERAL(5, 60, 23), // "lowerCaseCharParserTest"
-QT_MOC_LITERAL(6, 84, 9), // "tryPTTest"
-QT_MOC_LITERAL(7, 94, 23), // "upperCaseCharParserTest"
-QT_MOC_LITERAL(8, 118, 16), // "symbolParserTest"
-QT_MOC_LITERAL(9, 135, 18), // "manyCombinatorTest"
-QT_MOC_LITERAL(10, 154, 16), // "parseFailureTest"
-QT_MOC_LITERAL(11, 171, 19), // "tryThrowParserLTest"
-QT_MOC_LITERAL(12, 191, 19), // "tryThrowParserTTest"
-QT_MOC_LITERAL(13, 211, 14), // "safeVSTryPTest"
-QT_MOC_LITERAL(14, 226, 12), // "bindPureTest"
-QT_MOC_LITERAL(15, 239, 15), // "applicativeTest"
-QT_MOC_LITERAL(16, 255, 20), // "sequencedParsersTest"
-QT_MOC_LITERAL(17, 276, 21), // "forgetCombinatorsTest"
-QT_MOC_LITERAL(18, 298, 18), // "seqCombinatorsTest"
-QT_MOC_LITERAL(19, 317, 24), // "binarySeqCombinatorsTest"
-QT_MOC_LITERAL(20, 342, 8), // "alt1Test"
-QT_MOC_LITERAL(21, 351, 8), // "alt2Test"
-QT_MOC_LITERAL(22, 360, 19), // "internalParsersTest"
-QT_MOC_LITERAL(23, 380, 12), // "employeeTest"
-QT_MOC_LITERAL(24, 393, 17) // "parserRuntimeTest"
+QT_MOC_LITERAL(3, 30, 17) // "parserRuntimeTest"
 
     },
     "PSTest\0singleDigitParserTest\0\0"
-    "digitParserTest\0litParserTest\0"
-    "lowerCaseCharParserTest\0tryPTTest\0"
-    "upperCaseCharParserTest\0symbolParserTest\0"
-    "manyCombinatorTest\0parseFailureTest\0"
-    "tryThrowParserLTest\0tryThrowParserTTest\0"
-    "safeVSTryPTest\0bindPureTest\0applicativeTest\0"
-    "sequencedParsersTest\0forgetCombinatorsTest\0"
-    "seqCombinatorsTest\0binarySeqCombinatorsTest\0"
-    "alt1Test\0alt2Test\0internalParsersTest\0"
-    "employeeTest\0parserRuntimeTest"
+    "parserRuntimeTest"
 };
 #undef QT_MOC_LITERAL
 
@@ -78,7 +48,7 @@ static const uint qt_meta_data_PSTest[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-      23,   14, // methods
+       2,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -86,52 +56,10 @@ static const uint qt_meta_data_PSTest[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,  129,    2, 0x08 /* Private */,
-       3,    0,  130,    2, 0x08 /* Private */,
-       4,    0,  131,    2, 0x08 /* Private */,
-       5,    0,  132,    2, 0x08 /* Private */,
-       6,    0,  133,    2, 0x08 /* Private */,
-       7,    0,  134,    2, 0x08 /* Private */,
-       8,    0,  135,    2, 0x08 /* Private */,
-       9,    0,  136,    2, 0x08 /* Private */,
-      10,    0,  137,    2, 0x08 /* Private */,
-      11,    0,  138,    2, 0x08 /* Private */,
-      12,    0,  139,    2, 0x08 /* Private */,
-      13,    0,  140,    2, 0x08 /* Private */,
-      14,    0,  141,    2, 0x08 /* Private */,
-      15,    0,  142,    2, 0x08 /* Private */,
-      16,    0,  143,    2, 0x08 /* Private */,
-      17,    0,  144,    2, 0x08 /* Private */,
-      18,    0,  145,    2, 0x08 /* Private */,
-      19,    0,  146,    2, 0x08 /* Private */,
-      20,    0,  147,    2, 0x08 /* Private */,
-      21,    0,  148,    2, 0x08 /* Private */,
-      22,    0,  149,    2, 0x08 /* Private */,
-      23,    0,  150,    2, 0x08 /* Private */,
-      24,    0,  151,    2, 0x08 /* Private */,
+       1,    0,   24,    2, 0x08 /* Private */,
+       3,    0,   25,    2, 0x08 /* Private */,
 
  // slots: parameters
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
-    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
 
@@ -145,28 +73,7 @@ void PSTest::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         (void)_t;
         switch (_id) {
         case 0: _t->singleDigitParserTest(); break;
-        case 1: _t->digitParserTest(); break;
-        case 2: _t->litParserTest(); break;
-        case 3: _t->lowerCaseCharParserTest(); break;
-        case 4: _t->tryPTTest(); break;
-        case 5: _t->upperCaseCharParserTest(); break;
-        case 6: _t->symbolParserTest(); break;
-        case 7: _t->manyCombinatorTest(); break;
-        case 8: _t->parseFailureTest(); break;
-        case 9: _t->tryThrowParserLTest(); break;
-        case 10: _t->tryThrowParserTTest(); break;
-        case 11: _t->safeVSTryPTest(); break;
-        case 12: _t->bindPureTest(); break;
-        case 13: _t->applicativeTest(); break;
-        case 14: _t->sequencedParsersTest(); break;
-        case 15: _t->forgetCombinatorsTest(); break;
-        case 16: _t->seqCombinatorsTest(); break;
-        case 17: _t->binarySeqCombinatorsTest(); break;
-        case 18: _t->alt1Test(); break;
-        case 19: _t->alt2Test(); break;
-        case 20: _t->internalParsersTest(); break;
-        case 21: _t->employeeTest(); break;
-        case 22: _t->parserRuntimeTest(); break;
+        case 1: _t->parserRuntimeTest(); break;
         default: ;
         }
     }
@@ -202,13 +109,13 @@ int PSTest::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 23)
+        if (_id < 2)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 23;
+        _id -= 2;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 23)
+        if (_id < 2)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 23;
+        _id -= 2;
     }
     return _id;
 }

@@ -68,9 +68,10 @@ struct ParserADTVisitor
           _runtime, _start_from, method.validator, id, method.name);
 
         if (isLeft(r))
-          throw std::runtime_error("ParseSymbolCond failed: " +
-            getParseFailed(r).message + " at position " +
-            std::to_string(getParseFailed(r).pos));
+        {
+          ParserFailed failed = getParseFailed(r);
+          result = ParserFailed { failed.message, failed.pos };
+        }
         else
         {
             ParserSucceeded<Char> succeeded = getParseSucceeded(r);
@@ -84,8 +85,10 @@ struct ParserADTVisitor
       ParserResult<std::string> r = ps::core::parseLit<std::string>(_runtime, _start_from, method.s);
 
       if (isLeft(r))
-        throw std::runtime_error("ParseLit failed: " + getParseFailed(r).message +
-          " at position " + std::to_string(getParseFailed(r).pos));
+      {
+        ParserFailed failed = getParseFailed(r);
+        result = ParserFailed { failed.message, failed.pos };
+      }
       else
       {
         ParserSucceeded<std::string> succeeded = getParseSucceeded(r);

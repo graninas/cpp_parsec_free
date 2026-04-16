@@ -17,8 +17,9 @@ public:
 private Q_SLOTS:
 
   void singleDigitParserTest();
+  void singleDigitFailureTest();
+  void litParserTest();
   // void digitParserTest();
-  // void litParserTest();
   // void lowerCaseCharParserTest();
   // void tryPTTest();
   // void upperCaseCharParserTest();
@@ -74,15 +75,53 @@ void PSTest::singleDigitParserTest()
       std::cout << msg << "\n";
   }
 
-  std::cout << "Final position: " << runtime.get_state().pos << "\n";
-
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
-  Char r = src_view.substr(parseSucceeded.from, parseSucceeded.to - parseSucceeded.from)[0];
+  Char r = parseSucceeded.parsed;
 
+  std::cout << "Final position: " << parseSucceeded.to << "\n";
   std::cout << "Parsed character: '" << r << "'\n";
 
   QVERIFY(r == '1');
+}
+
+void PSTest::singleDigitFailureTest()
+{
+  using namespace ps;
+
+  auto src = "a";
+  std::string_view src_view(src);
+
+  ParserRuntime runtime(src, State{0});
+  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit);
+
+  auto messages = runtime.get_messages();
+  for (const auto &msg : messages)
+  {
+      std::cout << msg << "\n";
+  }
+
+  QVERIFY(isLeft(result));
+  auto parseFailed = getParseFailed(result);
+  std::cout << "Error message: " << parseFailed.message << "\n";
+}
+
+void PSTest::litParserTest()
+{
+    using namespace ps;
+
+    auto src = "str12";
+    std::string_view src_view(src);
+
+    auto my_lit = parseLit("str");
+
+    ParserRuntime runtime(src, State{0});
+    ParserResult<std::string> result =
+        parse_with_runtime<std::string>(runtime, my_lit);
+
+    QVERIFY(isRight(result));
+    std::string r = getParseSucceeded<std::string>(result).parsed;
+    QVERIFY(r == "str");
 }
 
 // void PSTest::digitParserTest()
@@ -96,16 +135,6 @@ void PSTest::singleDigitParserTest()
 //   QVERIFY(r == '1');
 // }
 
-// void PSTest::litParserTest()
-// {
-//   using namespace ps;
-
-//   ParserResult<std::string> result = parse<std::string>(lit("str"), "str12");
-
-//   QVERIFY(isRight(result));
-//   std::string r = getParseSucceeded<std::string>(result).parsed;
-//   QVERIFY(r == "str");
-// }
 
 // void PSTest::lowerCaseCharParserTest()
 // {

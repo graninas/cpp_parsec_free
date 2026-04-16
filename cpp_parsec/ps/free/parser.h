@@ -38,6 +38,7 @@ ParserResult<A> parse_with_runtime(
 {
   return runParser(runtime, pst, 0);
 }
+
 // Parsers
 
 ParserL<Char> parseSymbolCond(
@@ -55,7 +56,20 @@ ParserL<Char> parseSymbolCond(
                 });
 }
 
+ParserL<std::string> parseLit(const std::string& s)
+{
+    return make_free(psf::ParseLit<ParserL<std::string>>{
+                      0,
+                      s,
+                      [](const std::string& resS) {
+                          return make_pure(resS, 0, resS.size());
+                      }
+                });
+}
+
 const ParserL<Char> digit = parseSymbolCond("digit", isDigit);
+const ParserL<Char> upper = parseSymbolCond("upper", isUpper);
+const ParserL<Char> lower = parseSymbolCond("lower", isLower);
 
 // Old design
 

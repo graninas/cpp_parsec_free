@@ -108,35 +108,35 @@ struct InterpretingADTVisitor
       _runtime.push_message("ParseMany: finished.");
     }
 
-    // void operator()(const ParseLit<ParserL<Ret>>& method)
-    // {
-    //   ParserResult<std::string> r = parseLit<std::string>(_runtime, _start_from, method.s);
+    void operator()(const ParseLit<ParserL<Ret>>& method)
+    {
+      ParserResult<std::string> r = parseLit<std::string>(_runtime, _start_from, method.s);
 
-    //   if (isLeft(r))
-    //   {
-    //     ParserFailed failed = getParseFailed(r);
-    //     result = ParserFailed { failed.message, failed.pos };
-    //   }
-    //   else
-    //   {
-    //     ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
-    //     ParserL<Ret> rNext = method.next(succeeded.parsed);
-    //     result = runParser<Ret>(_runtime, rNext, succeeded.to);
-    //   }
-    // }
+      if (isLeft(r))
+      {
+        ParserFailed failed = getParseFailed(r);
+        result = ParserFailed { failed.message, failed.pos };
+      }
+      else
+      {
+        ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
+        ParserL<Ret> rNext = method.next(succeeded.parsed);
+        result = runParser<Ret>(_runtime, rNext, succeeded.to);
+      }
+    }
 
-    // void operator()(const GetSt<ParserL<Ret>>& method)
-    // {
-    //     auto rNext = method.next(_runtime.get_state());
-    //     result = runParser<Ret>(_runtime, rNext, _start_from);
-    // }
+    void operator()(const GetSt<ParserL<Ret>>& method)
+    {
+        auto rNext = method.next(_runtime.get_state());
+        result = runParser<Ret>(_runtime, rNext, _start_from);
+    }
 
-    // void operator()(const PutSt<ParserL<Ret>>& method)
-    // {
-    //     _runtime.put_state(method.st);
-    //     auto rNext = method.next(unit);
-    //     result = runParser<Ret>(_runtime, rNext, _start_from);
-    // }
+    void operator()(const PutSt<ParserL<Ret>>& method)
+    {
+        _runtime.put_state(method.st);
+        auto rNext = method.next(unit);
+        result = runParser<Ret>(_runtime, rNext, _start_from);
+    }
 
 
 };

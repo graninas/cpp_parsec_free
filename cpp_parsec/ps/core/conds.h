@@ -31,7 +31,7 @@ namespace core {
       return ch >= '0' && ch <= '9';
   };
 
-  const auto isAlphaNum = [](char ch)
+  const auto isAlphanum = [](char ch)
   {
       return isAlpha(ch) || isDigit(ch);
   };

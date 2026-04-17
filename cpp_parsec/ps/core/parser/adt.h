@@ -30,25 +30,25 @@ namespace core
   };
 
 
-// template <typename Next>
-// struct ParseLit
-// {
-//   std::string s;
-//   std::function<Next(std::string)> next;
-// };
+template <typename Next>
+struct ParseLit
+{
+  std::string s;
+  std::function<Next(std::string)> next;
+};
 
-// template <typename Next>
-// struct GetSt
-// {
-//   std::function<Next(State)> next;
-// };
+template <typename Next>
+struct GetSt
+{
+  std::function<Next(State)> next;
+};
 
-// template <typename Next>
-// struct PutSt
-// {
-//     State st;
-//     std::function<Next(Unit)> next;
-// };
+template <typename Next>
+struct PutSt
+{
+    State st;
+    std::function<Next(Unit)> next;
+};
 
 
 template <class Ret>
@@ -56,10 +56,10 @@ struct ParserADT        // TODO: rename to Methods
 {
     std::variant<
         ParseSymbolCond<Ret>,
-        ParseMany<Ret>
-        // ParseLit<Ret>,
-        // GetSt<Ret>,
-        // PutSt<Ret>
+        ParseMany<Ret>,
+        ParseLit<Ret>,
+        GetSt<Ret>,
+        PutSt<Ret>
     > psf;
 };
 

@@ -62,21 +62,25 @@ ParserL<Char> parseSymbolCond(
                 });
 }
 
-// ParserL<std::string> parseLit(const std::string& s)
-// {
-//     return make_free(ParseLit<ParserL<std::string>>{
-//                       s,
-//                       [](const std::string& resS) {
-//                           return make_pure(resS, 0, resS.size());
-//                       }
-//                 });
-// }
+ParserL<std::string> parseLit(const std::string& s)
+{
+    return make_free(ParseLit<ParserL<std::string>>{
+                      s,
+                      [](const std::string& resS) {
+                          return make_pure(resS);
+                      }
+                });
+}
 
 const ParserL<Char> digit = parseSymbolCond("digit", isDigit);
 const ParserL<Char> upper = parseSymbolCond("upper", isUpper);
 const ParserL<Char> lower = parseSymbolCond("lower", isLower);
-
-
+const ParserL<Char> alpha = parseSymbolCond("alpha", isAlpha);
+const ParserL<Char> alphanum = parseSymbolCond("alphanum", isAlphanum);
+const ParserL<Char> space = parseSymbolCond("space", isSpace);
+const ParserL<Char> anyChar = parseSymbolCond("any char", [](char) { return true; });
+const ParserL<Char> eol = parseSymbolCond("eol", isEol);
+const ParserL<Char> cr = parseSymbolCond("cr", isCr);
 
 template <typename A>
 ParserL<Many<A>> many(ParserL<A>* p)

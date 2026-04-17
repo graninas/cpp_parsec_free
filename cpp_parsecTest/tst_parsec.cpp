@@ -22,7 +22,7 @@ private Q_SLOTS:
   void singleDigitFromMiddleTest();
   void onlyOneDigitFromMiddleTest();
   void singleDigitFailureTest();
-  // void litParserTest();
+  void litParserTest();
 
 
   void digitCastTest();
@@ -169,22 +169,22 @@ void PSTest::singleDigitFailureTest()
 }
 
 
-// void PSTest::litParserTest()
-// {
-//     using namespace ps;
+void PSTest::litParserTest()
+{
+    using namespace ps;
 
-//     auto src = "str12";
+    auto src = "str12";
 
-//     auto my_lit = parseLit("str");
+    auto my_lit = parseLit("str");
 
-//     ParserRuntime runtime(src, State{0});
-//     ParserResult<std::string> result =
-//         parse_with_runtime<std::string>(runtime, my_lit);
+    ParserRuntime runtime(src, State{});
+    ParserResult<std::string> result =
+        parse_with_runtime<std::string>(runtime, my_lit);
 
-//     QVERIFY(isRight(result));
-//     std::string r = getParseSucceeded<std::string>(result).parsed;
-//     QVERIFY(r == "str");
-// }
+    QVERIFY(isRight(result));
+    std::string r = getParseSucceeded<std::string>(result).parsed;
+    QVERIFY(r == "str");
+}
 
 
 void PSTest::digitCastTest()

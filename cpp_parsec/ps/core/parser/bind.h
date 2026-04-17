@@ -47,6 +47,20 @@ struct BindParserADTVisitor
         newParserADT.psf = fb;
     }
 
+    void operator()(const ParseLit<ParserL<A>>& fa)
+    {
+        std::function<ParserL<B>(A)> g = fTemplate;
+
+        ParseLit<ParserL<B>> fb;
+        fb.s = fa.s;
+        fb.next = [=](const std::string& d)
+        {
+            ParserL<A> intermediate = fa.next(d);
+            return runBind<A, B>(intermediate, g);
+        };
+        newParserADT.psf = fb;
+    }
+
       void operator()(const ParseMany<ParserL<A>>& fa)
       {
           std::function<ParserL<B>(A)> g = fTemplate;
@@ -55,6 +69,31 @@ struct BindParserADTVisitor
           fb.next = [=](const std::list<Any>& d)
           {
               ParserL<A> intermediate = fa.next(d);
+              return runBind<A, B>(intermediate, g);
+          };
+          newParserADT.psf = fb;
+      }
+
+      void operator()(const GetSt<ParserL<A>>& fa)
+      {
+          std::function<ParserL<B>(A)> g = fTemplate;
+          GetSt<ParserL<B>> fb;
+          fb.next = [=](const State& st)
+          {
+              ParserL<A> intermediate = fa.next(st);
+              return runBind<A, B>(intermediate, g);
+          };
+          newParserADT.psf = fb;
+      }
+
+      void operator()(const PutSt<ParserL<A>>& fa)
+      {
+          std::function<ParserL<B>(A)> g = fTemplate;
+          PutSt<ParserL<B>> fb;
+          fb.st = fa.st;
+          fb.next = [=](const Unit& unit)
+          {
+              ParserL<A> intermediate = fa.next(unit);
               return runBind<A, B>(intermediate, g);
           };
           newParserADT.psf = fb;

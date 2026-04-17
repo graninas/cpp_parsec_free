@@ -47,6 +47,20 @@ ParserL<B> fmap(
       result.psf = fb;
     }
 
+    void operator()(const ParseLit<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        ParseLit<B> fb;
+        fb.s = fa.s;
+        fb.next = [=](const std::string& d)
+        {
+            A faResult = fa.next(d);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
+
       void operator()(const ParseMany<A>& fa)
       {
           MapFunc<A, B> g = fTemplate;
@@ -61,47 +75,32 @@ ParserL<B> fmap(
           result.psf = fb;
       }
 
+    void operator()(const GetSt<A> &fa)
+    {
+      MapFunc<A, B> g = fTemplate;
+      GetSt<B> fb;
+      fb.next = [=](const State &st)
+      {
+        A faResult = fa.next(st);
+        B gResult = g(faResult);
+        return gResult;
+      };
+      result.psf = fb;
+    }
 
-    // void operator()(const ParseLit<A>& fa)
-    // {
-    //     MapFunc<A, B> g = fTemplate;
-    //     ParseLit<B> fb;
-    //     fb.s = fa.s;
-    //     fb.next = [=](const std::string& d)
-    //     {
-    //         A faResult = fa.next(d);
-    //         B gResult = g(faResult);
-    //         return gResult;
-    //     };
-    //     result.psf = fb;
-    // }
-
-    // void operator()(const GetSt<A> &fa)
-    // {
-    //   MapFunc<A, B> g = fTemplate;
-    //   GetSt<B> fb;
-    //   fb.next = [=](const State &st)
-    //   {
-    //     A faResult = fa.next(st);
-    //     B gResult = g(faResult);
-    //     return gResult;
-    //   };
-    //   result.psf = fb;
-    // }
-
-    // void operator()(const PutSt<A>& fa)
-    // {
-    //     MapFunc<A, B> g = fTemplate;
-    //     PutSt<B> fb;
-    //     fb.st = fa.st;
-    //     fb.next = [=](const Unit& unit)
-    //     {
-    //         A faResult = fa.next(unit);
-    //         B gResult = g(faResult);
-    //         return gResult;
-    //     };
-    //     result.psf = fb;
-    // }
+    void operator()(const PutSt<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        PutSt<B> fb;
+        fb.st = fa.st;
+        fb.next = [=](const Unit& unit)
+        {
+            A faResult = fa.next(unit);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
 
 };
 

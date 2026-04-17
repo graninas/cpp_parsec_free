@@ -146,7 +146,7 @@ struct FunctorParserLVisitor
     void operator()(const PureF<A>& fa)
     {
         std::function<B(A)> f = fTemplate;
-        result = ParserL<B> { PureF<B> { f(fa.ret), fa.from, fa.to } };
+        result = ParserL<B> { PureF<B> { f(fa.ret) } };
     }
 
     void operator()(const FreeF<A>& fa)

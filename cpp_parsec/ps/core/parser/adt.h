@@ -80,8 +80,6 @@ template <typename Ret>
 struct PureF
 {
   Ret ret;
-  Pos from;
-  Pos to;
 };
 
 template <typename Ret>
@@ -98,9 +96,9 @@ struct ParserL
 
 
 template <typename A>
-ParserL<A> make_pure(const A &a, Pos from, Pos to)
+ParserL<A> make_pure(const A &a)
 {
-  return {PureF<A>{a, from, to}};
+  return {PureF<A>{a}};
 }
 
 template <typename A,

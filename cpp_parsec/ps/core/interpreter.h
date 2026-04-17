@@ -66,29 +66,33 @@ struct InterpretingADTVisitor
         return;
       }
 
-      _runtime.push_message("ParseMany: starting first runParser.");
-      _runtime.push_message("Current src view: '" + std::string(_runtime.get_view()));
+      _runtime.push_message("Current src view: '" + std::string(_runtime.get_view())+ "'");
 
-      ParserRuntime tempRuntime = _runtime;  // Create a temporary runtime to run the raw parser, so that we don't modify the original runtime's state and messages during the loop.
+      // Create a temporary runtime to run the raw parser, so that we don't modify the original runtime's state and messages during the loop.
+      // N.B. For now, the source string is copied in the constructor of ParserRuntime, so this is not a problem. If we later change it to use a shared_ptr or something similar to avoid copying the source string, we might need to make sure that the temporary runtime shares the same source string as the original runtime, so that we don't end up with two different source strings in memory. For now, we just keep it simple and copy the runtime.
+      ParserRuntime tempRuntime = _runtime;
 
-      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.raw_parser, _start_from);
-
-      _runtime.push_message("ParseMany: entering loop.");
       std::list<Any> acc;
       Pos currentPos = _start_from;
       int iteration = 0;
+
+      _runtime.push_message("ParseMany: starting first runParser. Current position: " + std::to_string(currentPos) + ".");
+      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.raw_parser, currentPos);
+      _runtime.push_message("ParseMany: entering loop.");
+
       while (isRight(r))
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
         acc.push_back(succeeded.parsed);    // Result will be converted when fmapped
+
         currentPos = succeeded.to;
+        _runtime.push_message("ParseMany: current position after parsing: " + std::to_string(currentPos) + ". Parsed value added to accumulator, size now: " + std::to_string(acc.size()) + ".");
         iteration++;
-        _runtime.push_message("ParseMany: successful iteration " + std::to_string(iteration) + ", advancing position.");
         r = runParser<Any>(tempRuntime, *method.raw_parser, currentPos);
 
-        if (iteration > 10)   // Safety check to prevent infinite loops, in case of a bug in the raw parser or something like that. In a real implementation we might want to handle this differently, maybe by throwing an exception or something like that.
+        if (iteration > _runtime.get_many_combinator_threshold())   // Safety check to prevent infinite loops, in case of a bug in the raw parser or something like that. In a real implementation we might want to handle this differently, maybe by throwing an exception or something like that.
         {
-          _runtime.push_message("ParseMany: safety check triggered, breaking loop after 10 iterations.");
+          _runtime.push_message("ParseMany: safety check triggered, breaking loop after " + std::to_string(iteration) + " iterations.");
           break;
         }
       }
@@ -151,7 +155,7 @@ struct InterpretingVisitor
 
     void operator()(const PureF<Ret>& p)
     {
-        result = ParserSucceeded<Ret> { p.ret, _start_from, p.to };
+      result = ParserSucceeded<Ret>{p.ret, _start_from, _start_from};
     }
 
     void operator()(const FreeF<Ret>& f)

@@ -17,8 +17,10 @@ public:
 private Q_SLOTS:
 
   void singleDigitParserTest();
+  void onlyOneDigitTest();
   void singleDigitFromManyTest();
   void singleDigitFromMiddleTest();
+  void onlyOneDigitFromMiddleTest();
   void singleDigitFailureTest();
   // void litParserTest();
 
@@ -87,10 +89,24 @@ void PSTest::singleDigitParserTest()
   auto parseSucceeded = getParseSucceeded(result);
   Char r = parseSucceeded.parsed;
 
-  std::cout << "Final position: " << parseSucceeded.to << "\n";
-  std::cout << "Parsed character: '" << r << "'\n";
+  QVERIFY(r == '1');
+  QVERIFY(parseSucceeded.to == 1);
+}
+
+void PSTest::onlyOneDigitTest()
+{
+  using namespace ps;
+
+  auto src = "12";
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit);
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
 
   QVERIFY(r == '1');
+  QVERIFY(parseSucceeded.to == 1);
 }
 
 void PSTest::singleDigitFromManyTest()
@@ -99,7 +115,7 @@ void PSTest::singleDigitFromManyTest()
 
   auto src = "123";
   ParserRuntime runtime(src, State{});
-  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 1);
+  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 0);
 
   auto messages = runtime.get_messages();
   for (const auto &msg : messages)
@@ -111,10 +127,7 @@ void PSTest::singleDigitFromManyTest()
   auto parseSucceeded = getParseSucceeded(result);
   Char r = parseSucceeded.parsed;
 
-  std::cout << "Final position: " << parseSucceeded.to << "\n";
-  std::cout << "Parsed character: '" << r << "'\n";
-
-  QVERIFY(r == '2');
+  QVERIFY(r == '1');
   QVERIFY(parseSucceeded.to == 1);
 }
 
@@ -136,10 +149,24 @@ void PSTest::singleDigitFromMiddleTest()
   auto parseSucceeded = getParseSucceeded(result);
   Char r = parseSucceeded.parsed;
 
-  std::cout << "Final position: " << parseSucceeded.to << "\n";
-  std::cout << "Parsed character: '" << r << "'\n";
-
   QVERIFY(r == '1');
+  QVERIFY(parseSucceeded.to == 2);
+}
+
+void PSTest::onlyOneDigitFromMiddleTest()
+{
+  using namespace ps;
+
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 1);
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
+
+  QVERIFY(r == '2');
+  QVERIFY(parseSucceeded.to == 2);
 }
 
 void PSTest::singleDigitFailureTest()
@@ -572,16 +599,13 @@ void PSTest::parserRuntimeTest()
   std::string src = "hello world";
   State st{5};
   ParserRuntime runtime(src, st);
-
-  // view starts at position 5 -> " world"
-  std::string_view v = runtime.get_view();
-  QVERIFY(v == std::string_view(" world"));
+  QVERIFY(runtime.get_state().data == 5);
 
   // put_state to 2 -> "llo world"
   State s2{2};
   runtime.put_state(s2);
   QVERIFY(runtime.get_state().data == 2);
-  QVERIFY(runtime.get_view() == std::string_view("llo world"));
+  QVERIFY(runtime.get_view() == std::string_view("hello world"));
 }
 
 QTEST_APPLESS_MAIN(PSTest)

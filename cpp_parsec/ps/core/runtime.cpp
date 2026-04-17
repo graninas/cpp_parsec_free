@@ -5,11 +5,6 @@ namespace ps
 namespace core
 {
 
-ParserRuntime::ParserRuntime(const std::string& source, const State& state)
-    : _source(source)
-    , _state(state)
-{
-}
 
 std::string_view ParserRuntime::get_view() const
 {

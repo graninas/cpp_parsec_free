@@ -51,15 +51,15 @@ bool isLeft(const Either<E,T>& e)
 struct ParserFailed
 {
     std::string message;
-    Pos pos;
+    Pos pos;    // Position in the source string where the parsing failed
 };
 
 template <typename T>
 struct ParserSucceeded
 {
-    T parsed;   // TODO: Might not be needed, but for now we keep it for simplicity
-    Pos from;
-    Pos to;
+    T parsed;
+    Pos from;   // Start position of the parsed substring in the source string
+    Pos to;     // End position of the parsed substring in the source string (exclusive)
 };
 
 template <typename T>

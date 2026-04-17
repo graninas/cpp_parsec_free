@@ -57,7 +57,7 @@ ParserL<Char> parseSymbolCond(
                       [](const Any& any)  {
                           char ch = std::any_cast<char>(any);
                           {
-                              return make_pure(ch, 0, 1);
+                              return make_pure(ch);
                           }
                       }
                 });
@@ -98,7 +98,7 @@ ParserL<Many<A>> many(ParserL<A>* p)
           A a = std::any_cast<A>(any);
           res.push_back(a);
         }
-        return make_pure(res, 0, 0); // TODO: from and to
+        return make_pure(res);
       }});
 }
 

@@ -362,6 +362,7 @@ tst_parsec.moc: tst_parsec.cpp \
 		../cpp_parsec/ps/core/parser.h \
 		../cpp_parsec/ps/core/conds.h \
 		../cpp_parsec/ps/core/parser/functor.h \
+		../cpp_parsec/ps/core/parser/bind.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest -I/home/alexander/workspace/cpp_parsec_free/cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include tst_parsec.cpp -o tst_parsec.moc
@@ -386,6 +387,7 @@ tst_parsec.o: tst_parsec.cpp common.h \
 		../cpp_parsec/ps/core/parser.h \
 		../cpp_parsec/ps/core/conds.h \
 		../cpp_parsec/ps/core/parser/functor.h \
+		../cpp_parsec/ps/core/parser/bind.h \
 		tst_parsec.moc
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tst_parsec.o tst_parsec.cpp
 

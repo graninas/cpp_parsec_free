@@ -17,8 +17,6 @@ namespace core
   template <typename Next>
   struct ParseSymbolCond
   {
-    Pos from;
-
     std::string name;
     std::function<bool(Any)> validator;
     std::function<Next(Any)> next;
@@ -27,8 +25,6 @@ namespace core
   template <typename Next>
   struct ParseMany
   {
-    Pos from;
-
     std::shared_ptr<ParserL<Any>> raw_parser;   // Parser is always the same
     std::function<Next(std::list<Any>)> next;
   };
@@ -37,8 +33,6 @@ namespace core
 // template <typename Next>
 // struct ParseLit
 // {
-//   Pos from;
-
 //   std::string s;
 //   std::function<Next(std::string)> next;
 // };
@@ -46,14 +40,12 @@ namespace core
 // template <typename Next>
 // struct GetSt
 // {
-//   Pos from;
 //   std::function<Next(State)> next;
 // };
 
 // template <typename Next>
 // struct PutSt
 // {
-//     Pos from;
 //     State st;
 //     std::function<Next(Unit)> next;
 // };
@@ -108,7 +100,11 @@ ParserL<A> make_free(const Method<ParserL<A>> &method)
   return {FreeF<A>{ParserADT<ParserL<A>>{method}}};
 }
 
-
+template <typename A>
+ParserL<A> pure(const A &a)
+{
+  return make_pure(a);
+}
 
 } // namespace core
 } // namespace ps

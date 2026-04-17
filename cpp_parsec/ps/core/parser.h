@@ -6,6 +6,7 @@
 #include "conds.h"
 #include "parser/adt.h"
 #include "parser/functor.h"
+#include "parser/bind.h"
 #include "interpreter.h"
 
 namespace ps
@@ -49,9 +50,7 @@ ParserL<Char> parseSymbolCond(
       return cond_copy(ch);
   };
 
-
     return make_free(ParseSymbolCond<ParserL<Char>>{
-                      0,
                       name,
                       condAny,
                       [](const Any& any)  {
@@ -66,7 +65,6 @@ ParserL<Char> parseSymbolCond(
 // ParserL<std::string> parseLit(const std::string& s)
 // {
 //     return make_free(ParseLit<ParserL<std::string>>{
-//                       0,
 //                       s,
 //                       [](const std::string& resS) {
 //                           return make_pure(resS, 0, resS.size());
@@ -88,7 +86,6 @@ ParserL<Many<A>> many(ParserL<A>* p)
                    { return a; }, *p));
 
   return make_free(ParseMany<ParserL<Many<A>>>{
-      0,
       pCopy,
       [](const std::list<Any> &resList)
       {

@@ -42,6 +42,8 @@ private Q_SLOTS:
   // void tryThrowParserTTest();
   // void safeVSTryPTest();
 
+  void bindPureTest();
+
   // void bindPureTest();
   // void applicativeTest();
   // void sequencedParsersTest();
@@ -201,7 +203,6 @@ void PSTest::digitCastTest()
   ParserADT<char> digitADT =
   {
       ParseSymbolCond<char>{
-          0,
           "",
           cond,
           [](const std::any& any)
@@ -444,28 +445,29 @@ void PSTest::manyParserCastedTest()
 //   QVERIFY(getParseFailed(result2).message == "err2");
 // }
 
-// struct R
-// {
-//   ps::Char dg0;
-//   ps::Char ch1;
-//   ps::Char ch2;
-// };
+struct R
+{
+  ps::Char dg0;
+  ps::Char ch1;
+  ps::Char ch2;
+};
 
-// void PSTest::bindPureTest()
-// {
-//   using namespace ps;
+void PSTest::bindPureTest()
+{
+  using namespace ps;
 
-//   auto p = bind<Char, R>(digit, [=](Char d1)
-//                          { return pure<R>(R{d1, 'a', '0'}); });
+  ParserL<R> p = bind<Char, R>(digit, [=](Char d1) { return pure<R>(R{d1, 'a', '0'}); });
 
-//   ParserResult<R> result = parse(p, "1b2");
+  auto src = "242fddvf";
+  ParserRuntime runtime(src, State{});
+  ParserResult<R> result = parse_with_runtime<R>(runtime, p, 0);
 
-//   QVERIFY(isRight(result));
-//   R r = getParseSucceeded<R>(result).parsed;
-//   QVERIFY(r.dg0 == '1');
-//   QVERIFY(r.ch1 == 'a');
-//   QVERIFY(r.ch2 == '0');
-// }
+  QVERIFY(isRight(result));
+  R r = getParseSucceeded<R>(result).parsed;
+  QVERIFY(r.dg0 == '2');
+  QVERIFY(r.ch1 == 'a');
+  QVERIFY(r.ch2 == '0');
+}
 
 // void PSTest::applicativeTest()
 // {

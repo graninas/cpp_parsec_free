@@ -50,7 +50,6 @@ ParserL<B> fmap(
       void operator()(const ParseMany<A>& fa)
       {
           MapFunc<A, B> g = fTemplate;
-
           ParseMany<B> fb;
           fb.raw_parser = fa.raw_parser;   // TODO: check if this is ok, might need to be fmapped as well
           fb.next = [=](const std::list<Any>& d)

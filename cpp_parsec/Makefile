@@ -127,6 +127,7 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		ps/core/runtime.h \
 		ps/core/parser/adt.h \
 		ps/core/parser/functor.h \
+		ps/core/parser/bind.h \
 		ps/core/conds.h \
 		ps/core/interpreter.h \
 		ps/core/raw_parsers.h \

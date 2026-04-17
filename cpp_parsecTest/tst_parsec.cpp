@@ -46,6 +46,9 @@ private Q_SLOTS:
   void betweenTest();
   void countTest();
   void discardTest();
+  void bothTest();
+
+  // void personInfoParserTest();
 
 };
 
@@ -380,7 +383,7 @@ void PSTest::nestedBindSequenceTest()
   using namespace ps;
 
   // Read three digits in sequence using nested binds and return them as R
-  ParserL<R> seq = bind<Char, R>(digit, [=](Char d1) {
+  ParserL<R> inSequence = bind<Char, R>(digit, [=](Char d1) {
     return bind<Char, R>(digit, [=](Char d2) {
       return bind<Char, R>(digit, [=](Char d3) {
         return pure<R>(R{d1, d2, d3});
@@ -389,7 +392,7 @@ void PSTest::nestedBindSequenceTest()
   });
 
   ParserRuntime runtime("123", State{});
-  ParserResult<R> res = parse_with_runtime<R>(runtime, seq, 0);
+  ParserResult<R> res = parse_with_runtime<R>(runtime, inSequence, 0);
 
   QVERIFY(isRight(res));
   R out = getParseSucceeded<R>(res).parsed;
@@ -550,6 +553,67 @@ void PSTest::discardTest()
 
   QVERIFY(isRight(r));
 }
+
+void PSTest::bothTest()
+{
+  using namespace ps;
+
+  auto src = "1a345";
+  ParserRuntime runtime(src, State{});
+
+  // both: run two parsers and return pair of their results
+
+  ParserL<std::pair<Char, Char>> p = both<Char, Char>(digit, alpha);
+  ParserResult<std::pair<Char, Char>> r = parse_with_runtime<std::pair<Char, Char>>(runtime, p);
+
+  QVERIFY(isRight(r));
+  std::pair<Char, Char> parsed = getParseSucceeded(r).parsed;
+  QVERIFY(parsed.first == '1');
+  QVERIFY(parsed.second == 'a');
+}
+
+struct PersonInfo
+{
+    std::string firstName;
+    std::string lastName;
+    int age;
+    std::string ssn;
+};
+
+ps::ParserL<std::string> capitalizedWordParser()
+{
+  throw std::runtime_error("Not implemented yet");
+}
+
+ps::ParserL<PersonInfo> personInfoParser()
+{
+  throw std::runtime_error("Not implemented yet");
+
+  // We want to parse a string like "John,Doe,30,123-45-6789" into a PersonInfo struct.
+  // The following is a "dream" syntax we'd like to achieve:
+  // ParserL<std::tuple<std::string, std::string, int, std::string>> personInfoParser =
+  //   capitalizedWordParser() + skip(comma) + capitalizedWordParser() + skip(comma) + ageParser() + skip(comma) + ssnParser();
+
+}
+
+// void personInfoParserTest()
+// {
+//     using namespace ps;
+
+//     auto src = "John,Doe,30,123-45-6789";
+//     ParserRuntime runtime(src, State{});
+
+
+
+//     ParserResult<PersonInfo> r = parse_with_runtime<PersonInfo>(runtime, p);
+
+//     QVERIFY(isRight(r));
+//     PersonInfo info = getParseSucceeded(r).parsed;
+//     QVERIFY(info.firstName == "John");
+//     QVERIFY(info.lastName == "Doe");
+//     QVERIFY(info.age == 30);
+//     QVERIFY(info.ssn == "123-45-6789");
+// }
 
 QTEST_APPLESS_MAIN(PSTest)
 

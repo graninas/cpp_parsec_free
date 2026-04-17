@@ -72,6 +72,14 @@ ParserL<std::string> parseLit(const std::string& s)
                 });
 }
 
+// TODO: satisfy
+// template <typename A>
+// ParserL<A> satisfy(const std::function<bool(A)>& cond)
+// {
+//     return
+// }
+
+
 const ParserL<Char> digit = parseSymbolCond("digit", isDigit);
 const ParserL<Char> upper = parseSymbolCond("upper", isUpper);
 const ParserL<Char> lower = parseSymbolCond("lower", isLower);
@@ -105,10 +113,36 @@ ParserL<Many<A>> many(const ParserL<A>& item)
       }});
 }
 
+// seq: run two parsers in sequence and return the result of the second one
 template <typename A, typename B>
 ParserL<B> seq(const ParserL<A>& p, const ParserL<B>& q)
 {
     return bind<A, B>(p, [=](const A&) { return q; });
+}
+
+// TODO: test it
+template <typename A>
+ParserL<Many<A>> bothSequence(const ParserL<A>& fst, const ParserL<A>& snd)
+{
+    return bind<A, Many<A>>(fst, [=](const A& a) {
+        return fmap<A, Many<A>>([=](const A& b) {
+            Many<A> res;
+            res.push_back(a);
+            res.push_back(b);
+            return res;
+        }, snd);
+    });
+}
+
+// TODO: test it
+template <typename A, typename B>
+ParserL<std::pair<A, B>> both(const ParserL<A>& fst, const ParserL<B>& snd)
+{
+    return bind<A, std::pair<A, B>>(fst, [=](const A& a) {
+        return fmap<B, std::pair<A, B>>([=](const B& b) {
+            return std::make_pair(a, b);
+        }, snd);
+    });
 }
 
 template <typename A, typename B>
@@ -212,6 +246,17 @@ ParserL<Unit> discard(const ParserL<A>& p)
 }
 
 
+/// Some specific combinators
+// TODO: test it
+ParserL<std::string> manyCharsToString(
+  const ParserL<Many<Char>> &manyCharsParser)
+{
+  return fmap<Many<Char>, std::string>(
+      [](const Many<Char>& chars) {
+          return std::string(chars.begin(), chars.end());
+      },
+      manyCharsParser);
+}
 
 
 

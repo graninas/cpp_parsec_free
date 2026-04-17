@@ -13,11 +13,17 @@ namespace core
 template <typename A, typename B>
 using MapFunc = std::function<B(A)>;
 
-
-// Methods functor
+// Forward
 
 template <typename A, typename B>
-struct ParserADTVisitor
+ParserL<B> fmap(
+    const std::function<B(A)> &f,
+    const ParserL<A> &psl);
+
+    // Methods functor
+
+    template <typename A, typename B>
+    struct ParserADTVisitor
 {
     MapFunc<A, B> fTemplate;
     ParserADT<B> result;
@@ -40,6 +46,22 @@ struct ParserADTVisitor
       };
       result.psf = fb;
     }
+
+      void operator()(const ParseMany<A>& fa)
+      {
+          MapFunc<A, B> g = fTemplate;
+
+          ParseMany<B> fb;
+          fb.raw_parser = fa.raw_parser;   // TODO: check if this is ok, might need to be fmapped as well
+          fb.next = [=](const std::list<Any>& d)
+          {
+              A faResult = fa.next(d);
+              B gResult = g(faResult);
+              return gResult;
+          };
+          result.psf = fb;
+      }
+
 
     // void operator()(const ParseLit<A>& fa)
     // {
@@ -139,6 +161,7 @@ struct FunctorParserLVisitor
         ParserADT<ParserL<B>> visited = methods_fmap(f2, fa.psf);
         result = ParserL<B> { FreeF<B> { visited } };
     }
+
 
 };
 

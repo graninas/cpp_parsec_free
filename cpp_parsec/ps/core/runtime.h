@@ -14,7 +14,7 @@ namespace core
 class ParserRuntime
 {
 private:
-    const std::string& _source;
+    const std::string _source;      // TODO: investigate if we can avoid copying the source string, maybe by using a shared_ptr or something similar. For now we just keep it simple with a copy.
     State _state;
 
     std::vector<std::string> _messages;

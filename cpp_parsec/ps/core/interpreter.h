@@ -57,6 +57,53 @@ struct InterpretingADTVisitor
         }
     }
 
+    void operator()(const ParseMany<ParserL<Ret>>& method)
+    {
+      if (method.raw_parser == nullptr)
+      {
+        _runtime.push_message("ParseMany: raw_parser is null.");
+        result = ParserFailed { "Internal error: null parser in ParseMany.", _start_from };
+        return;
+      }
+
+      _runtime.push_message("ParseMany: starting first runParser.");
+      _runtime.push_message("Current src view: '" + std::string(_runtime.get_view()));
+
+      ParserRuntime tempRuntime = _runtime;  // Create a temporary runtime to run the raw parser, so that we don't modify the original runtime's state and messages during the loop.
+
+      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.raw_parser, _start_from);
+
+      _runtime.push_message("ParseMany: entering loop.");
+      std::list<Any> acc;
+      Pos currentPos = _start_from;
+      int iteration = 0;
+      while (isRight(r))
+      {
+        ParserSucceeded<Any> succeeded = getParseSucceeded(r);
+        acc.push_back(succeeded.parsed);    // Result will be converted when fmapped
+        currentPos = succeeded.to;
+        iteration++;
+        _runtime.push_message("ParseMany: successful iteration " + std::to_string(iteration) + ", advancing position.");
+        r = runParser<Any>(tempRuntime, *method.raw_parser, currentPos);
+
+        if (iteration > 10)   // Safety check to prevent infinite loops, in case of a bug in the raw parser or something like that. In a real implementation we might want to handle this differently, maybe by throwing an exception or something like that.
+        {
+          _runtime.push_message("ParseMany: safety check triggered, breaking loop after 10 iterations.");
+          break;
+        }
+      }
+      _runtime.push_message("ParseMany: loop ended after " + std::to_string(iteration) + " iterations.");
+
+      auto messages = tempRuntime.get_messages();   // Get messages from the temporary runtime and push them to the original runtime, so that we have the messages from all iterations of the loop.
+      for (const auto& msg : messages)
+      {
+          _runtime.push_message(msg);
+      }
+
+      result = runParser<Ret>(_runtime, method.next(acc), currentPos);
+      _runtime.push_message("ParseMany: finished.");
+    }
+
     // void operator()(const ParseLit<ParserL<Ret>>& method)
     // {
     //   ParserResult<std::string> r = parseLit<std::string>(_runtime, _start_from, method.s);

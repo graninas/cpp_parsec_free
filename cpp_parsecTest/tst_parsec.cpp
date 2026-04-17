@@ -17,6 +17,7 @@ public:
 private Q_SLOTS:
 
   void singleDigitParserTest();
+  void singleDigitFromManyTest();
   void singleDigitFromMiddleTest();
   void singleDigitFailureTest();
   // void litParserTest();
@@ -73,7 +74,7 @@ void PSTest::singleDigitParserTest()
   auto src = "1";
   std::string_view src_view(src);
 
-  ParserRuntime runtime(src, State{0});
+  ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit);
 
   auto messages = runtime.get_messages();
@@ -92,14 +93,37 @@ void PSTest::singleDigitParserTest()
   QVERIFY(r == '1');
 }
 
+void PSTest::singleDigitFromManyTest()
+{
+  using namespace ps;
+
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 1);
+
+  auto messages = runtime.get_messages();
+  for (const auto &msg : messages)
+  {
+      std::cout << msg << "\n";
+  }
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
+
+  std::cout << "Final position: " << parseSucceeded.to << "\n";
+  std::cout << "Parsed character: '" << r << "'\n";
+
+  QVERIFY(r == '2');
+  QVERIFY(parseSucceeded.to == 1);
+}
+
 void PSTest::singleDigitFromMiddleTest()
 {
   using namespace ps;
 
   auto src = "a1b";
-  std::string_view src_view(src);
-
-  ParserRuntime runtime(src, State{0});
+  ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 1);
 
   auto messages = runtime.get_messages();
@@ -123,16 +147,9 @@ void PSTest::singleDigitFailureTest()
   using namespace ps;
 
   auto src = "a";
-  std::string_view src_view(src);
 
-  ParserRuntime runtime(src, State{0});
+  ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit);
-
-  auto messages = runtime.get_messages();
-  for (const auto &msg : messages)
-  {
-      std::cout << msg << "\n";
-  }
 
   QVERIFY(isLeft(result));
   auto parseFailed = getParseFailed(result);
@@ -143,7 +160,6 @@ void PSTest::singleDigitFailureTest()
 //     using namespace ps;
 
 //     auto src = "str12";
-//     std::string_view src_view(src);
 
 //     auto my_lit = parseLit("str");
 
@@ -187,19 +203,10 @@ void PSTest::digitCastTest()
   ParserADT<int> digitIntADT = methods_fmap<char, int>(charToInt, digitADT);
 
   auto src = "1";
-  std::string_view src_view(src);
 
   ParserL<int> digit_casted = fmap<Char, int>(charToInt, digit);
-
-
-  ParserRuntime runtime(src, State{0});
+  ParserRuntime runtime(src, State{});
   ParserResult<int> result = parse_with_runtime<int>(runtime, digit_casted);
-
-  auto messages = runtime.get_messages();
-  for (const auto &msg : messages)
-  {
-      std::cout << msg << "\n";
-  }
 
   QVERIFY(isRight(result));
   QVERIFY(getParseSucceeded(result).parsed == 1);
@@ -210,28 +217,48 @@ void PSTest::manyDigitsTest()
   using namespace ps;
 
   auto src = "123";
-  std::string_view src_view(src);
+  ParserRuntime runtime(src, State{});
 
-  ParserRuntime runtime(src, State{0});
+  ParserL<char> digitObj = digit;
+  ParserL<Many<Char>> manyDigits = many<char>(&digitObj);   // TODO: check if it can be used twice without issues
+  // What should be fmapped?
+  ParserL<Many<int>> manyDigitsInt = fmap<Many<Char>, Many<int>>(
+      [](const Many<Char>& chars) {
+          Many<int> ints;
+          for (char ch : chars)
+          {
+              ints.push_back(ch - '0');
+          }
+          return ints;
+      },
+      manyDigits);
 
-  // ParserL<Many<Char>> manyDigits = many(digit);
 
-  // ParserResult<Many<Char>> result = parse_with_runtime<Many<Char>>(runtime, many(digit));
+  ParserResult<Many<Char>> result;
 
-  // auto messages = runtime.get_messages();
-  // for (const auto &msg : messages)
-  // {
-  //     std::cout << msg << "\n";
-  // }
+  try
+  {
+    result = parse_with_runtime<Many<Char>>(runtime, manyDigits);
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+  }
 
-  // QVERIFY(isRight(result));
-  // Many<Char> parsed = getParseSucceeded(result).parsed;
-  // QVERIFY(parsed.size() == 3);
-  // QVERIFY(parsed.front() == '1');
-  // parsed.pop_front();
-  // QVERIFY(parsed.front() == '2');
-  // parsed.pop_front();
-  // QVERIFY(parsed.front() == '3');
+  auto messages = runtime.get_messages();
+  for (const auto &msg : messages)
+  {
+      std::cout << msg << "\n";
+  }
+
+  QVERIFY(isRight(result));
+  Many<Char> parsed = getParseSucceeded(result).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == '1');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '2');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '3');
 }
 
 // void PSTest::lowerCaseCharParserTest()
@@ -553,7 +580,7 @@ void PSTest::parserRuntimeTest()
   // put_state to 2 -> "llo world"
   State s2{2};
   runtime.put_state(s2);
-  QVERIFY(runtime.get_state().pos == 2);
+  QVERIFY(runtime.get_state().data == 2);
   QVERIFY(runtime.get_view() == std::string_view("llo world"));
 }
 

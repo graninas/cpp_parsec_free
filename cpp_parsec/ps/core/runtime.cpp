@@ -13,13 +13,8 @@ ParserRuntime::ParserRuntime(const std::string& source, const State& state)
 
 std::string_view ParserRuntime::get_view() const
 {
-    return std::string_view(_source).substr(_state.pos);
+    return std::string_view(_source);
 }
-
-// void ParserRuntime::advance(size_t count)
-// {
-//     _state.pos += count;
-// }
 
 State ParserRuntime::get_state() const
 {

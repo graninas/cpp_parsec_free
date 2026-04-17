@@ -98,7 +98,7 @@ ParserFailed getParseFailed(const ParserResult<T>& r)
 
 struct State
 {
-    Pos pos;      // Not needed
+  int data = 0;   // TODO: for new design, this can be any type, and we can have multiple states. For now we just keep it simple with one int state.
 };
 
 } // namespace core

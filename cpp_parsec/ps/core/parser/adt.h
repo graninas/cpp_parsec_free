@@ -8,21 +8,31 @@ namespace ps
 namespace core
 {
 
-// Forward declaration
-template <typename A>
-struct ParserL;
+  // Forward declaration
+  template <typename A>
+  struct ParserL;
 
-// PS methods
+  // PS methods
 
-template <typename Next>
-struct ParseSymbolCond
-{
+  template <typename Next>
+  struct ParseSymbolCond
+  {
     Pos from;
 
     std::string name;
     std::function<bool(Any)> validator;
     std::function<Next(Any)> next;
-};
+  };
+
+  template <typename Next>
+  struct ParseMany
+  {
+    Pos from;
+
+    std::shared_ptr<ParserL<Any>> raw_parser;   // Parser is always the same
+    std::function<Next(std::list<Any>)> next;
+  };
+
 
 // template <typename Next>
 // struct ParseLit
@@ -53,7 +63,8 @@ template <class Ret>
 struct ParserADT        // TODO: rename to Methods
 {
     std::variant<
-        ParseSymbolCond<Ret>
+        ParseSymbolCond<Ret>,
+        ParseMany<Ret>
         // ParseLit<Ret>,
         // GetSt<Ret>,
         // PutSt<Ret>
@@ -61,6 +72,7 @@ struct ParserADT        // TODO: rename to Methods
 };
 
 // Free language
+
 
 // Free methods
 

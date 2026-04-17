@@ -24,20 +24,20 @@ namespace core
     {
       std::string failedMsg = std::string("Failed to parse ") + name + ": end of input.";
       runtime.push_message(failedMsg);
-      return {ParserFailed{failedMsg, runtime.get_state().pos}};
+      return {ParserFailed{failedMsg, from}};
     }
     else if (!validator(s.at(0)))
     {
-      std::string failedMsg = std::string("Failed to parse ") + name + ": '" + s.substr(0, 1).data() + "' does not satisfy the condition.";
+      std::string failedMsg = std::string("Failed to parse ") + name + ": '" + s.at(0) + "' does not satisfy the condition.";
       runtime.push_message(failedMsg);
-      return {ParserFailed{failedMsg, runtime.get_state().pos}};
+      return {ParserFailed{failedMsg, from}};
     }
 
     ParserSucceeded<char> r;
     r.parsed = s.at(0);
     r.from = from;
     r.to = from + 1;
-    runtime.push_message(std::string("Parsed ") + name + ": '" + s.substr(0, 1).data() + "'.");
+    runtime.push_message(std::string("Parsed ") + name + ": '" + s.at(0) + "'.");
     return r;
   }
 
@@ -54,13 +54,13 @@ namespace core
     {
       std::string failedMsg = std::string("Failed to parse lit:") + litS + ": end of input.";
       runtime.push_message(failedMsg);
-      return {ParserFailed{failedMsg, runtime.get_state().pos}};
+      return {ParserFailed{failedMsg, from}};
     }
     else if (s.substr(0, litS.size()) != litS)
     {
       std::string failedMsg = std::string("Failed to parse lit: ") + litS;
       runtime.push_message(failedMsg);
-      return {ParserFailed{failedMsg, runtime.get_state().pos}};
+      return {ParserFailed{failedMsg, from}};
     }
 
     ParserSucceeded<std::string> r;
@@ -70,6 +70,8 @@ namespace core
     runtime.push_message(std::string("Parsed lit: ") + litS + ".");
     return r;
   }
+
+
 
 } // namespace core
 } // namespace ps

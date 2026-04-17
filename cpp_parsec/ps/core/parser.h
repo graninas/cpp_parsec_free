@@ -23,7 +23,7 @@ ParserResult<A> parse(
         const std::string& s,
         Pos from = 0)
 {
-    ParserRuntime runtime (s, State{0});
+    ParserRuntime runtime (s, State{});
     return runParser(runtime, pst, from);
 }
 
@@ -80,9 +80,27 @@ const ParserL<Char> lower = parseSymbolCond("lower", isLower);
 
 
 
+template <typename A>
+ParserL<Many<A>> many(ParserL<A>* p)
+{
+  auto pCopy = std::make_shared<ParserL<Any>>(
+      fmap<A, Any>([](const A &a)
+                   { return a; }, *p));
 
-
-
+  return make_free(ParseMany<ParserL<Many<A>>>{
+      0,
+      pCopy,
+      [](const std::list<Any> &resList)
+      {
+        Many<A> res;
+        for (const Any &any : resList)
+        {
+          A a = std::any_cast<A>(any);
+          res.push_back(a);
+        }
+        return make_pure(res, 0, 0); // TODO: from and to
+      }});
+}
 
 
 // Old design

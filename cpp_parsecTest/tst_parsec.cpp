@@ -33,6 +33,11 @@ private Q_SLOTS:
 
   void bindPureTest();
 
+  void bindLeftIdentityTest();
+  void bindRightIdentityTest();
+  void bindAssociativityTest();
+  void nestedBindSequenceTest();
+
   void parserRuntimeTest();
 };
 
@@ -302,6 +307,85 @@ void PSTest::bindPureTest()
   QVERIFY(r.dg0 == '2');
   QVERIFY(r.ch1 == 'a');
   QVERIFY(r.ch2 == '0');
+}
+
+void PSTest::bindLeftIdentityTest()
+{
+  using namespace ps;
+
+  auto f = [](int x) { return pure<std::string>(std::to_string(x)); };
+
+  ParserL<std::string> left = bind<int, std::string>(pure<int>(5), f);
+  ParserL<std::string> right = f(5);
+
+  ParserRuntime runtime("", State{});
+  ParserResult<std::string> rLeft = parse_with_runtime<std::string>(runtime, left);
+  ParserResult<std::string> rRight = parse_with_runtime<std::string>(runtime, right);
+
+  QVERIFY(isRight(rLeft));
+  QVERIFY(isRight(rRight));
+  QVERIFY(getParseSucceeded(rLeft).parsed == getParseSucceeded(rRight).parsed);
+  QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
+}
+
+void PSTest::bindRightIdentityTest()
+{
+  using namespace ps;
+
+  ParserL<Char> rightId = bind<Char, Char>(digit, [](Char c) { return pure<Char>(c); });
+
+  ParserRuntime runtime("1", State{});
+  ParserResult<Char> rOrig = parse_with_runtime<Char>(runtime, digit);
+  ParserResult<Char> rRight = parse_with_runtime<Char>(runtime, rightId);
+
+  QVERIFY(isRight(rOrig));
+  QVERIFY(isRight(rRight));
+  QVERIFY(getParseSucceeded(rOrig).parsed == getParseSucceeded(rRight).parsed);
+  QVERIFY(getParseSucceeded(rOrig).to == getParseSucceeded(rRight).to);
+}
+
+void PSTest::bindAssociativityTest()
+{
+  using namespace ps;
+
+  auto f = [](Char c) { return pure<int>(static_cast<int>(c - '0')); };
+  auto g = [](int v) { return pure<std::string>(std::to_string(v)); };
+
+  ParserL<std::string> left = bind<int, std::string>(bind<Char, int>(digit, f), g);
+  ParserL<std::string> right = bind<Char, std::string>(digit, [=](Char c) { return bind<int, std::string>(f(c), g); });
+
+  ParserRuntime runtime("7", State{});
+  ParserResult<std::string> rLeft = parse_with_runtime<std::string>(runtime, left);
+  ParserResult<std::string> rRight = parse_with_runtime<std::string>(runtime, right);
+
+  QVERIFY(isRight(rLeft));
+  QVERIFY(isRight(rRight));
+  QVERIFY(getParseSucceeded(rLeft).parsed == getParseSucceeded(rRight).parsed);
+  QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
+}
+
+void PSTest::nestedBindSequenceTest()
+{
+  using namespace ps;
+
+  // Read three digits in sequence using nested binds and return them as R
+  ParserL<R> seq = bind<Char, R>(digit, [=](Char d1) {
+    return bind<Char, R>(digit, [=](Char d2) {
+      return bind<Char, R>(digit, [=](Char d3) {
+        return pure<R>(R{d1, d2, d3});
+      });
+    });
+  });
+
+  ParserRuntime runtime("123", State{});
+  ParserResult<R> res = parse_with_runtime<R>(runtime, seq, 0);
+
+  QVERIFY(isRight(res));
+  R out = getParseSucceeded<R>(res).parsed;
+  QVERIFY(out.dg0 == '1');
+  QVERIFY(out.ch1 == '2');
+  QVERIFY(out.ch2 == '3');
+  QVERIFY(getParseSucceeded<R>(res).to == 3);
 }
 
 void PSTest::parserRuntimeTest()

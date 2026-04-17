@@ -585,6 +585,25 @@ ps::ParserL<std::string> capitalizedWordParser()
   throw std::runtime_error("Not implemented yet");
 }
 
+ps::ParserL<int> ageParser()
+{
+  throw std::runtime_error("Not implemented yet");
+}
+
+ps::ParserL<std::string> ssnParser()
+{
+  throw std::runtime_error("Not implemented yet");
+}
+
+template <typename A>
+ps::ParserL<ps::Unit> skip(const ps::ParserL<A>& p)
+{
+  return ps::fmap<A, ps::Unit>([](const A &)
+                               { return ps::unit; }, p);
+}
+
+const ps::ParserL<ps::Char> comma = ps::parseSymbolCond("comma", [](char ch) { return ch == ','; });
+
 ps::ParserL<PersonInfo> personInfoParser()
 {
   throw std::runtime_error("Not implemented yet");

@@ -28,6 +28,8 @@ private Q_SLOTS:
   void digitCastTest();
 
   void manyDigitsTest();
+  void manyDigitsCastedTest();
+  void manyParserCastedTest();
 
   // void digitParserTest();
   // void lowerCaseCharParserTest();
@@ -164,6 +166,7 @@ void PSTest::singleDigitFailureTest()
   auto parseFailed = getParseFailed(result);
 }
 
+
 // void PSTest::litParserTest()
 // {
 //     using namespace ps;
@@ -230,19 +233,6 @@ void PSTest::manyDigitsTest()
 
   ParserL<char> digitObj = digit;
   ParserL<Many<Char>> manyDigits = many<char>(&digitObj);   // TODO: check if it can be used twice without issues
-  // What should be fmapped?
-  ParserL<Many<int>> manyDigitsInt = fmap<Many<Char>, Many<int>>(
-      [](const Many<Char>& chars) {
-          Many<int> ints;
-          for (char ch : chars)
-          {
-              ints.push_back(ch - '0');
-          }
-          return ints;
-      },
-      manyDigits);
-
-
   ParserResult<Many<Char>> result;
 
   result = parse_with_runtime<Many<Char>>(runtime, manyDigits);
@@ -255,6 +245,60 @@ void PSTest::manyDigitsTest()
   QVERIFY(parsed.front() == '2');
   parsed.pop_front();
   QVERIFY(parsed.front() == '3');
+}
+
+void PSTest::manyDigitsCastedTest()
+{
+  using namespace ps;
+
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
+
+  ParserL<int> digitIntObj = fmap<Char, int>([](char ch) { return ch - '0'; }, digit);
+  ParserL<Many<int>> manyDigitsInt = many<int>(&digitIntObj);
+
+  ParserResult<Many<int>> result = parse_with_runtime<Many<int>>(runtime, manyDigitsInt);
+
+  QVERIFY(isRight(result));
+  Many<int> parsed = getParseSucceeded(result).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == 1);
+  parsed.pop_front();
+  QVERIFY(parsed.front() == 2);
+  parsed.pop_front();
+  QVERIFY(parsed.front() == 3);
+}
+
+void PSTest::manyParserCastedTest()
+{
+  using namespace ps;
+
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
+
+  ParserL<char> digitObj = digit;
+  ParserL<Many<Char>> manyDigits = many<char>(&digitObj);
+  ParserL<Many<int>> manyDigitsInt = fmap<Many<Char>, Many<int>>(
+      [](const Many<Char>& chars) {
+          Many<int> ints;
+          for (char ch : chars)
+          {
+              ints.push_back(ch - '0');
+          }
+          return ints;
+      },
+      manyDigits);
+
+  ParserResult<Many<int>> result = parse_with_runtime<Many<int>>(runtime, manyDigitsInt);
+
+  QVERIFY(isRight(result));
+  Many<int> parsed = getParseSucceeded(result).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == 1);
+  parsed.pop_front();
+  QVERIFY(parsed.front() == 2);
+  parsed.pop_front();
+  QVERIFY(parsed.front() == 3);
 }
 
 // void PSTest::lowerCaseCharParserTest()

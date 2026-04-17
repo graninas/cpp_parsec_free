@@ -21,8 +21,8 @@ QT_BEGIN_MOC_NAMESPACE
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_PSTest_t {
-    QByteArrayData data[19];
-    char stringdata0[351];
+    QByteArrayData data[26];
+    char stringdata0[422];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -41,15 +41,22 @@ QT_MOC_LITERAL(6, 97, 26), // "onlyOneDigitFromMiddleTest"
 QT_MOC_LITERAL(7, 124, 22), // "singleDigitFailureTest"
 QT_MOC_LITERAL(8, 147, 13), // "litParserTest"
 QT_MOC_LITERAL(9, 161, 13), // "digitCastTest"
-QT_MOC_LITERAL(10, 175, 14), // "manyDigitsTest"
-QT_MOC_LITERAL(11, 190, 20), // "manyDigitsCastedTest"
-QT_MOC_LITERAL(12, 211, 20), // "manyParserCastedTest"
-QT_MOC_LITERAL(13, 232, 12), // "bindPureTest"
-QT_MOC_LITERAL(14, 245, 20), // "bindLeftIdentityTest"
-QT_MOC_LITERAL(15, 266, 21), // "bindRightIdentityTest"
-QT_MOC_LITERAL(16, 288, 21), // "bindAssociativityTest"
-QT_MOC_LITERAL(17, 310, 22), // "nestedBindSequenceTest"
-QT_MOC_LITERAL(18, 333, 17) // "parserRuntimeTest"
+QT_MOC_LITERAL(10, 175, 8), // "manyTest"
+QT_MOC_LITERAL(11, 184, 20), // "manyDigitsCastedTest"
+QT_MOC_LITERAL(12, 205, 20), // "manyParserCastedTest"
+QT_MOC_LITERAL(13, 226, 12), // "bindPureTest"
+QT_MOC_LITERAL(14, 239, 20), // "bindLeftIdentityTest"
+QT_MOC_LITERAL(15, 260, 21), // "bindRightIdentityTest"
+QT_MOC_LITERAL(16, 282, 21), // "bindAssociativityTest"
+QT_MOC_LITERAL(17, 304, 22), // "nestedBindSequenceTest"
+QT_MOC_LITERAL(18, 327, 17), // "parserRuntimeTest"
+QT_MOC_LITERAL(19, 345, 7), // "seqTest"
+QT_MOC_LITERAL(20, 353, 13), // "leftRightTest"
+QT_MOC_LITERAL(21, 367, 9), // "many1Test"
+QT_MOC_LITERAL(22, 377, 10), // "sepBy1Test"
+QT_MOC_LITERAL(23, 388, 11), // "betweenTest"
+QT_MOC_LITERAL(24, 400, 9), // "countTest"
+QT_MOC_LITERAL(25, 410, 11) // "discardTest"
 
     },
     "PSTest\0singleDigitParserTest\0\0"
@@ -57,11 +64,13 @@ QT_MOC_LITERAL(18, 333, 17) // "parserRuntimeTest"
     "singleDigitFromMiddleTest\0"
     "onlyOneDigitFromMiddleTest\0"
     "singleDigitFailureTest\0litParserTest\0"
-    "digitCastTest\0manyDigitsTest\0"
-    "manyDigitsCastedTest\0manyParserCastedTest\0"
-    "bindPureTest\0bindLeftIdentityTest\0"
-    "bindRightIdentityTest\0bindAssociativityTest\0"
-    "nestedBindSequenceTest\0parserRuntimeTest"
+    "digitCastTest\0manyTest\0manyDigitsCastedTest\0"
+    "manyParserCastedTest\0bindPureTest\0"
+    "bindLeftIdentityTest\0bindRightIdentityTest\0"
+    "bindAssociativityTest\0nestedBindSequenceTest\0"
+    "parserRuntimeTest\0seqTest\0leftRightTest\0"
+    "many1Test\0sepBy1Test\0betweenTest\0"
+    "countTest\0discardTest"
 };
 #undef QT_MOC_LITERAL
 
@@ -71,7 +80,7 @@ static const uint qt_meta_data_PSTest[] = {
        8,       // revision
        0,       // classname
        0,    0, // classinfo
-      17,   14, // methods
+      24,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -79,25 +88,39 @@ static const uint qt_meta_data_PSTest[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags
-       1,    0,   99,    2, 0x08 /* Private */,
-       3,    0,  100,    2, 0x08 /* Private */,
-       4,    0,  101,    2, 0x08 /* Private */,
-       5,    0,  102,    2, 0x08 /* Private */,
-       6,    0,  103,    2, 0x08 /* Private */,
-       7,    0,  104,    2, 0x08 /* Private */,
-       8,    0,  105,    2, 0x08 /* Private */,
-       9,    0,  106,    2, 0x08 /* Private */,
-      10,    0,  107,    2, 0x08 /* Private */,
-      11,    0,  108,    2, 0x08 /* Private */,
-      12,    0,  109,    2, 0x08 /* Private */,
-      13,    0,  110,    2, 0x08 /* Private */,
-      14,    0,  111,    2, 0x08 /* Private */,
-      15,    0,  112,    2, 0x08 /* Private */,
-      16,    0,  113,    2, 0x08 /* Private */,
-      17,    0,  114,    2, 0x08 /* Private */,
-      18,    0,  115,    2, 0x08 /* Private */,
+       1,    0,  134,    2, 0x08 /* Private */,
+       3,    0,  135,    2, 0x08 /* Private */,
+       4,    0,  136,    2, 0x08 /* Private */,
+       5,    0,  137,    2, 0x08 /* Private */,
+       6,    0,  138,    2, 0x08 /* Private */,
+       7,    0,  139,    2, 0x08 /* Private */,
+       8,    0,  140,    2, 0x08 /* Private */,
+       9,    0,  141,    2, 0x08 /* Private */,
+      10,    0,  142,    2, 0x08 /* Private */,
+      11,    0,  143,    2, 0x08 /* Private */,
+      12,    0,  144,    2, 0x08 /* Private */,
+      13,    0,  145,    2, 0x08 /* Private */,
+      14,    0,  146,    2, 0x08 /* Private */,
+      15,    0,  147,    2, 0x08 /* Private */,
+      16,    0,  148,    2, 0x08 /* Private */,
+      17,    0,  149,    2, 0x08 /* Private */,
+      18,    0,  150,    2, 0x08 /* Private */,
+      19,    0,  151,    2, 0x08 /* Private */,
+      20,    0,  152,    2, 0x08 /* Private */,
+      21,    0,  153,    2, 0x08 /* Private */,
+      22,    0,  154,    2, 0x08 /* Private */,
+      23,    0,  155,    2, 0x08 /* Private */,
+      24,    0,  156,    2, 0x08 /* Private */,
+      25,    0,  157,    2, 0x08 /* Private */,
 
  // slots: parameters
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -133,7 +156,7 @@ void PSTest::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         case 5: _t->singleDigitFailureTest(); break;
         case 6: _t->litParserTest(); break;
         case 7: _t->digitCastTest(); break;
-        case 8: _t->manyDigitsTest(); break;
+        case 8: _t->manyTest(); break;
         case 9: _t->manyDigitsCastedTest(); break;
         case 10: _t->manyParserCastedTest(); break;
         case 11: _t->bindPureTest(); break;
@@ -142,6 +165,13 @@ void PSTest::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         case 14: _t->bindAssociativityTest(); break;
         case 15: _t->nestedBindSequenceTest(); break;
         case 16: _t->parserRuntimeTest(); break;
+        case 17: _t->seqTest(); break;
+        case 18: _t->leftRightTest(); break;
+        case 19: _t->many1Test(); break;
+        case 20: _t->sepBy1Test(); break;
+        case 21: _t->betweenTest(); break;
+        case 22: _t->countTest(); break;
+        case 23: _t->discardTest(); break;
         default: ;
         }
     }
@@ -177,13 +207,13 @@ int PSTest::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 17)
+        if (_id < 24)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 17;
+        _id -= 24;
     } else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 17)
+        if (_id < 24)
             *reinterpret_cast<int*>(_a[0]) = -1;
-        _id -= 17;
+        _id -= 24;
     }
     return _id;
 }

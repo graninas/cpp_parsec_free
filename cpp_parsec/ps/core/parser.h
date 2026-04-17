@@ -83,11 +83,13 @@ const ParserL<Char> eol = parseSymbolCond("eol", isEol);
 const ParserL<Char> cr = parseSymbolCond("cr", isCr);
 
 template <typename A>
-ParserL<Many<A>> many(ParserL<A>* p)
+ParserL<Many<A>> many(const ParserL<A>& item)
 {
+  ParserL<A> itemCopy = item;
+
   auto pCopy = std::make_shared<ParserL<Any>>(
       fmap<A, Any>([](const A &a)
-                   { return a; }, *p));
+                   { return a; }, itemCopy));
 
   return make_free(ParseMany<ParserL<Many<A>>>{
       pCopy,
@@ -101,6 +103,112 @@ ParserL<Many<A>> many(ParserL<A>* p)
         }
         return make_pure(res);
       }});
+}
+
+template <typename A, typename B>
+ParserL<B> seq(const ParserL<A>& p, const ParserL<B>& q)
+{
+    return bind<A, B>(p, [=](const A&) { return q; });
+}
+
+template <typename A, typename B>
+ParserL<A> left(const ParserL<A>& p, const ParserL<B>& q)
+{
+    return bind<A, A>(p, [=](const A& a) {
+        return fmap<B, A>([=](const B&) { return a; }, q);
+    });
+}
+
+template <typename A, typename B>
+ParserL<B> right(const ParserL<A>& p, const ParserL<B>& q)
+{
+    return bind<A, B>(p, [=](const A&) { return q; });
+}
+
+template <typename A>
+ParserL<Many<A>> many1(const ParserL<A>& p)
+{
+    ParserL<Many<A>> manyP = many<A>(p);
+
+    return bind<A, Many<A>>(p, [=](const A& a) {
+        return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
+            rest.push_front(a);
+            return rest;
+        }, manyP);
+    });
+}
+
+template <typename A, typename S>
+ParserL<Many<A>> sepBy1(const ParserL<A>& item, const ParserL<S>& sep)
+{
+    // sepThenItem = sep *> item
+    ParserL<A> sepThenItem = bind<S, A>(sep, [=](const S&) { return item; });
+
+    ParserL<A> itemCopy = item;
+    ParserL<Many<A>> restParser = many<A>(sepThenItem);
+
+    return bind<A, Many<A>>(item, [=](const A& first) {
+        return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
+            rest.push_front(first);
+            return rest;
+        }, restParser);
+    });
+}
+
+template <typename O, typename A, typename C>
+ParserL<A> between(const ParserL<O>& open, const ParserL<A>& content, const ParserL<C>& close)
+{
+    return bind<O, A>(open, [=](const O&) {
+        return bind<A, A>(content, [=](const A& a) {
+            return bind<C, A>(close, [=](const C&) {
+                return make_pure(a);
+            });
+        });
+    });
+}
+
+template <typename A>
+ParserL<Many<A>> count(size_t n, const ParserL<A>& p)
+{
+    if (n == 0)
+    {
+        return make_pure(Many<A>{});
+    }
+
+    // create a copy for passing to many/count recursively
+    ParserL<A> pCopy = p;
+
+    return bind<A, Many<A>>(p, [=](const A& a) {
+        return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
+            rest.push_front(a);
+            return rest;
+        }, count(n - 1, pCopy));
+    });
+}
+
+template <typename A, typename B, typename R>
+ParserL<R> liftA2(const std::function<R(A, B)>& f, const ParserL<A>& pa, const ParserL<B>& pb)
+{
+    return bind<A, R>(pa, [=](const A& a) {
+        return fmap<B, R>([=](const B& b) {
+            return f(a, b);
+        }, pb);
+    });
+}
+
+// This combinator needs some investigation.
+// template <typename A, typename R>
+// ParserL<R> ap(const ParserL<std::function<R(A)>>& pf, const ParserL<A>& pa)
+// {
+//     return bind<std::function<R(A)>, R>(pf, [=](const std::function<R(A)>& f) {
+//         return fmap<A, R>(f, pa);
+//     });
+// }
+
+template <typename A>
+ParserL<Unit> discard(const ParserL<A>& p)
+{
+    return fmap<A, Unit>([=](const A&) { return unit; }, p);
 }
 
 

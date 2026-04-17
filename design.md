@@ -47,6 +47,52 @@ This document captures concise observations and actionable recommendations for t
 - Provide an optimizer/fusion pass that rewrites common patterns of `fmap`/`bind` into a more efficient single ADT or direct interpreter steps.
 - Expose a `pretty-print` / serialization facility for ADT structures to aid debugging and tests.
 
+## Convenience combinators (recommendations)
+
+Add a small, well-tested set of combinators to make parser construction ergonomic and to cover common parsing patterns. Prioritized list:
+
+1. alt / tryP
+   - alt(p, q): choice between two parsers; tryP(p) ensures failures do not consume input.
+   - Critical for correct backtracking semantics.
+
+2. seq / left / right (>> / <<)
+   - seq(p, q): run p then q, return q's result.
+   - left(p, q) / right(p, q): run both but keep only left or right value; useful for separators and token handling.
+
+3. optional / option
+   - optional(p): ParserL<std::optional<T>> that never fails (returns empty on no match).
+   - option(default, p): returns default when p fails.
+
+4. many1, sepBy / sepBy1, between
+   - many1: one-or-more repetition.
+   - sepBy(item, sep) / sepBy1: common for CSV-like sequences.
+   - between(open, content, close): parse delimited content and return content.
+
+5. manyTill, count, chainl1
+   - manyTill(p, end): parse many p until end succeeds.
+   - count(n, p): parse exactly n occurrences.
+   - chainl1/op: left-associative operator parsing for arithmetic/expression grammars.
+
+6. lookahead / notFollowedBy / eof
+   - peek(p): run p without consuming input.
+   - notFollowedBy(p): assert p does not succeed at current pos.
+   - eof(): succeed only at end of input.
+
+7. token / lexeme / satisfy
+   - satisfy(name, pred): convenience wrapper for parseSymbolCond.
+   - token(p, ws): run p then skip trailing whitespace; useful when adding lexical layer.
+
+8. Applicative helpers
+   - liftA2 / ap / discard: make applicative style construction ergonomic and explicit discard of results.
+
+## Implementation notes and caveats
+
+- Implement these combinators using existing primitives (pure, fmap, bind) where possible to avoid duplicating interpreter logic. For combinators that affect consumption/backtracking (alt/tryP), ensure correct interaction with runtime state: tryP must restore runtime position on failure.
+- Prefer templated callables inside implementations to minimize std::function overhead; keep std::function at public API boundaries.
+- Add unit tests for each combinator and property tests for choice/backtracking semantics: e.g., nested alt with tryP, sepBy interactions with optional, manyTill when end parser immediately matches.
+- Document lifetime and copying behavior for parsers passed by pointer/shared_ptr (e.g., many uses shared_ptr to allow reuse). Clarify when parsers can be reused concurrently.
+- Provide debug helpers (prettyPrint/inspect) to help reason about composed parsers during development and for tests.
+
 ## Testing and validation
 
 - Add unit tests covering: individual ADT constructors, `methods_fmap`, `fmap`, `bind`, and end-to-end parsing for common combinator compositions.
@@ -65,6 +111,9 @@ This document captures concise observations and actionable recommendations for t
 3. Audit `shared_ptr` usage and remove cycles (or document and switch to `weak_ptr` where needed).
 4. Add a debug pretty-printer for `ParserL` / `ParserADT`.
 5. Implement a small optimizer pass that fuses successive `fmap` operations.
+6. Implement and test: alt, tryP, seq/left/right, optional, sepBy/sepBy1.
+7. Add tests focusing on tricky interactions: tryP+alt backtracking, manyTill with immediate end, nested binds with failure and position restoration.
+8. Benchmark common patterns and iterate on replacing hot-path std::function usages with templated callables or small-buffer function wrappers.
 
 ## Closing note
 

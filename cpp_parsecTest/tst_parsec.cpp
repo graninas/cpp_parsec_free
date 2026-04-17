@@ -79,12 +79,6 @@ void PSTest::singleDigitParserTest()
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit);
 
-  auto messages = runtime.get_messages();
-  for (const auto &msg : messages)
-  {
-      std::cout << msg << "\n";
-  }
-
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
   Char r = parseSucceeded.parsed;
@@ -117,12 +111,6 @@ void PSTest::singleDigitFromManyTest()
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 0);
 
-  auto messages = runtime.get_messages();
-  for (const auto &msg : messages)
-  {
-      std::cout << msg << "\n";
-  }
-
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
   Char r = parseSucceeded.parsed;
@@ -138,12 +126,6 @@ void PSTest::singleDigitFromMiddleTest()
   auto src = "a1b";
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 1);
-
-  auto messages = runtime.get_messages();
-  for (const auto &msg : messages)
-  {
-      std::cout << msg << "\n";
-  }
 
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
@@ -263,20 +245,7 @@ void PSTest::manyDigitsTest()
 
   ParserResult<Many<Char>> result;
 
-  try
-  {
-    result = parse_with_runtime<Many<Char>>(runtime, manyDigits);
-  }
-  catch(const std::exception& e)
-  {
-    std::cerr << e.what() << '\n';
-  }
-
-  auto messages = runtime.get_messages();
-  for (const auto &msg : messages)
-  {
-      std::cout << msg << "\n";
-  }
+  result = parse_with_runtime<Many<Char>>(runtime, manyDigits);
 
   QVERIFY(isRight(result));
   Many<Char> parsed = getParseSucceeded(result).parsed;

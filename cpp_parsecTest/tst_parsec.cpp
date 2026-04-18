@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include "common.h"
-#include "ps/ps.h"
 
 #include "tst_parsec.h"
 #include <QTest>
@@ -18,18 +17,6 @@ void ParsecTest::initTestCase()
 
 void ParsecTest::cleanupTestCase()
 {
-}
-
-
-template <typename A>
-void printError(const ps::ParserResult<A> &pr)
-{
-  if (isLeft(pr))
-  {
-    auto err = ps::getParseFailed(pr);
-    std::cout << "\nError:\n"
-              << err.message << "\n";
-  }
 }
 
 void ParsecTest::singleDigitParserTest()
@@ -536,6 +523,3 @@ void ParsecTest::bothTest()
   QVERIFY(parsed.first == '1');
   QVERIFY(parsed.second == 'a');
 }
-
-
-#include "tst_parsec.moc"

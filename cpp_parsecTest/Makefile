@@ -393,8 +393,7 @@ tst_parsec.o: tst_parsec.cpp common.h \
 		../cpp_parsec/ps/core/conds.h \
 		../cpp_parsec/ps/core/parser/functor.h \
 		../cpp_parsec/ps/core/parser/bind.h \
-		tst_parsec.h \
-		tst_parsec.moc
+		tst_parsec.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tst_parsec.o tst_parsec.cpp
 
 tst_samples.o: tst_samples.cpp common.h \
@@ -408,8 +407,7 @@ tst_samples.o: tst_samples.cpp common.h \
 		../cpp_parsec/ps/core/conds.h \
 		../cpp_parsec/ps/core/parser/functor.h \
 		../cpp_parsec/ps/core/parser/bind.h \
-		tst_samples.h \
-		tst_samples.moc
+		tst_samples.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tst_samples.o tst_samples.cpp
 
 tests_runner.o: tests_runner.cpp tst_parsec.h \

@@ -4,24 +4,12 @@
 #include <variant>
 #include <iostream>
 
-#include "common.h"
 #include "ps/ps.h"
 
 #include "tst_samples.h"
 #include <QTest>
 
 SamplesTest::SamplesTest(QObject *parent) : QObject(parent) {}
-
-template <typename A>
-void printError(const ps::ParserResult<A> &pr)
-{
-  if (isLeft(pr))
-  {
-    auto err = ps::getParseFailed(pr);
-    std::cout << "\nError:\n"
-              << err.message << "\n";
-  }
-}
 
 struct PersonInfo
 {
@@ -92,5 +80,3 @@ void SamplesTest::personInfoParserTest()
     QVERIFY(info.age == 30);
     QVERIFY(info.ssn == "123-45-6789");
 }
-
-#include "tst_samples.moc"

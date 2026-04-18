@@ -43,6 +43,7 @@ ParserResult<A> parse_with_runtime(
 
 // Parsers
 
+template <typename Dummy = int>
 ParserL<Char> parseSymbolCond(
         const std::string& name,
         const std::function<bool(char)>& cond)
@@ -66,6 +67,7 @@ ParserL<Char> parseSymbolCond(
                 });
 }
 
+template <typename Dummy = int>
 ParserL<std::string> parseLit(const std::string& s)
 {
     return make_free(ParseLit<ParserL<std::string>>{
@@ -252,8 +254,9 @@ ParserL<Unit> discard(const ParserL<A>& p)
 }
 
 
-/// Some specific combinators
-// TODO: test it
+// Some specific combinators
+
+template <typename Dummy = int>
 ParserL<std::string> manyCharsToString(
   const ParserL<Many<Char>> &manyCharsParser)
 {

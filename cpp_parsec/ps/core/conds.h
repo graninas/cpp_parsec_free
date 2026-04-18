@@ -6,6 +6,7 @@
 namespace ps {
 namespace core {
 
+  template <typename Dummy = int>
   std::function<bool(char)> chEq(char ch)
   {
       return [=](char ch1) { return ch1 == ch; };

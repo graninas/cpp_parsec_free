@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "ps/ps.h"
+#include "ps/core/parser/merge.h"
 
 #include "tst_samples.h"
 #include <QTest>
@@ -19,28 +20,46 @@ struct PersonInfo
     std::string ssn;
 };
 
+ps::ParserL<std::string> capitalizedWord()
+{
+  using namespace ps;
+
+  ParserL<char> firstChar = upper;
+  ParserL<std::list<char>> restChars = many(lower);
+
+  auto seqp = sequence(firstChar, restChars);
+
+  return merge(seqp);
+}
+
 ps::ParserL<std::string> firstNameParser()
 {
-  // For a slightly more realistic test, let's parse a first name that is 4 alphanumeric characters long.
-  return ps::manyCharsToString(ps::count<char>(4, ps::alphanum));
+  return capitalizedWord();
 }
 
 ps::ParserL<std::string> lastNameParser()
 {
-  // Dummy for now, just to test the personInfoParser. We will implement it properly later.
-  return ps::manyCharsToString(ps::count<char>(3, ps::alphanum));
+  return capitalizedWord();
 }
 
 ps::ParserL<int> ageParser()
 {
-  // Dummy for now, just to test the personInfoParser. We will implement it properly later.
-  return ps::fmap<std::string, int>([](const std::string &s) { return std::stoi(s); }, ps::parseLit("30"));
+    return ps::merge_to<int>(ps::many(ps::digit));
 }
+
 
 ps::ParserL<std::string> ssnParser()
 {
-  // Dummy for now, just to test the personInfoParser. We will implement it properly later.
-  return ps::parseLit("123-45-6789");
+    using namespace ps;
+    // Parse 3 digits, dash, 2 digits, dash, 4 digits
+    auto parser = sequence(
+        digit, digit, digit,
+        parseLit("-"),
+        digit, digit,
+        parseLit("-"),
+        digit, digit, digit, digit
+    );
+    return merge_to<std::string>(parser);
 }
 
 ps::ParserL<PersonInfo> personInfoParser()

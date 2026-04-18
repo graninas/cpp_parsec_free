@@ -309,6 +309,18 @@ inline ParserL<std::tuple<>> sequence()
 }
 
 // Single parser
+/**
+ * @brief Transforms a parser to return a tuple with filtered unit types.
+ *
+ * This function takes a parser `p` that produces a value of type `A` and returns a new parser
+ * that produces a tuple of the filtered type (with unit types removed). If the parser returns
+ * a unit type, the result is mapped to an empty tuple. Otherwise, the result is mapped to a
+ * single-element tuple containing the parsed value.
+ *
+ * @tparam A The type produced by the input parser.
+ * @param p The input parser producing a value of type `A`.
+ * @return ParserL<typename filter_units<A>::type> A parser producing a tuple with unit types filtered out.
+ */
 template <typename A>
 ParserL<typename filter_units<A>::type> sequence(const ParserL<A>& p)
 {
@@ -326,6 +338,28 @@ ParserL<typename filter_units<A>::type> sequence(const ParserL<A>& p)
 }
 
 // Multiple parsers
+
+/**
+ * @brief Sequence combinator for parsers, filtering out unit types.
+ *
+ * This function composes multiple parsers (`p`, `rest...`) into a single parser that applies them in sequence.
+ * The results of each parser are combined into a tuple, but any result of type `unit` (as determined by `is_unit`)
+ * is omitted from the output tuple. This is useful for ignoring intermediate results that are not meaningful,
+ * such as those produced by parsers for whitespace or punctuation.
+ *
+ * The combinator works recursively: it binds the first parser, then sequences the rest, and finally combines
+ * their results. If the first parser's result is a unit, it is omitted; otherwise, it is prepended to the tuple
+ * of results from the rest.
+ *
+ * @tparam A The type of the first parser's result.
+ * @tparam Rest The types of the remaining parsers' results.
+ * @param p The first parser in the sequence.
+ * @param rest The remaining parsers to be sequenced.
+ * @return ParserL<typename filter_units<A, Rest...>::type> A parser that returns a tuple of non-unit results.
+ *
+ * @note This combinator is useful for building complex parsers where only certain results are significant,
+ *       and others (like structural tokens) can be ignored.
+ */
 template <typename A, typename... Rest>
 ParserL<typename filter_units<A, Rest...>::type> sequence(const ParserL<A>& p, const ParserL<Rest>&... rest)
 {

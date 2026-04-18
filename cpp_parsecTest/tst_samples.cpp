@@ -54,9 +54,13 @@ ps::ParserL<std::string> ssnParser()
     // Parse 3 digits, dash, 2 digits, dash, 4 digits
     auto parser = sequence(
         digit, digit, digit,
+        skip(many(space)),
         parseLit("-"),
+        skip(many(space)),
         digit, digit,
+        skip(many(space)),
         parseLit("-"),
+        skip(many(space)),
         digit, digit, digit, digit
     );
     return merge_to<std::string>(parser);
@@ -85,7 +89,7 @@ void SamplesTest::personInfoParserTest()
 {
     using namespace ps;
 
-    auto src = "John,Doe,30,123-45-6789";
+    auto src = "John,Doe,30,123-45  -    6789}";
     ParserRuntime runtime(src, State{});
 
     ParserL<PersonInfo> p = personInfoParser();

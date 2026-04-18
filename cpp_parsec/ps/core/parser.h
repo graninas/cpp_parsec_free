@@ -9,6 +9,10 @@
 #include "parser/bind.h"
 #include "interpreter.h"
 
+#include <tuple>
+#include <type_traits>
+#include <utility>
+
 namespace ps
 {
 namespace core
@@ -258,6 +262,86 @@ ParserL<std::string> manyCharsToString(
       manyCharsParser);
 }
 
+
+// Variadic sequence combinator and helpers
+
+// Helper to detect Unit
+template <typename T>
+struct is_unit : std::is_same<T, Unit> {};
+
+// filter_units<Ts...>::type yields std::tuple of Ts with Unit removed
+template <typename... Ts>
+struct filter_units;
+
+template <>
+struct filter_units<> {
+    using type = std::tuple<>;
+};
+
+template <typename T, typename... Ts>
+struct filter_units<T, Ts...>
+{
+    using tail_type = typename filter_units<Ts...>::type;
+    using type = std::conditional_t<is_unit<T>::value,
+                                   tail_type,
+                                   decltype(std::tuple_cat(std::declval<std::tuple<T>>(), std::declval<tail_type>()))>;
+};
+
+// sequence: run parsers in order and return tuple of results, omitting Unit values
+
+// Base: zero parsers -> pure empty tuple
+inline ParserL<std::tuple<>> sequence()
+{
+    return make_pure(std::tuple<>{});
+}
+
+// Single parser
+template <typename A>
+ParserL<typename filter_units<A>::type> sequence(const ParserL<A>& p)
+{
+    using OutTuple = typename filter_units<A>::type;
+
+    if constexpr (is_unit<A>::value)
+    {
+        // parser returns Unit -> map to empty tuple
+        return fmap<A, OutTuple>([](const A&) { return OutTuple{}; }, p);
+    }
+    else
+    {
+        return fmap<A, OutTuple>([](const A& a) { return std::tuple<A>(a); }, p);
+    }
+}
+
+// Multiple parsers
+template <typename A, typename... Rest>
+ParserL<typename filter_units<A, Rest...>::type> sequence(const ParserL<A>& p, const ParserL<Rest>&... rest)
+{
+    using OutTuple = typename filter_units<A, Rest...>::type;
+    using RestTuple = typename filter_units<Rest...>::type;
+
+    return bind<A, OutTuple>(p, [=](const A& a) {
+        ParserL<RestTuple> restP = sequence(rest...);
+        return fmap<RestTuple, OutTuple>([=](const RestTuple& rt) -> OutTuple {
+            if constexpr (is_unit<A>::value)
+            {
+                return rt;
+            }
+            else
+            {
+                return std::tuple_cat(std::tuple<A>(a), rt);
+            }
+        }, restP);
+    });
+}
+
+// as<Target>: map a ParserL<std::tuple<...>> into ParserL<Target> using aggregate-initialization
+template <typename Target, typename Tuple>
+ParserL<Target> as(const ParserL<Tuple>& p)
+{
+    return fmap<Tuple, Target>([](const Tuple& t) {
+        return std::apply([](auto&&... args) -> Target { return Target{std::forward<decltype(args)>(args)...}; }, t);
+    }, p);
+}
 
 
 } // namespace core

@@ -7,54 +7,19 @@
 #include "common.h"
 #include "ps/ps.h"
 
-class PSTest : public QObject
-{
-  Q_OBJECT
+#include "tst_parsec.h"
+#include <QTest>
 
-public:
-  PSTest();
+ParsecTest::ParsecTest(QObject *parent) : QObject(parent) {}
 
-private Q_SLOTS:
-
-  void singleDigitParserTest();
-  void onlyOneDigitTest();
-  void singleDigitFromManyTest();
-  void singleDigitFromMiddleTest();
-  void onlyOneDigitFromMiddleTest();
-  void singleDigitFailureTest();
-  void litParserTest();
-
-  void digitCastTest();
-
-  void manyTest();
-  void manyDigitsCastedTest();
-  void manyParserCastedTest();
-
-  void bindPureTest();
-
-  void bindLeftIdentityTest();
-  void bindRightIdentityTest();
-  void bindAssociativityTest();
-  void nestedBindSequenceTest();
-
-  void parserRuntimeTest();
-
-  void seqTest();
-  void leftRightTest();
-  void many1Test();
-  void sepBy1Test();
-  void betweenTest();
-  void countTest();
-  void discardTest();
-  void bothTest();
-
-  void personInfoParserTest();
-
-};
-
-PSTest::PSTest()
+void ParsecTest::initTestCase()
 {
 }
+
+void ParsecTest::cleanupTestCase()
+{
+}
+
 
 template <typename A>
 void printError(const ps::ParserResult<A> &pr)
@@ -67,7 +32,7 @@ void printError(const ps::ParserResult<A> &pr)
   }
 }
 
-void PSTest::singleDigitParserTest()
+void ParsecTest::singleDigitParserTest()
 {
   using namespace ps;
 
@@ -85,7 +50,7 @@ void PSTest::singleDigitParserTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void PSTest::onlyOneDigitTest()
+void ParsecTest::onlyOneDigitTest()
 {
   using namespace ps;
 
@@ -101,7 +66,7 @@ void PSTest::onlyOneDigitTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void PSTest::singleDigitFromManyTest()
+void ParsecTest::singleDigitFromManyTest()
 {
   using namespace ps;
 
@@ -117,7 +82,7 @@ void PSTest::singleDigitFromManyTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void PSTest::singleDigitFromMiddleTest()
+void ParsecTest::singleDigitFromMiddleTest()
 {
   using namespace ps;
 
@@ -133,7 +98,7 @@ void PSTest::singleDigitFromMiddleTest()
   QVERIFY(parseSucceeded.to == 2);
 }
 
-void PSTest::onlyOneDigitFromMiddleTest()
+void ParsecTest::onlyOneDigitFromMiddleTest()
 {
   using namespace ps;
 
@@ -149,7 +114,7 @@ void PSTest::onlyOneDigitFromMiddleTest()
   QVERIFY(parseSucceeded.to == 2);
 }
 
-void PSTest::singleDigitFailureTest()
+void ParsecTest::singleDigitFailureTest()
 {
   using namespace ps;
 
@@ -163,7 +128,7 @@ void PSTest::singleDigitFailureTest()
 }
 
 
-void PSTest::litParserTest()
+void ParsecTest::litParserTest()
 {
     using namespace ps;
 
@@ -181,7 +146,7 @@ void PSTest::litParserTest()
 }
 
 
-void PSTest::digitCastTest()
+void ParsecTest::digitCastTest()
 {
   using namespace ps;
 
@@ -219,7 +184,7 @@ void PSTest::digitCastTest()
   QVERIFY(getParseSucceeded(result).parsed == 1);
 }
 
-void PSTest::manyTest()
+void ParsecTest::manyTest()
 {
   using namespace ps;
 
@@ -246,7 +211,7 @@ void PSTest::manyTest()
   QVERIFY(parsed.front() == '3');
 }
 
-void PSTest::manyDigitsCastedTest()
+void ParsecTest::manyDigitsCastedTest()
 {
   using namespace ps;
 
@@ -268,7 +233,7 @@ void PSTest::manyDigitsCastedTest()
   QVERIFY(parsed.front() == 3);
 }
 
-void PSTest::manyParserCastedTest()
+void ParsecTest::manyParserCastedTest()
 {
   using namespace ps;
 
@@ -306,7 +271,7 @@ struct R
   ps::Char ch2;
 };
 
-void PSTest::bindPureTest()
+void ParsecTest::bindPureTest()
 {
   using namespace ps;
 
@@ -323,7 +288,7 @@ void PSTest::bindPureTest()
   QVERIFY(r.ch2 == '0');
 }
 
-void PSTest::bindLeftIdentityTest()
+void ParsecTest::bindLeftIdentityTest()
 {
   using namespace ps;
 
@@ -342,7 +307,7 @@ void PSTest::bindLeftIdentityTest()
   QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
 }
 
-void PSTest::bindRightIdentityTest()
+void ParsecTest::bindRightIdentityTest()
 {
   using namespace ps;
 
@@ -358,7 +323,7 @@ void PSTest::bindRightIdentityTest()
   QVERIFY(getParseSucceeded(rOrig).to == getParseSucceeded(rRight).to);
 }
 
-void PSTest::bindAssociativityTest()
+void ParsecTest::bindAssociativityTest()
 {
   using namespace ps;
 
@@ -378,7 +343,7 @@ void PSTest::bindAssociativityTest()
   QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
 }
 
-void PSTest::nestedBindSequenceTest()
+void ParsecTest::nestedBindSequenceTest()
 {
   using namespace ps;
 
@@ -402,7 +367,7 @@ void PSTest::nestedBindSequenceTest()
   QVERIFY(getParseSucceeded<R>(res).to == 3);
 }
 
-void PSTest::parserRuntimeTest()
+void ParsecTest::parserRuntimeTest()
 {
   using namespace ps;
 
@@ -418,7 +383,7 @@ void PSTest::parserRuntimeTest()
   QVERIFY(runtime.get_view() == std::string_view("hello world"));
 }
 
-void PSTest::seqTest()
+void ParsecTest::seqTest()
 {
   using namespace ps;
 
@@ -434,7 +399,7 @@ void PSTest::seqTest()
   QVERIFY(getParseSucceeded(r).to == 2);
 }
 
-void PSTest::leftRightTest()
+void ParsecTest::leftRightTest()
 {
   using namespace ps;
 
@@ -455,7 +420,7 @@ void PSTest::leftRightTest()
   QVERIFY(getParseSucceeded(rr).parsed == "a");
 }
 
-void PSTest::many1Test()
+void ParsecTest::many1Test()
 {
   using namespace ps;
 
@@ -480,7 +445,7 @@ void PSTest::many1Test()
   QVERIFY(parsed.front() == '3');
 }
 
-void PSTest::sepBy1Test()
+void ParsecTest::sepBy1Test()
 {
   using namespace ps;
 
@@ -501,7 +466,7 @@ void PSTest::sepBy1Test()
   QVERIFY(parsed.front() == '3');
 }
 
-void PSTest::betweenTest()
+void ParsecTest::betweenTest()
 {
   using namespace ps;
 
@@ -517,7 +482,7 @@ void PSTest::betweenTest()
   QVERIFY(getParseSucceeded(r).parsed == "foo");
 }
 
-void PSTest::countTest()
+void ParsecTest::countTest()
 {
   using namespace ps;
 
@@ -539,7 +504,7 @@ void PSTest::countTest()
   QVERIFY(parsed.front() == '3');
 }
 
-void PSTest::discardTest()
+void ParsecTest::discardTest()
 {
   using namespace ps;
 
@@ -554,7 +519,7 @@ void PSTest::discardTest()
   QVERIFY(isRight(r));
 }
 
-void PSTest::bothTest()
+void ParsecTest::bothTest()
 {
   using namespace ps;
 
@@ -572,85 +537,5 @@ void PSTest::bothTest()
   QVERIFY(parsed.second == 'a');
 }
 
-struct PersonInfo
-{
-    std::string firstName;
-    std::string lastName;
-    int age;
-    std::string ssn;
-};
-
-ps::ParserL<std::string> firstNameParser()
-{
-  // For a slightly more realistic test, let's parse a first name that is 4 alphanumeric characters long.
-  return ps::manyCharsToString(ps::count<char>(4, ps::alphanum));
-}
-
-ps::ParserL<std::string> lastNameParser()
-{
-  // Dummy for now, just to test the personInfoParser. We will implement it properly later.
-  return ps::manyCharsToString(ps::count<char>(3, ps::alphanum));
-}
-
-ps::ParserL<int> ageParser()
-{
-  // Dummy for now, just to test the personInfoParser. We will implement it properly later.
-  return ps::fmap<std::string, int>([](const std::string &s) { return std::stoi(s); }, ps::parseLit("30"));
-}
-
-ps::ParserL<std::string> ssnParser()
-{
-  // Dummy for now, just to test the personInfoParser. We will implement it properly later.
-  return ps::parseLit("123-45-6789");
-}
-
-template <typename A>
-ps::ParserL<ps::Unit> skip(const ps::ParserL<A>& p)
-{
-  return ps::fmap<A, ps::Unit>([](const A &)
-                               { return ps::unit; }, p);
-}
-
-const ps::ParserL<ps::Char> comma = ps::parseSymbolCond("comma", [](char ch) { return ch == ','; });
-
-ps::ParserL<PersonInfo> personInfoParser()
-{
-  using namespace ps;
-
-  // Build a sequence of parsers. skip(comma) returns Unit and will be removed
-  // from the resulting tuple by the sequence(...) machinery.
-  auto seqp = sequence(
-      firstNameParser(),
-      skip(comma),
-      lastNameParser(),
-      skip(comma),
-      ageParser(),
-      skip(comma),
-      ssnParser());
-
-  // Map the resulting tuple into the PersonInfo aggregate using as<>
-  return as<PersonInfo>(seqp);
-}
-
-void PSTest::personInfoParserTest()
-{
-    using namespace ps;
-
-    auto src = "John,Doe,30,123-45-6789";
-    ParserRuntime runtime(src, State{});
-
-    ParserL<PersonInfo> p = personInfoParser();
-
-    ParserResult<PersonInfo> r = parse_with_runtime<PersonInfo>(runtime, p);
-
-    QVERIFY(isRight(r));
-    PersonInfo info = getParseSucceeded(r).parsed;
-    QVERIFY(info.firstName == "John");
-    QVERIFY(info.lastName == "Doe");
-    QVERIFY(info.age == 30);
-    QVERIFY(info.ssn == "123-45-6789");
-}
-
-QTEST_APPLESS_MAIN(PSTest)
 
 #include "tst_parsec.moc"

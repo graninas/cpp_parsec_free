@@ -11,11 +11,15 @@ TEMPLATE = app
 
 
 SOURCES += \
-    tst_parsec.cpp
+    tst_parsec.cpp \
+    tst_samples.cpp \
+    tests_runner.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 HEADERS += \
-    common.h
+    common.h \
+    tst_parsec.h \
+    tst_samples.h
 
 # ps targets
 

@@ -52,8 +52,15 @@ OBJECTS_DIR   = ./
 
 ####### Files
 
-SOURCES       = tst_parsec.cpp 
-OBJECTS       = tst_parsec.o
+SOURCES       = tst_parsec.cpp \
+		tst_samples.cpp \
+		tests_runner.cpp moc_tst_parsec.cpp \
+		moc_tst_samples.cpp
+OBJECTS       = tst_parsec.o \
+		tst_samples.o \
+		tests_runner.o \
+		moc_tst_parsec.o \
+		moc_tst_samples.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -130,7 +137,11 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
-		cpp_parsecTest.pro common.h tst_parsec.cpp
+		cpp_parsecTest.pro common.h \
+		tst_parsec.h \
+		tst_samples.h tst_parsec.cpp \
+		tst_samples.cpp \
+		tests_runner.cpp
 QMAKE_TARGET  = tst_parsectest
 DESTDIR       = 
 TARGET        = tst_parsectest
@@ -312,8 +323,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents common.h $(DISTDIR)/
-	$(COPY_FILE) --parents tst_parsec.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents common.h tst_parsec.h tst_samples.h $(DISTDIR)/
+	$(COPY_FILE) --parents tst_parsec.cpp tst_samples.cpp tests_runner.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -344,36 +355,30 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++1z -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all:
+compiler_moc_header_make_all: moc_tst_parsec.cpp moc_tst_samples.cpp
 compiler_moc_header_clean:
-compiler_moc_objc_header_make_all:
-compiler_moc_objc_header_clean:
-compiler_moc_source_make_all: tst_parsec.moc
-compiler_moc_source_clean:
-	-$(DEL_FILE) tst_parsec.moc
-tst_parsec.moc: tst_parsec.cpp \
-		common.h \
-		../cpp_parsec/ps/ps.h \
-		../cpp_parsec/ps/core/types.h \
-		../cpp_parsec/ps/core/runtime.h \
-		../cpp_parsec/ps/core/interpreter.h \
-		../cpp_parsec/ps/core/raw_parsers.h \
-		../cpp_parsec/ps/core/parser/adt.h \
-		../cpp_parsec/ps/core/parser.h \
-		../cpp_parsec/ps/core/conds.h \
-		../cpp_parsec/ps/core/parser/functor.h \
-		../cpp_parsec/ps/core/parser/bind.h \
+	-$(DEL_FILE) moc_tst_parsec.cpp moc_tst_samples.cpp
+moc_tst_parsec.cpp: tst_parsec.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
-	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest -I/home/alexander/workspace/cpp_parsec_free/cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include tst_parsec.cpp -o tst_parsec.moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest -I/home/alexander/workspace/cpp_parsec_free/cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include tst_parsec.h -o moc_tst_parsec.cpp
 
+moc_tst_samples.cpp: tst_samples.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/alexander/workspace/cpp_parsec_free/cpp_parsecTest/moc_predefs.h -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/alexander/workspace/cpp_parsec_free/cpp_parsecTest -I/home/alexander/workspace/cpp_parsec_free/cpp_parsec -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtTest -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/11 -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/x86_64-linux-gnu/11/include -I/usr/local/include -I/usr/include/x86_64-linux-gnu -I/usr/include tst_samples.h -o moc_tst_samples.cpp
+
+compiler_moc_objc_header_make_all:
+compiler_moc_objc_header_clean:
+compiler_moc_source_make_all:
+compiler_moc_source_clean:
 compiler_yacc_decl_make_all:
 compiler_yacc_decl_clean:
 compiler_yacc_impl_make_all:
 compiler_yacc_impl_clean:
 compiler_lex_make_all:
 compiler_lex_clean:
-compiler_clean: compiler_moc_predefs_clean compiler_moc_source_clean 
+compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean 
 
 ####### Compile
 
@@ -388,8 +393,34 @@ tst_parsec.o: tst_parsec.cpp common.h \
 		../cpp_parsec/ps/core/conds.h \
 		../cpp_parsec/ps/core/parser/functor.h \
 		../cpp_parsec/ps/core/parser/bind.h \
+		tst_parsec.h \
 		tst_parsec.moc
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tst_parsec.o tst_parsec.cpp
+
+tst_samples.o: tst_samples.cpp common.h \
+		../cpp_parsec/ps/ps.h \
+		../cpp_parsec/ps/core/types.h \
+		../cpp_parsec/ps/core/runtime.h \
+		../cpp_parsec/ps/core/interpreter.h \
+		../cpp_parsec/ps/core/raw_parsers.h \
+		../cpp_parsec/ps/core/parser/adt.h \
+		../cpp_parsec/ps/core/parser.h \
+		../cpp_parsec/ps/core/conds.h \
+		../cpp_parsec/ps/core/parser/functor.h \
+		../cpp_parsec/ps/core/parser/bind.h \
+		tst_samples.h \
+		tst_samples.moc
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tst_samples.o tst_samples.cpp
+
+tests_runner.o: tests_runner.cpp tst_parsec.h \
+		tst_samples.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tests_runner.o tests_runner.cpp
+
+moc_tst_parsec.o: moc_tst_parsec.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_tst_parsec.o moc_tst_parsec.cpp
+
+moc_tst_samples.o: moc_tst_samples.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_tst_samples.o moc_tst_samples.cpp
 
 ####### Install
 

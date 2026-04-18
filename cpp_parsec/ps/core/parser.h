@@ -93,6 +93,8 @@ const ParserL<Char> space = parseSymbolCond("space", isSpace);
 const ParserL<Char> anyChar = parseSymbolCond("any char", [](char) { return true; });
 const ParserL<Char> eol = parseSymbolCond("eol", isEol);
 const ParserL<Char> cr = parseSymbolCond("cr", isCr);
+const ParserL<Char> comma = parseSymbolCond("comma", [](char ch)
+                                             { return ch == ','; });
 
 template <typename A>
 ParserL<Many<A>> many(const ParserL<A>& item)
@@ -262,6 +264,14 @@ ParserL<std::string> manyCharsToString(
       manyCharsParser);
 }
 
+// Combinators for building sequences of parsers and mapping them into structs using aggregate initialization.
+
+template <typename A>
+ParserL<Unit> skip(const ParserL<A> &p)
+{
+  return fmap<A, Unit>([](const A &)
+                       { return unit; }, p);
+}
 
 // Variadic sequence combinator and helpers
 

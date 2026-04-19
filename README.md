@@ -1,5 +1,5 @@
-Free-Parsec
-===========
+Free-Parsec v2.0
+=================
 
 *C++ Monadic Parsers library*
 

@@ -1,6 +1,6 @@
 QT -= core gui
 
-TARGET = cpp_parsec
+TARGET = cpp_free_parsec
 TEMPLATE = lib
 CONFIG += staticlib
 

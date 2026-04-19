@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "tst_parsec.h"
+#include "tst_free_parsec.h"
 #include <QTest>
 
 ParsecTest::ParsecTest(QObject *parent) : QObject(parent) {}

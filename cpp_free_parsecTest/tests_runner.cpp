@@ -1,5 +1,5 @@
 #include <QTest>
-#include "tst_parsec.h"
+#include "tst_free_parsec.h"
 #include "tst_samples.h"
 
 int main(int argc, char **argv)

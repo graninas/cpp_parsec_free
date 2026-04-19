@@ -1,5 +1,5 @@
 /****************************************************************************
-** Meta object code from reading C++ file 'tst_parsec.h'
+** Meta object code from reading C++ file 'tst_free_parsec.h'
 **
 ** Created by: The Qt Meta Object Compiler version 67 (Qt 5.15.3)
 **
@@ -7,11 +7,11 @@
 *****************************************************************************/
 
 #include <memory>
-#include "tst_parsec.h"
+#include "tst_free_parsec.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
-#error "The header file 'tst_parsec.h' doesn't include <QObject>."
+#error "The header file 'tst_free_parsec.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
 #error "This file was generated using the moc from 5.15.3. It"
 #error "cannot be used with the include files from this version of Qt."

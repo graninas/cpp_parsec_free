@@ -1,5 +1,5 @@
-#ifndef TST_PARSECH_H
-#define TST_PARSECH_H
+#ifndef TST_FREE_PARSEC_H
+#define TST_FREE_PARSEC_H
 
 #include <QObject>
 
@@ -46,4 +46,4 @@ private slots:
     void bothTest();
 };
 
-#endif // TST_PARSECH_H
+#endif // TST_FREE_PARSEC_H

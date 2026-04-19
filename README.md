@@ -1,5 +1,7 @@
-C++ Monadic Parsers library
-===========================
+Free-Parsec
+===========
+
+*C++ Monadic Parsers library*
 
 Monadic parsers similar to Haskell's Parsec.
 

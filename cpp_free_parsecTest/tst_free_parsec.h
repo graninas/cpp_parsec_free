@@ -3,11 +3,11 @@
 
 #include <QObject>
 
-class ParsecTest : public QObject
+class FreeParsecTest : public QObject
 {
     Q_OBJECT
 public:
-  explicit ParsecTest(QObject *parent = nullptr);
+  explicit FreeParsecTest(QObject *parent = nullptr);
 
 private slots:
     void initTestCase();

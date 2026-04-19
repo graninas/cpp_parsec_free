@@ -9,17 +9,18 @@
 #include "tst_free_parsec.h"
 #include <QTest>
 
-ParsecTest::ParsecTest(QObject *parent) : QObject(parent) {}
+FreeParsecTest::FreeParsecTest(QObject *parent) : QObject(parent) {}
 
-void ParsecTest::initTestCase()
+void FreeParsecTest::initTestCase()
 {
 }
 
-void ParsecTest::cleanupTestCase()
+void FreeParsecTest::cleanupTestCase()
 {
 }
 
-void ParsecTest::singleDigitParserTest()
+
+void FreeParsecTest::singleDigitParserTest()
 {
   using namespace ps;
 
@@ -37,7 +38,7 @@ void ParsecTest::singleDigitParserTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void ParsecTest::onlyOneDigitTest()
+void FreeParsecTest::onlyOneDigitTest()
 {
   using namespace ps;
 
@@ -53,7 +54,7 @@ void ParsecTest::onlyOneDigitTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void ParsecTest::singleDigitFromManyTest()
+void FreeParsecTest::singleDigitFromManyTest()
 {
   using namespace ps;
 
@@ -69,7 +70,7 @@ void ParsecTest::singleDigitFromManyTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void ParsecTest::singleDigitFromMiddleTest()
+void FreeParsecTest::singleDigitFromMiddleTest()
 {
   using namespace ps;
 
@@ -85,7 +86,7 @@ void ParsecTest::singleDigitFromMiddleTest()
   QVERIFY(parseSucceeded.to == 2);
 }
 
-void ParsecTest::onlyOneDigitFromMiddleTest()
+void FreeParsecTest::onlyOneDigitFromMiddleTest()
 {
   using namespace ps;
 
@@ -101,7 +102,7 @@ void ParsecTest::onlyOneDigitFromMiddleTest()
   QVERIFY(parseSucceeded.to == 2);
 }
 
-void ParsecTest::singleDigitFailureTest()
+void FreeParsecTest::singleDigitFailureTest()
 {
   using namespace ps;
 
@@ -115,7 +116,7 @@ void ParsecTest::singleDigitFailureTest()
 }
 
 
-void ParsecTest::litParserTest()
+void FreeParsecTest::litParserTest()
 {
     using namespace ps;
 
@@ -133,7 +134,7 @@ void ParsecTest::litParserTest()
 }
 
 
-void ParsecTest::digitCastTest()
+void FreeParsecTest::digitCastTest()
 {
   using namespace ps;
 
@@ -171,7 +172,7 @@ void ParsecTest::digitCastTest()
   QVERIFY(getParseSucceeded(result).parsed == 1);
 }
 
-void ParsecTest::manyTest()
+void FreeParsecTest::manyTest()
 {
   using namespace ps;
 
@@ -198,7 +199,7 @@ void ParsecTest::manyTest()
   QVERIFY(parsed.front() == '3');
 }
 
-void ParsecTest::manyDigitsCastedTest()
+void FreeParsecTest::manyDigitsCastedTest()
 {
   using namespace ps;
 
@@ -220,7 +221,7 @@ void ParsecTest::manyDigitsCastedTest()
   QVERIFY(parsed.front() == 3);
 }
 
-void ParsecTest::manyParserCastedTest()
+void FreeParsecTest::manyParserCastedTest()
 {
   using namespace ps;
 
@@ -258,7 +259,7 @@ struct R
   ps::Char ch2;
 };
 
-void ParsecTest::bindPureTest()
+void FreeParsecTest::bindPureTest()
 {
   using namespace ps;
 
@@ -275,7 +276,7 @@ void ParsecTest::bindPureTest()
   QVERIFY(r.ch2 == '0');
 }
 
-void ParsecTest::bindLeftIdentityTest()
+void FreeParsecTest::bindLeftIdentityTest()
 {
   using namespace ps;
 
@@ -294,7 +295,7 @@ void ParsecTest::bindLeftIdentityTest()
   QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
 }
 
-void ParsecTest::bindRightIdentityTest()
+void FreeParsecTest::bindRightIdentityTest()
 {
   using namespace ps;
 
@@ -310,7 +311,7 @@ void ParsecTest::bindRightIdentityTest()
   QVERIFY(getParseSucceeded(rOrig).to == getParseSucceeded(rRight).to);
 }
 
-void ParsecTest::bindAssociativityTest()
+void FreeParsecTest::bindAssociativityTest()
 {
   using namespace ps;
 
@@ -330,7 +331,7 @@ void ParsecTest::bindAssociativityTest()
   QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
 }
 
-void ParsecTest::nestedBindSequenceTest()
+void FreeParsecTest::nestedBindSequenceTest()
 {
   using namespace ps;
 
@@ -354,7 +355,7 @@ void ParsecTest::nestedBindSequenceTest()
   QVERIFY(getParseSucceeded<R>(res).to == 3);
 }
 
-void ParsecTest::parserRuntimeTest()
+void FreeParsecTest::parserRuntimeTest()
 {
   using namespace ps;
 
@@ -370,7 +371,7 @@ void ParsecTest::parserRuntimeTest()
   QVERIFY(runtime.getView() == std::string_view("hello world"));
 }
 
-void ParsecTest::seqTest()
+void FreeParsecTest::seqTest()
 {
   using namespace ps;
 
@@ -386,7 +387,7 @@ void ParsecTest::seqTest()
   QVERIFY(getParseSucceeded(r).to == 2);
 }
 
-void ParsecTest::leftRightTest()
+void FreeParsecTest::leftRightTest()
 {
   using namespace ps;
 
@@ -407,7 +408,7 @@ void ParsecTest::leftRightTest()
   QVERIFY(getParseSucceeded(rr).parsed == "a");
 }
 
-void ParsecTest::many1Test()
+void FreeParsecTest::many1Test()
 {
   using namespace ps;
 
@@ -432,7 +433,7 @@ void ParsecTest::many1Test()
   QVERIFY(parsed.front() == '3');
 }
 
-void ParsecTest::sepBy1Test()
+void FreeParsecTest::sepBy1Test()
 {
   using namespace ps;
 
@@ -453,7 +454,7 @@ void ParsecTest::sepBy1Test()
   QVERIFY(parsed.front() == '3');
 }
 
-void ParsecTest::betweenTest()
+void FreeParsecTest::betweenTest()
 {
   using namespace ps;
 
@@ -469,7 +470,7 @@ void ParsecTest::betweenTest()
   QVERIFY(getParseSucceeded(r).parsed == "foo");
 }
 
-void ParsecTest::countTest()
+void FreeParsecTest::countTest()
 {
   using namespace ps;
 
@@ -491,7 +492,7 @@ void ParsecTest::countTest()
   QVERIFY(parsed.front() == '3');
 }
 
-void ParsecTest::discardTest()
+void FreeParsecTest::discardTest()
 {
   using namespace ps;
 
@@ -506,7 +507,7 @@ void ParsecTest::discardTest()
   QVERIFY(isRight(r));
 }
 
-void ParsecTest::bothTest()
+void FreeParsecTest::bothTest()
 {
   using namespace ps;
 

@@ -34,6 +34,7 @@ public:
 
     void pushMessage(const std::string& message);
     const std::vector<std::string>& getMessages() const;
+    void clearMessages();
 
     int getManyCombinatorThreshold() const
     {

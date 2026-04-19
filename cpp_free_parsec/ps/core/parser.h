@@ -68,6 +68,12 @@ Parser<Char> parseSymbolCond(
 }
 
 template <typename Dummy = int>
+Parser<Char> parseChar(char expected)
+{
+    return parseSymbolCond(std::string("char '") + expected + "'", [=](char ch) { return ch == expected; });
+}
+
+template <typename Dummy = int>
 Parser<std::string> parseLit(const std::string& s)
 {
     return makeFree(ParseLit<Parser<std::string>>{
@@ -121,6 +127,89 @@ Parser<Many<A>> many(const Parser<A>& item)
       }});
 }
 
+template <typename A>
+Parser<Many<A>> many1(const Parser<A>& p)
+{
+    Parser<Many<A>> manyP = many<A>(p);
+
+    return bind<A, Many<A>>(p, [=](const A& a) {
+        return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
+            rest.push_front(a);
+            return rest;
+        }, manyP);
+    });
+}
+
+template <typename A>
+Parser<ParserResult<A>> tryOrError(const Parser<A> &p)
+{
+    Parser<A> itemCopy = p;
+
+    auto pCopy = std::make_shared<Parser<Any>>(
+        fmap<A, Any>([](const A &a)
+                     { return a; }, itemCopy));
+
+    return makeFree(TryOrErrorParser<Parser<ParserResult<A>>>{
+        pCopy,
+        [](const ParserResult<Any> &res)
+        {
+            if (isRight(res))
+            {
+                A a = std::any_cast<A>(getParseSucceeded(res).parsed);
+                return makePure(ParserResult<A>{ParserSucceeded<A>{a, getParseSucceeded(res).from, getParseSucceeded(res).to}});
+            }
+            else
+            {
+                ParserFailed failed = std::get<ParserFailed>(res);
+                return makePure(ParserResult<A>{ParserFailed{failed.message, failed.at}});
+            }
+        }
+    });
+}
+
+template <typename A>
+Parser<A> tryOrThrow(const Parser<A> &p)
+{
+    return bind<ParserResult<A>, A>(tryOrError(p), [](const ParserResult<A>& res) {
+        if (isRight(res))
+        {
+            return makePure(std::any_cast<A>(getParseSucceeded(res).parsed));
+        }
+        else
+        {
+            ParserFailed failed = std::get<ParserFailed>(res);
+            throw std::runtime_error("Parsing failed at position " + std::to_string(failed.at) + ": " + failed.message);
+        }
+    });
+}
+
+template <typename A>
+Parser<A> try_(const Parser<A> &p)
+{
+    return tryOrThrow(p);
+}
+
+template <typename A>
+Parser<A> alt(const Parser<A> &p, const Parser<A> &q)
+{
+  auto pCopy = std::make_shared<Parser<Any>>(
+      fmap<A, Any>([](const A &a)
+                   { return a; }, p));
+
+  auto qCopy = std::make_shared<Parser<Any>>(
+      fmap<A, Any>([](const A &a)
+                   { return a; }, q));
+
+  return makeFree(AltParser<Parser<A>>{
+      pCopy,
+      qCopy,
+      [](const Any &res)
+      {
+        A a = std::any_cast<A>(res);
+        return makePure(a);
+      }});
+}
+
 // seq: run two parsers in sequence and return the result of the second one
 template <typename A, typename B>
 Parser<B> seq(const Parser<A>& p, const Parser<B>& q)
@@ -167,18 +256,6 @@ Parser<B> right(const Parser<A>& p, const Parser<B>& q)
     return bind<A, B>(p, [=](const A&) { return q; });
 }
 
-template <typename A>
-Parser<Many<A>> many1(const Parser<A>& p)
-{
-    Parser<Many<A>> manyP = many<A>(p);
-
-    return bind<A, Many<A>>(p, [=](const A& a) {
-        return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
-            rest.push_front(a);
-            return rest;
-        }, manyP);
-    });
-}
 
 template <typename A, typename S>
 Parser<Many<A>> sepBy1(const Parser<A>& item, const Parser<S>& sep)

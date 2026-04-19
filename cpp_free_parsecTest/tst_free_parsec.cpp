@@ -9,17 +9,76 @@
 #include "tst_free_parsec.h"
 #include <QTest>
 
-ParsecTest::ParsecTest(QObject *parent) : QObject(parent) {}
+FreeParsecTest::FreeParsecTest(QObject *parent) : QObject(parent) {}
 
-void ParsecTest::initTestCase()
+void FreeParsecTest::initTestCase()
 {
 }
 
-void ParsecTest::cleanupTestCase()
+void FreeParsecTest::cleanupTestCase()
 {
 }
 
-void ParsecTest::singleDigitParserTest()
+void FreeParsecTest::tryCombinatorTest()
+{
+  using namespace ps;
+
+  // Case 1: try allows backtracking on failure after consuming input
+  // Try to parse "ab" or "ac" from "ac". Without try, the first parser would consume 'a' and fail, blocking the second.
+  auto src = "ac";
+  ParserRuntime runtime1(src, State{});
+  Parser<std::string> p1 = alt(
+      try_(seq(parseLit("a"), parseLit("b"))), // will consume 'a', fail on 'b'
+      seq(parseLit("a"), parseLit("c"))        // should succeed due to try
+  );
+  ParserResult<std::string> r1 = parseWithRuntime<std::string>(runtime1, p1);
+
+  // std::cout << "Test case 1: try allows backtracking on failure after consuming input" << std::endl;
+  // printMessages(runtime1);
+
+  QVERIFY(isRight(r1));
+  QVERIFY(getParseSucceeded(r1).parsed == "c");
+  QVERIFY(getParseSucceeded(r1).from == 0);
+  QVERIFY(getParseSucceeded(r1).to == 2);
+
+  // Case 2: try does not interfere with success
+  ParserRuntime runtime2("ab", State{});
+  Parser<std::string> p2 = try_(parseLit("ab"));
+  ParserResult<std::string> r2 = parseWithRuntime<std::string>(runtime2, p2);
+
+  // std::cout << "Test case 2: try does not interfere with success" << std::endl;
+  // printMessages(runtime2);
+
+  QVERIFY(isRight(r2));
+  QVERIFY(getParseSucceeded(r2).parsed == "ab");
+
+  // Case 3: try on a parser that fails without consuming input (should be a no-op)
+  ParserRuntime runtime3("xy", State{});
+  Parser<std::string> p3 = try_(parseLit("z"));
+  ParserResult<std::string> r3 = parseWithRuntime<std::string>(runtime3, p3);
+
+  // std::cout << "Test case 3: try on a parser that fails without consuming input (should be a no-op)" << std::endl;
+  // printMessages(runtime3);
+
+  QVERIFY(isLeft(r3));
+  // Input position should not advance
+  QVERIFY(getParseFailed(r3).at == 0);
+
+  // Case 4: try with alternative, first succeeds, second not tried
+  ParserRuntime runtime4("ab", State{});
+  Parser<std::string> p4 = alt(try_(parseLit("ab")), parseLit("a"));
+  ParserResult<std::string> r4 = parseWithRuntime<std::string>(runtime4, p4);
+
+  // std::cout << "Test case 4: try with alternative, first succeeds, second not tried" << std::endl;
+  // printMessages(runtime4);
+
+  QVERIFY(isRight(r4));
+  QVERIFY(getParseSucceeded(r4).parsed == "ab");
+}
+
+
+
+void FreeParsecTest::singleDigitParserTest()
 {
   using namespace ps;
 
@@ -37,7 +96,7 @@ void ParsecTest::singleDigitParserTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void ParsecTest::onlyOneDigitTest()
+void FreeParsecTest::onlyOneDigitTest()
 {
   using namespace ps;
 
@@ -53,7 +112,7 @@ void ParsecTest::onlyOneDigitTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void ParsecTest::singleDigitFromManyTest()
+void FreeParsecTest::singleDigitFromManyTest()
 {
   using namespace ps;
 
@@ -69,7 +128,7 @@ void ParsecTest::singleDigitFromManyTest()
   QVERIFY(parseSucceeded.to == 1);
 }
 
-void ParsecTest::singleDigitFromMiddleTest()
+void FreeParsecTest::singleDigitFromMiddleTest()
 {
   using namespace ps;
 
@@ -85,7 +144,7 @@ void ParsecTest::singleDigitFromMiddleTest()
   QVERIFY(parseSucceeded.to == 2);
 }
 
-void ParsecTest::onlyOneDigitFromMiddleTest()
+void FreeParsecTest::onlyOneDigitFromMiddleTest()
 {
   using namespace ps;
 
@@ -101,7 +160,7 @@ void ParsecTest::onlyOneDigitFromMiddleTest()
   QVERIFY(parseSucceeded.to == 2);
 }
 
-void ParsecTest::singleDigitFailureTest()
+void FreeParsecTest::singleDigitFailureTest()
 {
   using namespace ps;
 
@@ -115,7 +174,7 @@ void ParsecTest::singleDigitFailureTest()
 }
 
 
-void ParsecTest::litParserTest()
+void FreeParsecTest::litParserTest()
 {
     using namespace ps;
 
@@ -133,7 +192,7 @@ void ParsecTest::litParserTest()
 }
 
 
-void ParsecTest::digitCastTest()
+void FreeParsecTest::digitCastTest()
 {
   using namespace ps;
 
@@ -171,7 +230,7 @@ void ParsecTest::digitCastTest()
   QVERIFY(getParseSucceeded(result).parsed == 1);
 }
 
-void ParsecTest::manyTest()
+void FreeParsecTest::manyTest()
 {
   using namespace ps;
 
@@ -198,7 +257,7 @@ void ParsecTest::manyTest()
   QVERIFY(parsed.front() == '3');
 }
 
-void ParsecTest::manyDigitsCastedTest()
+void FreeParsecTest::manyDigitsCastedTest()
 {
   using namespace ps;
 
@@ -220,7 +279,7 @@ void ParsecTest::manyDigitsCastedTest()
   QVERIFY(parsed.front() == 3);
 }
 
-void ParsecTest::manyParserCastedTest()
+void FreeParsecTest::manyParserCastedTest()
 {
   using namespace ps;
 
@@ -258,7 +317,7 @@ struct R
   ps::Char ch2;
 };
 
-void ParsecTest::bindPureTest()
+void FreeParsecTest::bindPureTest()
 {
   using namespace ps;
 
@@ -275,7 +334,7 @@ void ParsecTest::bindPureTest()
   QVERIFY(r.ch2 == '0');
 }
 
-void ParsecTest::bindLeftIdentityTest()
+void FreeParsecTest::bindLeftIdentityTest()
 {
   using namespace ps;
 
@@ -294,7 +353,7 @@ void ParsecTest::bindLeftIdentityTest()
   QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
 }
 
-void ParsecTest::bindRightIdentityTest()
+void FreeParsecTest::bindRightIdentityTest()
 {
   using namespace ps;
 
@@ -310,7 +369,7 @@ void ParsecTest::bindRightIdentityTest()
   QVERIFY(getParseSucceeded(rOrig).to == getParseSucceeded(rRight).to);
 }
 
-void ParsecTest::bindAssociativityTest()
+void FreeParsecTest::bindAssociativityTest()
 {
   using namespace ps;
 
@@ -330,7 +389,7 @@ void ParsecTest::bindAssociativityTest()
   QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
 }
 
-void ParsecTest::nestedBindSequenceTest()
+void FreeParsecTest::nestedBindSequenceTest()
 {
   using namespace ps;
 
@@ -354,7 +413,7 @@ void ParsecTest::nestedBindSequenceTest()
   QVERIFY(getParseSucceeded<R>(res).to == 3);
 }
 
-void ParsecTest::parserRuntimeTest()
+void FreeParsecTest::parserRuntimeTest()
 {
   using namespace ps;
 
@@ -370,7 +429,7 @@ void ParsecTest::parserRuntimeTest()
   QVERIFY(runtime.getView() == std::string_view("hello world"));
 }
 
-void ParsecTest::seqTest()
+void FreeParsecTest::seqTest()
 {
   using namespace ps;
 
@@ -386,7 +445,7 @@ void ParsecTest::seqTest()
   QVERIFY(getParseSucceeded(r).to == 2);
 }
 
-void ParsecTest::leftRightTest()
+void FreeParsecTest::leftRightTest()
 {
   using namespace ps;
 
@@ -407,7 +466,7 @@ void ParsecTest::leftRightTest()
   QVERIFY(getParseSucceeded(rr).parsed == "a");
 }
 
-void ParsecTest::many1Test()
+void FreeParsecTest::many1Test()
 {
   using namespace ps;
 
@@ -432,7 +491,7 @@ void ParsecTest::many1Test()
   QVERIFY(parsed.front() == '3');
 }
 
-void ParsecTest::sepBy1Test()
+void FreeParsecTest::sepBy1Test()
 {
   using namespace ps;
 
@@ -453,7 +512,7 @@ void ParsecTest::sepBy1Test()
   QVERIFY(parsed.front() == '3');
 }
 
-void ParsecTest::betweenTest()
+void FreeParsecTest::betweenTest()
 {
   using namespace ps;
 
@@ -469,7 +528,7 @@ void ParsecTest::betweenTest()
   QVERIFY(getParseSucceeded(r).parsed == "foo");
 }
 
-void ParsecTest::countTest()
+void FreeParsecTest::countTest()
 {
   using namespace ps;
 
@@ -491,7 +550,7 @@ void ParsecTest::countTest()
   QVERIFY(parsed.front() == '3');
 }
 
-void ParsecTest::discardTest()
+void FreeParsecTest::discardTest()
 {
   using namespace ps;
 
@@ -506,7 +565,7 @@ void ParsecTest::discardTest()
   QVERIFY(isRight(r));
 }
 
-void ParsecTest::bothTest()
+void FreeParsecTest::bothTest()
 {
   using namespace ps;
 

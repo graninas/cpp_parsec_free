@@ -29,6 +29,21 @@ namespace core
     std::function<Next(std::list<Any>)> next;
   };
 
+  template <typename Next>
+  struct TryOrErrorParser
+  {
+    std::shared_ptr<Parser<Any>> rawParser;   // Parser is always the same
+    std::function<Next(ParserResult<Any>)> next;
+  };
+
+  template <typename Next>
+  struct AltParser
+  {
+    std::shared_ptr<Parser<Any>> p;   // Parser is always the same
+    std::shared_ptr<Parser<Any>> q;   // Parser is always the same
+    std::function<Next(Any)> next;
+  };
+
 
 template <typename Next>
 struct ParseLit
@@ -59,7 +74,9 @@ struct ParserADT        // TODO: rename to Methods
         ParseMany<Ret>,
         ParseLit<Ret>,
         GetSt<Ret>,
-        PutSt<Ret>
+        PutSt<Ret>,
+        TryOrErrorParser<Ret>,
+        AltParser<Ret>
     > psf;
 };
 

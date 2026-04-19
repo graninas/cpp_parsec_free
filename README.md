@@ -27,8 +27,8 @@ if (isRight(result)) {
 
 Parse a capitalized word:
 ```cpp
-ParserL<char> firstChar = upper;
-ParserL<std::list<char>> restChars = many(lower);
+Parser<char> firstChar = upper;
+Parser<std::list<char>> restChars = many(lower);
 auto seqp = sequence(firstChar, restChars);
 auto parser = merge(seqp);
 ```
@@ -47,7 +47,7 @@ auto parser = as<PersonInfo>(seqp);
 
 Architecture Overview
 ---------------------
-- **ParserL**: Main parser type, parameterized by result type.
+- **Parser**: Main parser type, parameterized by result type.
 - **ParserResult**: Holds either a successful parse or failure with error message and position.
 - **Combinators**: Functions like `many`, `sequence`, `bind`, `fmap`, etc., to build complex parsers.
 - **ParserRuntime**: Holds input string, state, and error messages. Used for running parsers safely.
@@ -59,5 +59,5 @@ This library lets you write expressive and type-safe parsers in C++ using a func
 
 
 **Additional materials**
-- [Monadic Parsers in C++ (Talk, Rus)](https://www.youtube.com/watch?v=q39PHTJDaLE) | [Slides (Eng)](https://docs.google.com/presentation/d/1zlwKBX8-DYVWUYmzvmKm7ggDVBugEJzY6OFSWjeQOA4/edit?usp=sharing) | My talk about this implementation at C++ Russia 2019 Moscow.
+- [Monadic Parsers in C++ (Talk, Rus)](https://www.youtube.com/watch?v=q39PHTJDaLE) | [Slides (Eng)](https://docs.google.com/presentation/d/1zlwKBX8-DYVWUYmzvmKm7ggDVBugEJzY6OFSWjeQOA4/edit?usp=sharing) | My talk about previous implementation at C++ Russia 2019 Moscow.
 - [cpp_stm_free](https://github.com/graninas/cpp_stm_free) | Software Transactional Memory with the same Free Monads approach

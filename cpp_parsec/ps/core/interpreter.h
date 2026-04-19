@@ -18,7 +18,7 @@ struct InterpretingVisitor;
 template <typename Ret>
 ParserResult<Ret> runParser(
         ParserRuntime& runtime,
-        const ParserL<Ret>& next,
+        const Parser<Ret>& next,
         Pos startFrom)
 {
   InterpretingVisitor<Ret> visitor(runtime, startFrom);
@@ -39,7 +39,7 @@ struct InterpretingADTVisitor
     {
     }
 
-    void operator()(const ParseSymbolCond<ParserL<Ret>>& method)
+    void operator()(const ParseSymbolCond<Parser<Ret>>& method)
     {
         ParserResult<Char> r = parseSingle<Unit>(
           _runtime, _startFrom, method.validator, method.name);
@@ -52,12 +52,12 @@ struct InterpretingADTVisitor
         else
         {
             ParserSucceeded<Char> succeeded = getParseSucceeded(r);
-            ParserL<Ret> rNext = method.next(succeeded.parsed);
+            Parser<Ret> rNext = method.next(succeeded.parsed);
             result = runParser<Ret>(_runtime, rNext, succeeded.to);
         }
     }
 
-    void operator()(const ParseMany<ParserL<Ret>>& method)
+    void operator()(const ParseMany<Parser<Ret>>& method)
     {
       if (method.rawParser == nullptr)
       {
@@ -108,7 +108,7 @@ struct InterpretingADTVisitor
       _runtime.pushMessage("ParseMany: finished.");
     }
 
-    void operator()(const ParseLit<ParserL<Ret>>& method)
+    void operator()(const ParseLit<Parser<Ret>>& method)
     {
       ParserResult<std::string> r = parseLit<std::string>(_runtime, _startFrom, method.s);
 
@@ -120,18 +120,18 @@ struct InterpretingADTVisitor
       else
       {
         ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
-        ParserL<Ret> rNext = method.next(succeeded.parsed);
+        Parser<Ret> rNext = method.next(succeeded.parsed);
         result = runParser<Ret>(_runtime, rNext, succeeded.to);
       }
     }
 
-    void operator()(const GetSt<ParserL<Ret>>& method)
+    void operator()(const GetSt<Parser<Ret>>& method)
     {
         auto rNext = method.next(_runtime.getState());
         result = runParser<Ret>(_runtime, rNext, _startFrom);
     }
 
-    void operator()(const PutSt<ParserL<Ret>>& method)
+    void operator()(const PutSt<Parser<Ret>>& method)
     {
         _runtime.putState(method.st);
         auto rNext = method.next(unit);

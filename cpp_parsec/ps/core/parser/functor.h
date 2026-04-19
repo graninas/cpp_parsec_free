@@ -16,9 +16,9 @@ using MapFunc = std::function<B(A)>;
 // Forward
 
 template <typename A, typename B>
-ParserL<B> fmap(
+Parser<B> fmap(
     const std::function<B(A)> &f,
-    const ParserL<A> &psl);
+    const Parser<A> &psl);
 
     // Methods functor
 
@@ -117,14 +117,14 @@ ParserADT<B> fmapMethods(const MapFunc<A, B> &f,
 
 // Forward
 template <typename A, typename B>
-struct FunctorParserLVisitor;
+struct FunctorParserVisitor;
 
 template <typename A, typename B>
-ParserL<B> fmap(
+Parser<B> fmap(
     const std::function<B(A)> &f,
-    const ParserL<A> &psl)
+    const Parser<A> &psl)
 {
-  FunctorParserLVisitor<A, B> visitor(f);
+  FunctorParserVisitor<A, B> visitor(f);
   std::visit(visitor, psl.psl);
   return visitor.result;
 
@@ -132,32 +132,32 @@ ParserL<B> fmap(
 }
 
 template <typename A, typename B>
-struct FunctorParserLVisitor
+struct FunctorParserVisitor
 {
     std::function<B(A)> fTemplate;
-    ParserL<B> result;
+    Parser<B> result;
 
-    FunctorParserLVisitor(const std::function<B(A)>& func)
+    FunctorParserVisitor(const std::function<B(A)>& func)
         : fTemplate(func)
     {}
 
     void operator()(const PureF<A>& fa)
     {
         std::function<B(A)> f = fTemplate;
-        result = ParserL<B> { PureF<B> { f(fa.ret) } };
+        result = Parser<B> { PureF<B> { f(fa.ret) } };
     }
 
     void operator()(const FreeF<A>& fa)
     {
         std::function<B(A)> f = fTemplate;
-        std::function<ParserL<B>(ParserL<A>)> f2 =
-                [=](const ParserL<A>& pslInt)
+        std::function<Parser<B>(Parser<A>)> f2 =
+                [=](const Parser<A>& pslInt)
         {
             return fmap<A, B>(f, pslInt);
         };
 
-        ParserADT<ParserL<B>> visited = fmapMethods(f2, fa.psf);
-        result = ParserL<B> { FreeF<B> { visited } };
+        ParserADT<Parser<B>> visited = fmapMethods(f2, fa.psf);
+        result = Parser<B> { FreeF<B> { visited } };
     }
 
 

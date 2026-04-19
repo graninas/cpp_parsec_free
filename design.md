@@ -1,11 +1,11 @@
 # Design notes and recommendations
 
-This document captures concise observations and actionable recommendations for the current parser library implementation (free-monad style parser represented with `ParserADT`, `ParserL`, `PureF`/`FreeF`, and visitors for `fmap` / `bind`). The tone is factual and focused on maintainability, correctness and performance.
+This document captures concise observations and actionable recommendations for the current parser library implementation (free-monad style parser represented with `ParserADT`, `Parser`, `PureF`/`FreeF`, and visitors for `fmap` / `bind`). The tone is factual and focused on maintainability, correctness and performance.
 
 ## Overview
 
-- The library models parsers as a small free-language: method ADTs (e.g. `ParseSymbolCond`, `ParseMany`) plus a Free layer (`ParserL` variant of `PureF`/`FreeF`).
-- `fmap` and `bind` are implemented by visitors over `std::variant`, producing transformed ADTs and composing `ParserL` values.
+- The library models parsers as a small free-language: method ADTs (e.g. `ParseSymbolCond`, `ParseMany`) plus a Free layer (`Parser` variant of `PureF`/`FreeF`).
+- `fmap` and `bind` are implemented by visitors over `std::variant`, producing transformed ADTs and composing `Parser` values.
 - Execution happens via a separate runtime/interpreter (not modified here) which consumes the ADT representation.
 
 ## Strengths
@@ -18,7 +18,7 @@ This document captures concise observations and actionable recommendations for t
 ## Risks and pain points
 
 - Heavy use of `std::function` and capturing lambdas may cause hidden heap allocations and degrade performance in hot parsing paths.
-- Use of `std::shared_ptr<ParserL>` inside `ParseMany::raw_parser` combined with closures could lead to reference cycles or unexpected lifetime extensions.
+- Use of `std::shared_ptr<Parser>` inside `ParseMany::raw_parser` combined with closures could lead to reference cycles or unexpected lifetime extensions.
 - Semantics of `raw_parser` in `ParseMany` are not fully documented: copied as-is in `fmap`/`bind` which may or may not be correct in all cases.
 - Error and diagnostic information is minimal: no structured error type, and limited position/trace metadata in ADTs.
 - No explicit validation of monad laws; subtle bugs can appear in bind/fmap implementations without property tests.
@@ -32,7 +32,7 @@ This document captures concise observations and actionable recommendations for t
 
 ## Memory / lifetime recommendations
 
-- Audit ownership: where `shared_ptr` is used, verify whether `unique_ptr` or `weak_ptr` would be more appropriate to prevent cycles. Document lifetime invariants for `ParserL` instances.
+- Audit ownership: where `shared_ptr` is used, verify whether `unique_ptr` or `weak_ptr` would be more appropriate to prevent cycles. Document lifetime invariants for `Parser` instances.
 - Consider separating the static AST (immutable parser description) from runtime state pointers so that ASTs can be trivially shared and cheaply copied.
 
 ## Correctness and API suggestions
@@ -60,7 +60,7 @@ Add a small, well-tested set of combinators to make parser construction ergonomi
    - left(p, q) / right(p, q): run both but keep only left or right value; useful for separators and token handling.
 
 3. optional / option
-   - optional(p): ParserL<std::optional<T>> that never fails (returns empty on no match).
+   - optional(p): Parser<std::optional<T>> that never fails (returns empty on no match).
    - option(default, p): returns default when p fails.
 
 4. many1, sepBy / sepBy1, between
@@ -109,7 +109,7 @@ Add a small, well-tested set of combinators to make parser construction ergonomi
 1. Add monad-law unit/property tests for `bind`/`fmap`.
 2. Replace a hot-path `std::function` with a templated callable (proof-of-concept) and benchmark the improvement.
 3. Audit `shared_ptr` usage and remove cycles (or document and switch to `weak_ptr` where needed).
-4. Add a debug pretty-printer for `ParserL` / `ParserADT`.
+4. Add a debug pretty-printer for `Parser` / `ParserADT`.
 5. Implement a small optimizer pass that fuses successive `fmap` operations.
 6. Implement and test: alt, tryP, seq/left/right, optional, sepBy/sepBy1.
 7. Add tests focusing on tricky interactions: tryP+alt backtracking, manyTill with immediate end, nested binds with failure and position restoration.

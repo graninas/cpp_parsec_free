@@ -10,7 +10,7 @@ namespace core
 
   // Forward declaration
   template <typename A>
-  struct ParserL;
+  struct Parser;
 
   // PS methods
 
@@ -25,7 +25,7 @@ namespace core
   template <typename Next>
   struct ParseMany
   {
-    std::shared_ptr<ParserL<Any>> rawParser;   // Parser is always the same
+    std::shared_ptr<Parser<Any>> rawParser;   // Parser is always the same
     std::function<Next(std::list<Any>)> next;
   };
 
@@ -77,31 +77,31 @@ struct PureF
 template <typename Ret>
 struct FreeF
 {
-  ParserADT<ParserL<Ret>> psf;
+  ParserADT<Parser<Ret>> psf;
 };
 
 template <typename A>
-struct ParserL
+struct Parser
 {
   std::variant<PureF<A>, FreeF<A>> psl;
 };
 
 
 template <typename A>
-ParserL<A> makePure(const A &a)
+Parser<A> makePure(const A &a)
 {
   return {PureF<A>{a}};
 }
 
 template <typename A,
           template <typename> class Method>
-ParserL<A> makeFree(const Method<ParserL<A>> &method)
+Parser<A> makeFree(const Method<Parser<A>> &method)
 {
-  return {FreeF<A>{ParserADT<ParserL<A>>{method}}};
+  return {FreeF<A>{ParserADT<Parser<A>>{method}}};
 }
 
 template <typename A>
-ParserL<A> pure(const A &a)
+Parser<A> pure(const A &a)
 {
   return makePure(a);
 }

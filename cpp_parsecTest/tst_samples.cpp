@@ -20,35 +20,35 @@ struct PersonInfo
     std::string ssn;
 };
 
-ps::ParserL<std::string> capitalizedWord()
+ps::Parser<std::string> capitalizedWord()
 {
   using namespace ps;
 
-  ParserL<char> firstChar = upper;
-  ParserL<std::list<char>> restChars = many(lower);
+  Parser<char> firstChar = upper;
+  Parser<std::list<char>> restChars = many(lower);
 
   auto seqp = sequence(firstChar, restChars);
 
   return merge(seqp);
 }
 
-ps::ParserL<std::string> firstNameParser()
+ps::Parser<std::string> firstNameParser()
 {
   return capitalizedWord();
 }
 
-ps::ParserL<std::string> lastNameParser()
+ps::Parser<std::string> lastNameParser()
 {
   return capitalizedWord();
 }
 
-ps::ParserL<int> ageParser()
+ps::Parser<int> ageParser()
 {
     return ps::mergeTo<int>(ps::many(ps::digit));
 }
 
 
-ps::ParserL<std::string> ssnParser()
+ps::Parser<std::string> ssnParser()
 {
     using namespace ps;
     // Parse 3 digits, dash, 2 digits, dash, 4 digits
@@ -66,7 +66,7 @@ ps::ParserL<std::string> ssnParser()
     return mergeTo<std::string>(parser);
 }
 
-ps::ParserL<PersonInfo> personInfoParser()
+ps::Parser<PersonInfo> personInfoParser()
 {
   using namespace ps;
 
@@ -92,7 +92,7 @@ void SamplesTest::personInfoParserTest()
     auto src = "John,Doe,30,123-45  -    6789}";
     ParserRuntime runtime(src, State{});
 
-    ParserL<PersonInfo> p = personInfoParser();
+    Parser<PersonInfo> p = personInfoParser();
 
     ParserResult<PersonInfo> r = parseWithRuntime<PersonInfo>(runtime, p);
 

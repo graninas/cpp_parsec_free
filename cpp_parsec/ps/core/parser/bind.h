@@ -11,13 +11,13 @@ namespace core
 
 // forward declaration for bind
 template <typename A, typename B>
-struct BindParserLVisitor;
+struct BindParserVisitor;
 
 template <typename A, typename B>
-ParserL<B> runBind(const ParserL<A>& psl,
-                   const std::function<ParserL<B>(A)>& f)
+Parser<B> runBind(const Parser<A>& psl,
+                   const std::function<Parser<B>(A)>& f)
 {
-    BindParserLVisitor<A, B> visitor(f);
+    BindParserVisitor<A, B> visitor(f);
     std::visit(visitor, psl.psl);
     return visitor.newParserFreeADT;
 }
@@ -25,75 +25,75 @@ ParserL<B> runBind(const ParserL<A>& psl,
 template <typename A, typename B>
 struct BindParserADTVisitor
 {
-    std::function<ParserL<B>(A)> fTemplate;
-    ParserADT<ParserL<B>> newParserADT;
+    std::function<Parser<B>(A)> fTemplate;
+    ParserADT<Parser<B>> newParserADT;
 
-    BindParserADTVisitor(const std::function<ParserL<B>(A)>& func)
+    BindParserADTVisitor(const std::function<Parser<B>(A)>& func)
         : fTemplate(func)
     {}
 
-    void operator()(const ParseSymbolCond<ParserL<A>>& fa)
+    void operator()(const ParseSymbolCond<Parser<A>>& fa)
     {
-        std::function<ParserL<B>(A)> g = fTemplate;
+        std::function<Parser<B>(A)> g = fTemplate;
 
-        ParseSymbolCond<ParserL<B>> fb;
+        ParseSymbolCond<Parser<B>> fb;
         fb.name = fa.name;
         fb.validator = fa.validator;
         fb.next = [=](const Any& d)
         {
-            ParserL<A> intermediate = fa.next(d);
+            Parser<A> intermediate = fa.next(d);
             return runBind<A, B>(intermediate, g);
         };
         newParserADT.psf = fb;
     }
 
-    void operator()(const ParseLit<ParserL<A>>& fa)
+    void operator()(const ParseLit<Parser<A>>& fa)
     {
-        std::function<ParserL<B>(A)> g = fTemplate;
+        std::function<Parser<B>(A)> g = fTemplate;
 
-        ParseLit<ParserL<B>> fb;
+        ParseLit<Parser<B>> fb;
         fb.s = fa.s;
         fb.next = [=](const std::string& d)
         {
-            ParserL<A> intermediate = fa.next(d);
+            Parser<A> intermediate = fa.next(d);
             return runBind<A, B>(intermediate, g);
         };
         newParserADT.psf = fb;
     }
 
-      void operator()(const ParseMany<ParserL<A>>& fa)
+      void operator()(const ParseMany<Parser<A>>& fa)
       {
-          std::function<ParserL<B>(A)> g = fTemplate;
-          ParseMany<ParserL<B>> fb;
+          std::function<Parser<B>(A)> g = fTemplate;
+          ParseMany<Parser<B>> fb;
           fb.rawParser = fa.rawParser;   // keep the same raw parser
           fb.next = [=](const std::list<Any>& d)
           {
-              ParserL<A> intermediate = fa.next(d);
+              Parser<A> intermediate = fa.next(d);
               return runBind<A, B>(intermediate, g);
           };
           newParserADT.psf = fb;
       }
 
-      void operator()(const GetSt<ParserL<A>>& fa)
+      void operator()(const GetSt<Parser<A>>& fa)
       {
-          std::function<ParserL<B>(A)> g = fTemplate;
-          GetSt<ParserL<B>> fb;
+          std::function<Parser<B>(A)> g = fTemplate;
+          GetSt<Parser<B>> fb;
           fb.next = [=](const State& st)
           {
-              ParserL<A> intermediate = fa.next(st);
+              Parser<A> intermediate = fa.next(st);
               return runBind<A, B>(intermediate, g);
           };
           newParserADT.psf = fb;
       }
 
-      void operator()(const PutSt<ParserL<A>>& fa)
+      void operator()(const PutSt<Parser<A>>& fa)
       {
-          std::function<ParserL<B>(A)> g = fTemplate;
-          PutSt<ParserL<B>> fb;
+          std::function<Parser<B>(A)> g = fTemplate;
+          PutSt<Parser<B>> fb;
           fb.st = fa.st;
           fb.next = [=](const Unit& unit)
           {
-              ParserL<A> intermediate = fa.next(unit);
+              Parser<A> intermediate = fa.next(unit);
               return runBind<A, B>(intermediate, g);
           };
           newParserADT.psf = fb;
@@ -102,24 +102,24 @@ struct BindParserADTVisitor
 };
 
 template <typename A, typename B>
-struct BindParserLVisitor
+struct BindParserVisitor
 {
-    std::function<ParserL<B>(A)> fTemplate;
-    ParserL<B> newParserFreeADT;
+    std::function<Parser<B>(A)> fTemplate;
+    Parser<B> newParserFreeADT;
 
-    BindParserLVisitor(const std::function<ParserL<B>(A)>& func)
+    BindParserVisitor(const std::function<Parser<B>(A)>& func)
         : fTemplate(func)
     {}
 
     void operator()(const PureF<A>& fa)
     {
-        std::function<ParserL<B>(A)> f = fTemplate;
+        std::function<Parser<B>(A)> f = fTemplate;
         newParserFreeADT = f(fa.ret);
     }
 
     void operator()(const FreeF<A>& fa)
     {
-        std::function<ParserL<B>(A)> f = fTemplate;
+        std::function<Parser<B>(A)> f = fTemplate;
         BindParserADTVisitor<A, B> visitor(f);
         std::visit(visitor, fa.psf.psf);
         newParserFreeADT = { FreeF<B>{ visitor.newParserADT } };
@@ -127,8 +127,8 @@ struct BindParserLVisitor
 };
 
 template <typename A, typename B>
-ParserL<B> bind(const ParserL<A>& ma,
-                const std::function<ParserL<B>(A)>& f)
+Parser<B> bind(const Parser<A>& ma,
+                const std::function<Parser<B>(A)>& f)
 {
     return runBind<A, B>(ma, f);
 }

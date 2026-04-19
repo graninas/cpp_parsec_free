@@ -24,7 +24,7 @@ namespace core
 
 template <typename A>
 ParserResult<A> parse(
-        const ParserL<A>& pst,
+        const Parser<A>& pst,
         const std::string& s,
         Pos from = 0)
 {
@@ -35,7 +35,7 @@ ParserResult<A> parse(
 template <typename A>
 ParserResult<A> parseWithRuntime(
     ParserRuntime &runtime,
-    const ParserL<A> &pst,
+    const Parser<A> &pst,
     Pos from = 0)
 {
   return runParser(runtime, pst, from);
@@ -44,7 +44,7 @@ ParserResult<A> parseWithRuntime(
 // Parsers
 
 template <typename Dummy = int>
-ParserL<Char> parseSymbolCond(
+Parser<Char> parseSymbolCond(
         const std::string& name,
         const std::function<bool(char)>& cond)
 {
@@ -55,7 +55,7 @@ ParserL<Char> parseSymbolCond(
       return cond_copy(ch);
   };
 
-    return makeFree(ParseSymbolCond<ParserL<Char>>{
+    return makeFree(ParseSymbolCond<Parser<Char>>{
                       name,
                       condAny,
                       [](const Any& any)  {
@@ -68,9 +68,9 @@ ParserL<Char> parseSymbolCond(
 }
 
 template <typename Dummy = int>
-ParserL<std::string> parseLit(const std::string& s)
+Parser<std::string> parseLit(const std::string& s)
 {
-    return makeFree(ParseLit<ParserL<std::string>>{
+    return makeFree(ParseLit<Parser<std::string>>{
                       s,
                       [](const std::string& resS) {
                           return makePure(resS);
@@ -80,34 +80,34 @@ ParserL<std::string> parseLit(const std::string& s)
 
 // TODO: satisfy
 // template <typename A>
-// ParserL<A> satisfy(const std::function<bool(A)>& cond)
+// Parser<A> satisfy(const std::function<bool(A)>& cond)
 // {
 //     return
 // }
 
 
-const ParserL<Char> digit = parseSymbolCond("digit", isDigit);
-const ParserL<Char> upper = parseSymbolCond("upper", isUpper);
-const ParserL<Char> lower = parseSymbolCond("lower", isLower);
-const ParserL<Char> alpha = parseSymbolCond("alpha", isAlpha);
-const ParserL<Char> alphanum = parseSymbolCond("alphanum", isAlphanum);
-const ParserL<Char> space = parseSymbolCond("space", isSpace);
-const ParserL<Char> anyChar = parseSymbolCond("any char", [](char) { return true; });
-const ParserL<Char> eol = parseSymbolCond("eol", isEol);
-const ParserL<Char> cr = parseSymbolCond("cr", isCr);
-const ParserL<Char> comma = parseSymbolCond("comma", [](char ch)
+const Parser<Char> digit = parseSymbolCond("digit", isDigit);
+const Parser<Char> upper = parseSymbolCond("upper", isUpper);
+const Parser<Char> lower = parseSymbolCond("lower", isLower);
+const Parser<Char> alpha = parseSymbolCond("alpha", isAlpha);
+const Parser<Char> alphanum = parseSymbolCond("alphanum", isAlphanum);
+const Parser<Char> space = parseSymbolCond("space", isSpace);
+const Parser<Char> anyChar = parseSymbolCond("any char", [](char) { return true; });
+const Parser<Char> eol = parseSymbolCond("eol", isEol);
+const Parser<Char> cr = parseSymbolCond("cr", isCr);
+const Parser<Char> comma = parseSymbolCond("comma", [](char ch)
                                              { return ch == ','; });
 
 template <typename A>
-ParserL<Many<A>> many(const ParserL<A>& item)
+Parser<Many<A>> many(const Parser<A>& item)
 {
-  ParserL<A> itemCopy = item;
+  Parser<A> itemCopy = item;
 
-  auto pCopy = std::make_shared<ParserL<Any>>(
+  auto pCopy = std::make_shared<Parser<Any>>(
       fmap<A, Any>([](const A &a)
                    { return a; }, itemCopy));
 
-  return makeFree(ParseMany<ParserL<Many<A>>>{
+  return makeFree(ParseMany<Parser<Many<A>>>{
       pCopy,
       [](const std::list<Any> &resList)
       {
@@ -123,14 +123,14 @@ ParserL<Many<A>> many(const ParserL<A>& item)
 
 // seq: run two parsers in sequence and return the result of the second one
 template <typename A, typename B>
-ParserL<B> seq(const ParserL<A>& p, const ParserL<B>& q)
+Parser<B> seq(const Parser<A>& p, const Parser<B>& q)
 {
     return bind<A, B>(p, [=](const A&) { return q; });
 }
 
 // TODO: test it
 template <typename A>
-ParserL<Many<A>> bothSequence(const ParserL<A>& fst, const ParserL<A>& snd)
+Parser<Many<A>> bothSequence(const Parser<A>& fst, const Parser<A>& snd)
 {
     return bind<A, Many<A>>(fst, [=](const A& a) {
         return fmap<A, Many<A>>([=](const A& b) {
@@ -144,7 +144,7 @@ ParserL<Many<A>> bothSequence(const ParserL<A>& fst, const ParserL<A>& snd)
 
 // TODO: test it
 template <typename A, typename B>
-ParserL<std::pair<A, B>> both(const ParserL<A>& fst, const ParserL<B>& snd)
+Parser<std::pair<A, B>> both(const Parser<A>& fst, const Parser<B>& snd)
 {
     return bind<A, std::pair<A, B>>(fst, [=](const A& a) {
         return fmap<B, std::pair<A, B>>([=](const B& b) {
@@ -154,7 +154,7 @@ ParserL<std::pair<A, B>> both(const ParserL<A>& fst, const ParserL<B>& snd)
 }
 
 template <typename A, typename B>
-ParserL<A> left(const ParserL<A>& p, const ParserL<B>& q)
+Parser<A> left(const Parser<A>& p, const Parser<B>& q)
 {
     return bind<A, A>(p, [=](const A& a) {
         return fmap<B, A>([=](const B&) { return a; }, q);
@@ -162,15 +162,15 @@ ParserL<A> left(const ParserL<A>& p, const ParserL<B>& q)
 }
 
 template <typename A, typename B>
-ParserL<B> right(const ParserL<A>& p, const ParserL<B>& q)
+Parser<B> right(const Parser<A>& p, const Parser<B>& q)
 {
     return bind<A, B>(p, [=](const A&) { return q; });
 }
 
 template <typename A>
-ParserL<Many<A>> many1(const ParserL<A>& p)
+Parser<Many<A>> many1(const Parser<A>& p)
 {
-    ParserL<Many<A>> manyP = many<A>(p);
+    Parser<Many<A>> manyP = many<A>(p);
 
     return bind<A, Many<A>>(p, [=](const A& a) {
         return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
@@ -181,13 +181,13 @@ ParserL<Many<A>> many1(const ParserL<A>& p)
 }
 
 template <typename A, typename S>
-ParserL<Many<A>> sepBy1(const ParserL<A>& item, const ParserL<S>& sep)
+Parser<Many<A>> sepBy1(const Parser<A>& item, const Parser<S>& sep)
 {
     // sepThenItem = sep *> item
-    ParserL<A> sepThenItem = bind<S, A>(sep, [=](const S&) { return item; });
+    Parser<A> sepThenItem = bind<S, A>(sep, [=](const S&) { return item; });
 
-    ParserL<A> itemCopy = item;
-    ParserL<Many<A>> restParser = many<A>(sepThenItem);
+    Parser<A> itemCopy = item;
+    Parser<Many<A>> restParser = many<A>(sepThenItem);
 
     return bind<A, Many<A>>(item, [=](const A& first) {
         return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
@@ -198,7 +198,7 @@ ParserL<Many<A>> sepBy1(const ParserL<A>& item, const ParserL<S>& sep)
 }
 
 template <typename O, typename A, typename C>
-ParserL<A> between(const ParserL<O>& open, const ParserL<A>& content, const ParserL<C>& close)
+Parser<A> between(const Parser<O>& open, const Parser<A>& content, const Parser<C>& close)
 {
     return bind<O, A>(open, [=](const O&) {
         return bind<A, A>(content, [=](const A& a) {
@@ -210,7 +210,7 @@ ParserL<A> between(const ParserL<O>& open, const ParserL<A>& content, const Pars
 }
 
 template <typename A>
-ParserL<Many<A>> count(size_t n, const ParserL<A>& p)
+Parser<Many<A>> count(size_t n, const Parser<A>& p)
 {
     if (n == 0)
     {
@@ -218,7 +218,7 @@ ParserL<Many<A>> count(size_t n, const ParserL<A>& p)
     }
 
     // create a copy for passing to many/count recursively
-    ParserL<A> pCopy = p;
+    Parser<A> pCopy = p;
 
     return bind<A, Many<A>>(p, [=](const A& a) {
         return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
@@ -229,7 +229,7 @@ ParserL<Many<A>> count(size_t n, const ParserL<A>& p)
 }
 
 template <typename A, typename B, typename R>
-ParserL<R> liftA2(const std::function<R(A, B)>& f, const ParserL<A>& pa, const ParserL<B>& pb)
+Parser<R> liftA2(const std::function<R(A, B)>& f, const Parser<A>& pa, const Parser<B>& pb)
 {
     return bind<A, R>(pa, [=](const A& a) {
         return fmap<B, R>([=](const B& b) {
@@ -240,7 +240,7 @@ ParserL<R> liftA2(const std::function<R(A, B)>& f, const ParserL<A>& pa, const P
 
 // This combinator needs some investigation.
 // template <typename A, typename R>
-// ParserL<R> ap(const ParserL<std::function<R(A)>>& pf, const ParserL<A>& pa)
+// Parser<R> ap(const Parser<std::function<R(A)>>& pf, const Parser<A>& pa)
 // {
 //     return bind<std::function<R(A)>, R>(pf, [=](const std::function<R(A)>& f) {
 //         return fmap<A, R>(f, pa);
@@ -248,7 +248,7 @@ ParserL<R> liftA2(const std::function<R(A, B)>& f, const ParserL<A>& pa, const P
 // }
 
 template <typename A>
-ParserL<Unit> discard(const ParserL<A>& p)
+Parser<Unit> discard(const Parser<A>& p)
 {
     return fmap<A, Unit>([=](const A&) { return unit; }, p);
 }
@@ -257,8 +257,8 @@ ParserL<Unit> discard(const ParserL<A>& p)
 // Some specific combinators
 
 template <typename Dummy = int>
-ParserL<std::string> manyCharsToString(
-  const ParserL<Many<Char>> &manyCharsParser)
+Parser<std::string> manyCharsToString(
+  const Parser<Many<Char>> &manyCharsParser)
 {
   return fmap<Many<Char>, std::string>(
       [](const Many<Char>& chars) {
@@ -270,7 +270,7 @@ ParserL<std::string> manyCharsToString(
 // Combinators for building sequences of parsers and mapping them into structs using aggregate initialization.
 
 template <typename A>
-ParserL<Unit> skip(const ParserL<A> &p)
+Parser<Unit> skip(const Parser<A> &p)
 {
   return fmap<A, Unit>([](const A &)
                        { return unit; }, p);
@@ -303,7 +303,7 @@ struct filter_units<T, Ts...>
 // sequence: run parsers in order and return tuple of results, omitting Unit values
 
 // Base: zero parsers -> pure empty tuple
-inline ParserL<std::tuple<>> sequence()
+inline Parser<std::tuple<>> sequence()
 {
     return makePure(std::tuple<>{});
 }
@@ -319,10 +319,10 @@ inline ParserL<std::tuple<>> sequence()
  *
  * @tparam A The type produced by the input parser.
  * @param p The input parser producing a value of type `A`.
- * @return ParserL<typename filter_units<A>::type> A parser producing a tuple with unit types filtered out.
+ * @return Parser<typename filter_units<A>::type> A parser producing a tuple with unit types filtered out.
  */
 template <typename A>
-ParserL<typename filter_units<A>::type> sequence(const ParserL<A>& p)
+Parser<typename filter_units<A>::type> sequence(const Parser<A>& p)
 {
     using OutTuple = typename filter_units<A>::type;
 
@@ -355,19 +355,19 @@ ParserL<typename filter_units<A>::type> sequence(const ParserL<A>& p)
  * @tparam Rest The types of the remaining parsers' results.
  * @param p The first parser in the sequence.
  * @param rest The remaining parsers to be sequenced.
- * @return ParserL<typename filter_units<A, Rest...>::type> A parser that returns a tuple of non-unit results.
+ * @return Parser<typename filter_units<A, Rest...>::type> A parser that returns a tuple of non-unit results.
  *
  * @note This combinator is useful for building complex parsers where only certain results are significant,
  *       and others (like structural tokens) can be ignored.
  */
 template <typename A, typename... Rest>
-ParserL<typename filter_units<A, Rest...>::type> sequence(const ParserL<A>& p, const ParserL<Rest>&... rest)
+Parser<typename filter_units<A, Rest...>::type> sequence(const Parser<A>& p, const Parser<Rest>&... rest)
 {
     using OutTuple = typename filter_units<A, Rest...>::type;
     using RestTuple = typename filter_units<Rest...>::type;
 
     return bind<A, OutTuple>(p, [=](const A& a) {
-        ParserL<RestTuple> restP = sequence(rest...);
+        Parser<RestTuple> restP = sequence(rest...);
         return fmap<RestTuple, OutTuple>([=](const RestTuple& rt) -> OutTuple {
             if constexpr (is_unit<A>::value)
             {
@@ -381,9 +381,9 @@ ParserL<typename filter_units<A, Rest...>::type> sequence(const ParserL<A>& p, c
     });
 }
 
-// as<Target>: map a ParserL<std::tuple<...>> into ParserL<Target> using aggregate-initialization
+// as<Target>: map a Parser<std::tuple<...>> into Parser<Target> using aggregate-initialization
 template <typename Target, typename Tuple>
-ParserL<Target> as(const ParserL<Tuple>& p)
+Parser<Target> as(const Parser<Tuple>& p)
 {
     return fmap<Tuple, Target>([](const Tuple& t) {
         return std::apply([](auto&&... args) -> Target { return Target{std::forward<decltype(args)>(args)...}; }, t);

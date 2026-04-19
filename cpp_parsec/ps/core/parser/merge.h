@@ -68,7 +68,7 @@ struct TupleToString<std::tuple<Ts...>> {
 
 // Add more specializations as needed
 
-// Helper trait to extract result type from ParserL<T>
+// Helper trait to extract result type from Parser<T>
 template <typename Parser>
 struct parser_result_type;
 

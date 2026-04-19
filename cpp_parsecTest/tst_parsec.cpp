@@ -163,7 +163,7 @@ void ParsecTest::digitCastTest()
 
   auto src = "1";
 
-  ParserL<int> digit_casted = fmap<Char, int>(charToInt, digit);
+  Parser<int> digit_casted = fmap<Char, int>(charToInt, digit);
   ParserRuntime runtime(src, State{});
   ParserResult<int> result = parseWithRuntime<int>(runtime, digit_casted);
 
@@ -183,7 +183,7 @@ void ParsecTest::manyTest()
   //   ParserRuntime has a safety check to prevent infinite loops in the many combinator.
   //   You can configure the safety check threshold in the ParserRuntime constructor, or you can make sure to never use many with a raw parser that can succeed without consuming input.
   //   This is a common issue with `many` combinators in parser combinator libraries, and it's important to be aware of it when using many.
-  ParserL<Many<Char>> manyDigits = many<char>(digit);
+  Parser<Many<Char>> manyDigits = many<char>(digit);
   ParserResult<Many<Char>> result;
 
   result = parseWithRuntime<Many<Char>>(runtime, manyDigits);
@@ -205,8 +205,8 @@ void ParsecTest::manyDigitsCastedTest()
   auto src = "123";
   ParserRuntime runtime(src, State{});
 
-  ParserL<int> digitIntObj = fmap<Char, int>([](char ch) { return ch - '0'; }, digit);
-  ParserL<Many<int>> manyDigitsInt = many<int>(digitIntObj);
+  Parser<int> digitIntObj = fmap<Char, int>([](char ch) { return ch - '0'; }, digit);
+  Parser<Many<int>> manyDigitsInt = many<int>(digitIntObj);
 
   ParserResult<Many<int>> result = parseWithRuntime<Many<int>>(runtime, manyDigitsInt);
 
@@ -227,8 +227,8 @@ void ParsecTest::manyParserCastedTest()
   auto src = "123";
   ParserRuntime runtime(src, State{});
 
-  ParserL<Many<Char>> manyDigits = many<char>(digit);
-  ParserL<Many<int>> manyDigitsInt = fmap<Many<Char>, Many<int>>(
+  Parser<Many<Char>> manyDigits = many<char>(digit);
+  Parser<Many<int>> manyDigitsInt = fmap<Many<Char>, Many<int>>(
       [](const Many<Char>& chars) {
           Many<int> ints;
           for (char ch : chars)
@@ -262,7 +262,7 @@ void ParsecTest::bindPureTest()
 {
   using namespace ps;
 
-  ParserL<R> p = bind<Char, R>(digit, [=](Char d1) { return pure<R>(R{d1, 'a', '0'}); });
+  Parser<R> p = bind<Char, R>(digit, [=](Char d1) { return pure<R>(R{d1, 'a', '0'}); });
 
   auto src = "242fddvf";
   ParserRuntime runtime(src, State{});
@@ -281,8 +281,8 @@ void ParsecTest::bindLeftIdentityTest()
 
   auto f = [](int x) { return pure<std::string>(std::to_string(x)); };
 
-  ParserL<std::string> left = bind<int, std::string>(pure<int>(5), f);
-  ParserL<std::string> right = f(5);
+  Parser<std::string> left = bind<int, std::string>(pure<int>(5), f);
+  Parser<std::string> right = f(5);
 
   ParserRuntime runtime("", State{});
   ParserResult<std::string> rLeft = parseWithRuntime<std::string>(runtime, left);
@@ -298,7 +298,7 @@ void ParsecTest::bindRightIdentityTest()
 {
   using namespace ps;
 
-  ParserL<Char> rightId = bind<Char, Char>(digit, [](Char c) { return pure<Char>(c); });
+  Parser<Char> rightId = bind<Char, Char>(digit, [](Char c) { return pure<Char>(c); });
 
   ParserRuntime runtime("1", State{});
   ParserResult<Char> rOrig = parseWithRuntime<Char>(runtime, digit);
@@ -317,8 +317,8 @@ void ParsecTest::bindAssociativityTest()
   auto f = [](Char c) { return pure<int>(static_cast<int>(c - '0')); };
   auto g = [](int v) { return pure<std::string>(std::to_string(v)); };
 
-  ParserL<std::string> left = bind<int, std::string>(bind<Char, int>(digit, f), g);
-  ParserL<std::string> right = bind<Char, std::string>(digit, [=](Char c) { return bind<int, std::string>(f(c), g); });
+  Parser<std::string> left = bind<int, std::string>(bind<Char, int>(digit, f), g);
+  Parser<std::string> right = bind<Char, std::string>(digit, [=](Char c) { return bind<int, std::string>(f(c), g); });
 
   ParserRuntime runtime("7", State{});
   ParserResult<std::string> rLeft = parseWithRuntime<std::string>(runtime, left);
@@ -335,7 +335,7 @@ void ParsecTest::nestedBindSequenceTest()
   using namespace ps;
 
   // Read three digits in sequence using nested binds and return them as R
-  ParserL<R> inSequence = bind<Char, R>(digit, [=](Char d1) {
+  Parser<R> inSequence = bind<Char, R>(digit, [=](Char d1) {
     return bind<Char, R>(digit, [=](Char d2) {
       return bind<Char, R>(digit, [=](Char d3) {
         return pure<R>(R{d1, d2, d3});
@@ -378,7 +378,7 @@ void ParsecTest::seqTest()
   auto src = "12";
   ParserRuntime runtime(src, State{});
 
-  ParserL<Char> p = seq<Char, Char>(digit, digit);
+  Parser<Char> p = seq<Char, Char>(digit, digit);
   ParserResult<Char> r = parseWithRuntime<Char>(runtime, p);
 
   QVERIFY(isRight(r));
@@ -396,12 +396,12 @@ void ParsecTest::leftRightTest()
   // left: run two parsers and return first
   // right: run two parsers and return second
 
-  ParserL<Char> leftP = left<Char, std::string>(digit, parseLit("a"));
+  Parser<Char> leftP = left<Char, std::string>(digit, parseLit("a"));
   ParserResult<Char> rl = parseWithRuntime<Char>(runtime, leftP);
   QVERIFY(isRight(rl));
   QVERIFY(getParseSucceeded(rl).parsed == '1');
 
-  ParserL<std::string> rightP = right<Char, std::string>(digit, parseLit("a"));
+  Parser<std::string> rightP = right<Char, std::string>(digit, parseLit("a"));
   ParserResult<std::string> rr = parseWithRuntime<std::string>(runtime, rightP);
   QVERIFY(isRight(rr));
   QVERIFY(getParseSucceeded(rr).parsed == "a");
@@ -418,8 +418,8 @@ void ParsecTest::many1Test()
   // N.B. many1 will hang if the parser can succeed without consuming input, so we test with digit which always consumes input on success
   // See manyTest for more discussion on this issue with many1 and many combinators in general.
 
-  ParserL<Char> digitObj = digit;
-  ParserL<Many<Char>> p = many1<Char>(digitObj);
+  Parser<Char> digitObj = digit;
+  Parser<Many<Char>> p = many1<Char>(digitObj);
   ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
 
   QVERIFY(isRight(r));
@@ -440,7 +440,7 @@ void ParsecTest::sepBy1Test()
   ParserRuntime runtime(src, State{});
 
   // sepBy1: run parser one or more times separated by sep parser, and return list of results from main parser
-  ParserL<Many<Char>> p = sepBy1<Char, std::string>(digit, parseLit(","));
+  Parser<Many<Char>> p = sepBy1<Char, std::string>(digit, parseLit(","));
   ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
 
   QVERIFY(isRight(r));
@@ -462,7 +462,7 @@ void ParsecTest::betweenTest()
 
   // between: run open parser, then main parser, then close parser, and return result from main parser
 
-  ParserL<std::string> p = between<std::string, std::string, std::string>(parseLit("("), parseLit("foo"), parseLit(")"));
+  Parser<std::string> p = between<std::string, std::string, std::string>(parseLit("("), parseLit("foo"), parseLit(")"));
   ParserResult<std::string> r = parseWithRuntime<std::string>(runtime, p);
 
   QVERIFY(isRight(r));
@@ -478,7 +478,7 @@ void ParsecTest::countTest()
 
   // count: run parser n times and return list of results
 
-  ParserL<Many<Char>> p = count<Char>(3, digit);
+  Parser<Many<Char>> p = count<Char>(3, digit);
   ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
 
   QVERIFY(isRight(r));
@@ -500,7 +500,7 @@ void ParsecTest::discardTest()
 
   // discard: run parser and discard its result, returning unit
 
-  ParserL<Unit> p = discard<Char>(digit);
+  Parser<Unit> p = discard<Char>(digit);
   ParserResult<Unit> r = parseWithRuntime<Unit>(runtime, p);
 
   QVERIFY(isRight(r));
@@ -515,7 +515,7 @@ void ParsecTest::bothTest()
 
   // both: run two parsers and return pair of their results
 
-  ParserL<std::pair<Char, Char>> p = both<Char, Char>(digit, alpha);
+  Parser<std::pair<Char, Char>> p = both<Char, Char>(digit, alpha);
   ParserResult<std::pair<Char, Char>> r = parseWithRuntime<std::pair<Char, Char>>(runtime, p);
 
   QVERIFY(isRight(r));

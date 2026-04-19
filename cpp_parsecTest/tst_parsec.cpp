@@ -5,446 +5,521 @@
 #include <iostream>
 
 #include "common.h"
-#include "ps/ps.h"
 
-class PSTest : public QObject
-{
-    Q_OBJECT
+#include "tst_parsec.h"
+#include <QTest>
 
-public:
-    PSTest();
+ParsecTest::ParsecTest(QObject *parent) : QObject(parent) {}
 
-private Q_SLOTS:
-
-    void singleDigitParserTest();
-    void digitParserTest();
-    void litParserTest();
-    void lowerCaseCharParserTest();
-    void upperCaseCharParserTest();
-    void symbolParserTest();
-    void manyCombinatorTest();
-    void parseFailureTest();
-    void tryThrowParserLTest();
-    void tryThrowParserTTest();
-    void safeVSTryPTest();
-
-    void bindPureTest();
-    void applicativeTest();
-    void sequencedParsersTest();
-    void forgetCombinatorsTest();
-    void seqCombinatorsTest();
-    void binarySeqCombinatorsTest();
-
-    void alt1Test();
-    void alt2Test();
-    void internalParsersTest();
-
-    void employeeTest();
-};
-
-PSTest::PSTest()
+void ParsecTest::initTestCase()
 {
 }
 
-template <typename A>
-void printError(const ps::ParserResult<A>& pr)
+void ParsecTest::cleanupTestCase()
 {
-    if (isLeft(pr))
-    {
-        auto err = ps::getError(pr);
-        std::cout << "\nError:\n" << err.message << "\n";
-    }
 }
 
-void PSTest::singleDigitParserTest()
+void ParsecTest::singleDigitParserTest()
+{
+  using namespace ps;
+
+  auto src = "1";
+  std::string_view src_view(src);
+
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
+
+  QVERIFY(r == '1');
+  QVERIFY(parseSucceeded.to == 1);
+}
+
+void ParsecTest::onlyOneDigitTest()
+{
+  using namespace ps;
+
+  auto src = "12";
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
+
+  QVERIFY(r == '1');
+  QVERIFY(parseSucceeded.to == 1);
+}
+
+void ParsecTest::singleDigitFromManyTest()
+{
+  using namespace ps;
+
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 0);
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
+
+  QVERIFY(r == '1');
+  QVERIFY(parseSucceeded.to == 1);
+}
+
+void ParsecTest::singleDigitFromMiddleTest()
+{
+  using namespace ps;
+
+  auto src = "a1b";
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 1);
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
+
+  QVERIFY(r == '1');
+  QVERIFY(parseSucceeded.to == 2);
+}
+
+void ParsecTest::onlyOneDigitFromMiddleTest()
+{
+  using namespace ps;
+
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 1);
+
+  QVERIFY(isRight(result));
+  auto parseSucceeded = getParseSucceeded(result);
+  Char r = parseSucceeded.parsed;
+
+  QVERIFY(r == '2');
+  QVERIFY(parseSucceeded.to == 2);
+}
+
+void ParsecTest::singleDigitFailureTest()
+{
+  using namespace ps;
+
+  auto src = "a";
+
+  ParserRuntime runtime(src, State{});
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
+
+  QVERIFY(isLeft(result));
+  auto parseFailed = getParseFailed(result);
+}
+
+
+void ParsecTest::litParserTest()
 {
     using namespace ps;
 
-    ParserResult<Char> result = parse<Char>(digit, "1");
+    auto src = "str12";
 
-    printError(result);
+    auto my_lit = parseLit("str");
 
-    QVERIFY(isRight(result));
-    Char r = getParsed<Char>(result);
-    QVERIFY(r == '1');
-}
-
-void PSTest::digitParserTest()
-{
-    using namespace ps;
-
-    ParserResult<Char> result = parse<Char>(digit, "1abc");
+    ParserRuntime runtime(src, State{});
+    ParserResult<std::string> result =
+        parseWithRuntime<std::string>(runtime, my_lit);
 
     QVERIFY(isRight(result));
-    Char r = getParsed<Char>(result);
-    QVERIFY(r == '1');
-}
-
-void PSTest::litParserTest()
-{
-    using namespace ps;
-
-    ParserResult<std::string> result = parse<std::string>(lit("str"), "str12");
-
-    QVERIFY(isRight(result));
-    std::string r = getParsed<std::string>(result);
+    std::string r = getParseSucceeded<std::string>(result).parsed;
     QVERIFY(r == "str");
 }
 
-void PSTest::lowerCaseCharParserTest()
+
+void ParsecTest::digitCastTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    ParserResult<Char> result = parse<Char>(lower, "abc");
+  std::function<bool(std::any)> cond = [](std::any any) {
+      char ch = std::any_cast<char>(any);
+      return ch >= '0' && ch <= '9';
+  };
 
-    QVERIFY(isRight(result));
-    Char r = getParsed<Char>(result);
-    QVERIFY(r == 'a');
+  std::function<int(char)> charToInt = [](char ch) -> int {
+      return ch - '0';
+  };
+
+  ParserADT<char> digitADT =
+  {
+      ParseSymbolCond<char>{
+          "",
+          cond,
+          [](const std::any& any)
+          {
+              char ch = std::any_cast<char>(any);
+              int digitValue = ch - '0';
+              return digitValue;
+          }}
+  };
+
+  ParserADT<int> digitIntADT = fmapMethods<char, int>(charToInt, digitADT);
+
+  auto src = "1";
+
+  Parser<int> digit_casted = fmap<Char, int>(charToInt, digit);
+  ParserRuntime runtime(src, State{});
+  ParserResult<int> result = parseWithRuntime<int>(runtime, digit_casted);
+
+  QVERIFY(isRight(result));
+  QVERIFY(getParseSucceeded(result).parsed == 1);
 }
 
-void PSTest::upperCaseCharParserTest()
+void ParsecTest::manyTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    ParserResult<Char> result = parse<Char>(upper, "BCD");
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
 
-    QVERIFY(isRight(result));
-    Char r = getParsed<Char>(result);
-    QVERIFY(r == 'B');
+  // many: run parser zero or more times and return list of results
+  // N.B. many may hang if the raw parser can succeed without consuming any input.
+  //   ParserRuntime has a safety check to prevent infinite loops in the many combinator.
+  //   You can configure the safety check threshold in the ParserRuntime constructor, or you can make sure to never use many with a raw parser that can succeed without consuming input.
+  //   This is a common issue with `many` combinators in parser combinator libraries, and it's important to be aware of it when using many.
+  Parser<Many<Char>> manyDigits = many<char>(digit);
+  ParserResult<Many<Char>> result;
+
+  result = parseWithRuntime<Many<Char>>(runtime, manyDigits);
+
+  QVERIFY(isRight(result));
+  Many<Char> parsed = getParseSucceeded(result).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == '1');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '2');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '3');
 }
 
-void PSTest::symbolParserTest()
+void ParsecTest::manyDigitsCastedTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    ParserResult<Char> result = parse<Char>(symbol('B'), "BCD");
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
 
-    QVERIFY(isRight(result));
-    Char r = getParsed<Char>(result);
-    QVERIFY(r == 'B');
+  Parser<int> digitIntObj = fmap<Char, int>([](char ch) { return ch - '0'; }, digit);
+  Parser<Many<int>> manyDigitsInt = many<int>(digitIntObj);
+
+  ParserResult<Many<int>> result = parseWithRuntime<Many<int>>(runtime, manyDigitsInt);
+
+  QVERIFY(isRight(result));
+  Many<int> parsed = getParseSucceeded(result).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == 1);
+  parsed.pop_front();
+  QVERIFY(parsed.front() == 2);
+  parsed.pop_front();
+  QVERIFY(parsed.front() == 3);
 }
 
-struct R2
+void ParsecTest::manyParserCastedTest()
 {
-    ps::Many<ps::Char> ds;
-    ps::Char ch;
-};
+  using namespace ps;
 
-void PSTest::manyCombinatorTest()
-{
-    using namespace ps;
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
 
-    ParserT<Many<Char>> p = manyPL<Char>(digitThrowPL);
+  Parser<Many<Char>> manyDigits = many<char>(digit);
+  Parser<Many<int>> manyDigitsInt = fmap<Many<Char>, Many<int>>(
+      [](const Many<Char>& chars) {
+          Many<int> ints;
+          for (char ch : chars)
+          {
+              ints.push_back(ch - '0');
+          }
+          return ints;
+      },
+      manyDigits);
 
-    ParserResult<Many<Char>> result = parse(p, "4321");
+  ParserResult<Many<int>> result = parseWithRuntime<Many<int>>(runtime, manyDigitsInt);
 
-    QVERIFY(isRight(result));
-    Many<Char> parsed = getParsed(result);
-    QVERIFY(parsed.size() == 4);
-    QVERIFY(parsed.front() == '4');
-    parsed.pop_front();
-    QVERIFY(parsed.front() == '3');
-    parsed.pop_front();
-    QVERIFY(parsed.front() == '2');
-    parsed.pop_front();
-    QVERIFY(parsed.front() == '1');
-}
-
-void PSTest::parseFailureTest()
-{
-    using namespace ps;
-
-    ParserResult<Char> result = parse<Char>(digit, "abc");
-
-    QVERIFY(isLeft(result));
-    QVERIFY(std::get<ParserFailed>(result).message == "Failed to parse digit: not a digit.");
-}
-
-void PSTest::tryThrowParserLTest()
-{
-    using namespace ps;
-
-    auto f = [](const ParserResult<Char>&)
-        {
-            return pure<ParserResult<Char>>(ParserSucceeded<Char> { '1' } );
-        };
-
-    ParserT<ParserResult<Char>> pt = tryP(digitThrowPL);
-    auto pt2 = bind<ParserResult<Char>, ParserResult<Char>>(pt, f);
-
-    auto result = parse(pt2, "abc");
-
-    QVERIFY(isLeft(result));
-}
-
-void PSTest::tryThrowParserTTest()
-{
-// This does not work.
-//    using namespace ps;
-
-//    auto f = [](const ParserResult<Char>&)
-//        {
-//            return pure<ParserResult<Char>>(ParserSucceeded<Char> { '1' } );
-//        };
-
-//    ParserT<ParserResult<Char>> pt = tryP(digit);
-//    auto pt2 = bind<ParserResult<Char>, ParserResult<Char>>(pt, f);
-
-//    auto result = parse(pt2, "abc");
-
-//    QVERIFY(isRight(result));
-//    QVERIFY(getParsed(result) == '1');
-}
-
-/*
-
--- f should fail with err1
-f = do
-    try (parserA >> parserB >> fail err1)
-        >>= \eRes -> fail err2
-
--- g should fail with err2
-g = do
-    safe (parserA >> parserB >> fail err1)
-        >>= \eRes -> fail err2
-
-*/
-
-void PSTest::safeVSTryPTest()
-{
-    using namespace ps;
-
-    auto f = [](ParserResult<Unit>) {
-        throw std::runtime_error("err2");
-        return pure(unit);
-    };
-
-    ParserL<Unit> internalP =
-            bind<Char, Unit>(digitThrowPL, [](Char) { return
-            bind<Char, Unit>(digitThrowPL, [](Char) {
-                throw std::runtime_error("err1");
-                return purePL(unit);
-        });
-    });
-
-    ParserT<Unit> triedP = bind<ParserResult<Unit>, Unit>(tryP(internalP), f);
-    ParserT<Unit> safedP = bind<ParserResult<Unit>, Unit>(safeP(internalP), f);
-
-    auto result1 = parse(triedP, "123");
-    auto result2 = parse(safedP, "123");
-
-    QVERIFY(isLeft(result1));
-    QVERIFY(getError(result1).message == "err1");
-    QVERIFY(isLeft(result2));
-    QVERIFY(getError(result2).message == "err2");
+  QVERIFY(isRight(result));
+  Many<int> parsed = getParseSucceeded(result).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == 1);
+  parsed.pop_front();
+  QVERIFY(parsed.front() == 2);
+  parsed.pop_front();
+  QVERIFY(parsed.front() == 3);
 }
 
 struct R
 {
-    ps::Char dg0;
-    ps::Char ch1;
-    ps::Char ch2;
+  ps::Char dg0;
+  ps::Char ch1;
+  ps::Char ch2;
 };
 
-void PSTest::bindPureTest()
+void ParsecTest::bindPureTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    auto p = bind<Char, R>(digit,       [=](Char d1) { return
-             pure<R>(R{d1, 'a', '0'});
-             });
+  Parser<R> p = bind<Char, R>(digit, [=](Char d1) { return pure<R>(R{d1, 'a', '0'}); });
 
-    ParserResult<R> result = parse(p, "1b2");
+  auto src = "242fddvf";
+  ParserRuntime runtime(src, State{});
+  ParserResult<R> result = parseWithRuntime<R>(runtime, p, 0);
 
-    QVERIFY(isRight(result));
-    R r = getParsed<R>(result);
-    QVERIFY(r.dg0 == '1');
-    QVERIFY(r.ch1 == 'a');
-    QVERIFY(r.ch2 == '0');
+  QVERIFY(isRight(result));
+  R r = getParseSucceeded<R>(result).parsed;
+  QVERIFY(r.dg0 == '2');
+  QVERIFY(r.ch1 == 'a');
+  QVERIFY(r.ch2 == '0');
 }
 
-void PSTest::applicativeTest()
+void ParsecTest::bindLeftIdentityTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    auto mkR = [](Char dg0, Char ch1, Char ch2) { return R { dg0, ch1, ch2 }; };
+  auto f = [](int x) { return pure<std::string>(std::to_string(x)); };
 
-    auto p = app<R, Char, Char, Char>(mkR, digit, lower, digit);
+  Parser<std::string> left = bind<int, std::string>(pure<int>(5), f);
+  Parser<std::string> right = f(5);
 
-    ParserResult<R> result = parse(p, "1b2");
+  ParserRuntime runtime("", State{});
+  ParserResult<std::string> rLeft = parseWithRuntime<std::string>(runtime, left);
+  ParserResult<std::string> rRight = parseWithRuntime<std::string>(runtime, right);
 
-    QVERIFY(isRight(result));
-    R r = getParsed<R>(result);
-    QVERIFY(r.dg0 == '1');
-    QVERIFY(r.ch1 == 'b');
-    QVERIFY(r.ch2 == '2');
+  QVERIFY(isRight(rLeft));
+  QVERIFY(isRight(rRight));
+  QVERIFY(getParseSucceeded(rLeft).parsed == getParseSucceeded(rRight).parsed);
+  QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
 }
 
-void PSTest::sequencedParsersTest()
+void ParsecTest::bindRightIdentityTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    auto p = bind<Char, R>(digit,         [=](Char dg0) { return
-             bind<Char, R>(lower,         [=](Char ch1) { return
-             bind<Char, R>(symbol('2'),   [=](Char ch2) { return
-             pure<R>(R{dg0, ch1, ch2});
-            }); }); });
+  Parser<Char> rightId = bind<Char, Char>(digit, [](Char c) { return pure<Char>(c); });
 
-    ParserResult<R> result = parse(p, "1b2");
+  ParserRuntime runtime("1", State{});
+  ParserResult<Char> rOrig = parseWithRuntime<Char>(runtime, digit);
+  ParserResult<Char> rRight = parseWithRuntime<Char>(runtime, rightId);
 
-    QVERIFY(isRight(result));
-    R r = getParsed<R>(result);
-    QVERIFY(r.dg0 == '1');
-    QVERIFY(r.ch1 == 'b');
-    QVERIFY(r.ch2 == '2');
+  QVERIFY(isRight(rOrig));
+  QVERIFY(isRight(rRight));
+  QVERIFY(getParseSucceeded(rOrig).parsed == getParseSucceeded(rRight).parsed);
+  QVERIFY(getParseSucceeded(rOrig).to == getParseSucceeded(rRight).to);
 }
 
-void PSTest::forgetCombinatorsTest()
+void ParsecTest::bindAssociativityTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    auto fst = forgetFirst(letter, digit);
-    auto snd = forgetSecond(letter, digit);
+  auto f = [](Char c) { return pure<int>(static_cast<int>(c - '0')); };
+  auto g = [](int v) { return pure<std::string>(std::to_string(v)); };
 
-    ParserResult<Char> result1 = parse(fst, "a1");
-    ParserResult<Char> result2 = parse(snd, "a1");
+  Parser<std::string> left = bind<int, std::string>(bind<Char, int>(digit, f), g);
+  Parser<std::string> right = bind<Char, std::string>(digit, [=](Char c) { return bind<int, std::string>(f(c), g); });
 
-    QVERIFY(isRight(result1));
-    QVERIFY(isRight(result2));
-    QVERIFY(getParsed<Char>(result1) == '1');
-    QVERIFY(getParsed<Char>(result2) == 'a');
+  ParserRuntime runtime("7", State{});
+  ParserResult<std::string> rLeft = parseWithRuntime<std::string>(runtime, left);
+  ParserResult<std::string> rRight = parseWithRuntime<std::string>(runtime, right);
+
+  QVERIFY(isRight(rLeft));
+  QVERIFY(isRight(rRight));
+  QVERIFY(getParseSucceeded(rLeft).parsed == getParseSucceeded(rRight).parsed);
+  QVERIFY(getParseSucceeded(rLeft).to == getParseSucceeded(rRight).to);
 }
 
-void PSTest::seqCombinatorsTest()
+void ParsecTest::nestedBindSequenceTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    ParserResult<Char> result1 = parse(seq(upper, lower), "Aa");
-    ParserResult<Char> result2 = parse(seq(upper, lower, digit), "Aa1");
-    ParserResult<Char> result3 = parse(seq(upper, lower, digit, symbol('!')), "Aa1!");
+  // Read three digits in sequence using nested binds and return them as R
+  Parser<R> inSequence = bind<Char, R>(digit, [=](Char d1) {
+    return bind<Char, R>(digit, [=](Char d2) {
+      return bind<Char, R>(digit, [=](Char d3) {
+        return pure<R>(R{d1, d2, d3});
+      });
+    });
+  });
 
-    QVERIFY(isRight(result1));
-    QVERIFY(isRight(result2));
-    QVERIFY(isRight(result3));
-    QVERIFY(getParsed<Char>(result1) == 'a');
-    QVERIFY(getParsed<Char>(result2) == '1');
-    QVERIFY(getParsed<Char>(result3) == '!');
+  ParserRuntime runtime("123", State{});
+  ParserResult<R> res = parseWithRuntime<R>(runtime, inSequence, 0);
+
+  QVERIFY(isRight(res));
+  R out = getParseSucceeded<R>(res).parsed;
+  QVERIFY(out.dg0 == '1');
+  QVERIFY(out.ch1 == '2');
+  QVERIFY(out.ch2 == '3');
+  QVERIFY(getParseSucceeded<R>(res).to == 3);
 }
 
-void PSTest::binarySeqCombinatorsTest()
+void ParsecTest::parserRuntimeTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    ParserResult<Char> result1 = parse(upper >> lower, "Aa");
-    ParserResult<Char> result2 = parse(upper >> lower >> digit, "Aa1");
-    ParserResult<Char> result3 = parse(upper >> (lower << digit), "Aa1");
+  std::string src = "hello world";
+  State st{5};
+  ParserRuntime runtime(src, st);
+  QVERIFY(runtime.getState().data == 5);
 
-    QVERIFY(isRight(result1));
-    QVERIFY(isRight(result2));
-    QVERIFY(isRight(result3));
-    QVERIFY(getParsed<Char>(result1) == 'a');
-    QVERIFY(getParsed<Char>(result2) == '1');
-    QVERIFY(getParsed<Char>(result3) == 'a');
+  // put_state to 2 -> "llo world"
+  State s2{2};
+  runtime.putState(s2);
+  QVERIFY(runtime.getState().data == 2);
+  QVERIFY(runtime.getView() == std::string_view("hello world"));
 }
 
-void PSTest::alt1Test()
+void ParsecTest::seqTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    ParserResult<Char> result1 = parse(alt(upperPL, lowerPL), "A");
-    ParserResult<Char> result2 = parse(alt(upperPL, lowerPL), "a");
+  // seq: run two parsers and return second
+  auto src = "12";
+  ParserRuntime runtime(src, State{});
 
-    QVERIFY(isRight(result1));
-    QVERIFY(isRight(result2));
-    QVERIFY(getParsed(result1) == 'A');
-    QVERIFY(getParsed(result2) == 'a');
+  Parser<Char> p = seq<Char, Char>(digit, digit);
+  ParserResult<Char> r = parseWithRuntime<Char>(runtime, p);
+
+  QVERIFY(isRight(r));
+  QVERIFY(getParseSucceeded(r).parsed == '2');
+  QVERIFY(getParseSucceeded(r).to == 2);
 }
 
-void PSTest::alt2Test()
+void ParsecTest::leftRightTest()
 {
-    using namespace ps;
+  using namespace ps;
 
-    ParserResult<Char> result1 = parse(alt(upperThrowPL, lowerThrowPL), "A");
-    ParserResult<Char> result2 = parse(alt(upperThrowPL, lowerThrowPL), "a");
+  auto src = "1a";
+  ParserRuntime runtime(src, State{});
 
-    QVERIFY(isRight(result1));
-    QVERIFY(isRight(result2));
-    QVERIFY(getParsed(result1) == 'A');
-    QVERIFY(getParsed(result2) == 'a');
+  // left: run two parsers and return first
+  // right: run two parsers and return second
+
+  Parser<Char> leftP = left<Char, std::string>(digit, parseLit("a"));
+  ParserResult<Char> rl = parseWithRuntime<Char>(runtime, leftP);
+  QVERIFY(isRight(rl));
+  QVERIFY(getParseSucceeded(rl).parsed == '1');
+
+  Parser<std::string> rightP = right<Char, std::string>(digit, parseLit("a"));
+  ParserResult<std::string> rr = parseWithRuntime<std::string>(runtime, rightP);
+  QVERIFY(isRight(rr));
+  QVERIFY(getParseSucceeded(rr).parsed == "a");
 }
 
-void PSTest::internalParsersTest()
+void ParsecTest::many1Test()
 {
-    using namespace ps;
+  using namespace ps;
 
-    ParserL<Char> p1 =
-       bind<Char, Char>(upperThrowPL, [=](auto) { return
-       bind<Char, Char>(lowerThrowPL, [=](auto) { return lowerThrowPL; }); });
+  auto src = "123";
+  ParserRuntime runtime(src, State{});
 
-    ParserL<Char> p2 =
-       bind<Char, Char>(upperThrowPL, [=](auto) { return
-       bind<Char, Char>(upperThrowPL, [=](auto) { return upperThrowPL; }); });
+  // many1: run parser one or more times and return list of results
+  // N.B. many1 will hang if the parser can succeed without consuming input, so we test with digit which always consumes input on success
+  // See manyTest for more discussion on this issue with many1 and many combinators in general.
 
-    ParserT<Char> p =
-       bind<Char, Char>(digit,
-                        [=](auto) { return alt(p1, p2); });
+  Parser<Char> digitObj = digit;
+  Parser<Many<Char>> p = many1<Char>(digitObj);
+  ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
 
-    ParserResult<Char> result = parse<Char>(p, "1AAA2");
-
-    printError(result);
-
-    QVERIFY(isRight(result));
-    Char ch = getParsed<Char>(result);
-    QVERIFY(ch == 'A');
+  QVERIFY(isRight(r));
+  Many<Char> parsed = getParseSucceeded(r).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == '1');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '2');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '3');
 }
 
-struct Employee
+void ParsecTest::sepBy1Test()
 {
-    int age;
-    std::string firstName;
-    std::string lastName;
-    double salary;
-};
+  using namespace ps;
 
-void PSTest::employeeTest()
-{
-//    using namespace ps;
+  auto src = "1,2,3";
+  ParserRuntime runtime(src, State{});
 
-//    auto mkEmployee = [](
-//        int a, const std::string& sn, const std::string& fn, double s) {
-//        return Employee {a, sn, fn, s};
-//    };
+  // sepBy1: run parser one or more times separated by sep parser, and return list of results from main parser
+  Parser<Many<Char>> p = sepBy1<Char, std::string>(digit, parseLit(","));
+  ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
 
-//    auto quotedString = between(symbol('"'), strP);
-//    auto prefix = lit("employee") >> between(spaces(), symbol('{'));
-//    auto postfix = between(spaces(), symbol('}'));
-//    auto comma = between(spaces(), symbol(','));
-
-//    ParserT<Employee> employeeParser =
-//        app<Employee, int, std::string, std::string, double>(
-//            mkEmployee,
-//            prefix >> intP,                 // age
-//            comma >> quotedString,          // first name
-//            comma >> quotedString,          // last name
-//            comma >> (doubleP << postfix)); // salary
-
-//    auto s = "employee {35, “Jane”, “Street”, 50000.0}";
-//    ParserResult<Employee> result = parse(employeeParser, s);
-
-//    if (isLeft(result)) {
-//        std::cout << "Parse error: " << getError(result).message;
-//    }
-//    else {
-//        Employee employee = getParsed(result);
-//        QVERIFY(employee.age == 35);
-//        QVERIFY(employee.firstName == "Jane");
-//        QVERIFY(employee.lastName == "Street");
-//        QVERIFY(employee.salary >= 50000.0 && employee.salary <= 50000.1);
-//    }
+  QVERIFY(isRight(r));
+  Many<Char> parsed = getParseSucceeded(r).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == '1');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '2');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '3');
 }
 
+void ParsecTest::betweenTest()
+{
+  using namespace ps;
 
-QTEST_APPLESS_MAIN(PSTest)
+  auto src = "(foo)";
+  ParserRuntime runtime(src, State{});
 
-#include "tst_parsec.moc"
+  // between: run open parser, then main parser, then close parser, and return result from main parser
 
+  Parser<std::string> p = between<std::string, std::string, std::string>(parseLit("("), parseLit("foo"), parseLit(")"));
+  ParserResult<std::string> r = parseWithRuntime<std::string>(runtime, p);
+
+  QVERIFY(isRight(r));
+  QVERIFY(getParseSucceeded(r).parsed == "foo");
+}
+
+void ParsecTest::countTest()
+{
+  using namespace ps;
+
+  auto src = "12345";
+  ParserRuntime runtime(src, State{});
+
+  // count: run parser n times and return list of results
+
+  Parser<Many<Char>> p = count<Char>(3, digit);
+  ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
+
+  QVERIFY(isRight(r));
+  Many<Char> parsed = getParseSucceeded(r).parsed;
+  QVERIFY(parsed.size() == 3);
+  QVERIFY(parsed.front() == '1');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '2');
+  parsed.pop_front();
+  QVERIFY(parsed.front() == '3');
+}
+
+void ParsecTest::discardTest()
+{
+  using namespace ps;
+
+  auto src = "12345";
+  ParserRuntime runtime(src, State{});
+
+  // discard: run parser and discard its result, returning unit
+
+  Parser<Unit> p = discard<Char>(digit);
+  ParserResult<Unit> r = parseWithRuntime<Unit>(runtime, p);
+
+  QVERIFY(isRight(r));
+}
+
+void ParsecTest::bothTest()
+{
+  using namespace ps;
+
+  auto src = "1a345";
+  ParserRuntime runtime(src, State{});
+
+  // both: run two parsers and return pair of their results
+
+  Parser<std::pair<Char, Char>> p = both<Char, Char>(digit, alpha);
+  ParserResult<std::pair<Char, Char>> r = parseWithRuntime<std::pair<Char, Char>>(runtime, p);
+
+  QVERIFY(isRight(r));
+  std::pair<Char, Char> parsed = getParseSucceeded(r).parsed;
+  QVERIFY(parsed.first == '1');
+  QVERIFY(parsed.second == 'a');
+}

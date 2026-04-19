@@ -12,7 +12,7 @@ namespace free
 
 // Forward declaration
 template <typename A>
-struct ParserL;
+struct Parser;
 
 // Free methods
 
@@ -25,20 +25,20 @@ struct PureF
 template <typename Ret>
 struct FreeF
 {
-    psf::ParserF<ParserL<Ret>> psf;
+    psf::ParserF<Parser<Ret>> psf;
 };
 
-// Recursive Free ParserL algebraic data type
+// Recursive Free Parser algebraic data type
 
 template <typename A>
-struct ParserL
+struct Parser
 {
     std::variant<PureF<A>, FreeF<A>> psl;
 };
 
 
 template <typename A>
-ParserL<A> runPurePL(const A& a)
+Parser<A> runPurePL(const A& a)
 {
     return { PureF<A>{ a } };
 }

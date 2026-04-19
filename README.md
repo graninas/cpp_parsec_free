@@ -1,102 +1,63 @@
 C++ Monadic Parsers library
 ===========================
 
-Experimental implementation of monadic parsers similar to Haskell's Parsec but in C++ using Free monads as engine.
+Monadic parsers similar to Haskell's Parsec.
 
-The design of the library is not finished for now. Combinators are currently divided into two layers: `ParserL` and `ParserT`. These layers should be unified to eliminate the difference in usage.
+Features
+--------
+- Monadic parser combinators in C++ (like Haskell's Parsec)
+- Build complex parsers by combining simple ones
+- Parsers for digits, letters, literals, sequences, separated lists, etc.
+- Combinators: `many`, `many1`, `sepBy1`, `between`, `count`, `discard`, `both`, `left`, `right`, etc.
+- Easy mapping of parsed tuples into user-defined structs
+- Safe runtime with error handling and position tracking
+
+Examples
+--------
+
+Parse a single digit:
+```cpp
+using namespace ps;
+ParserRuntime runtime("1", State{});
+ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
+if (isRight(result)) {
+    Char c = getParseSucceeded(result).parsed; // c == '1'
+}
+```
+
+Parse a capitalized word:
+```cpp
+Parser<char> firstChar = upper;
+Parser<std::list<char>> restChars = many(lower);
+auto seqp = sequence(firstChar, restChars);
+auto parser = merge(seqp);
+```
+
+Parse a person info line:
+```cpp
+struct PersonInfo { std::string firstName, lastName; int age; std::string ssn; };
+auto seqp = sequence(
+    firstNameParser(), skip(comma),
+    lastNameParser(), skip(comma),
+    ageParser(), skip(comma),
+    ssnParser()
+);
+auto parser = as<PersonInfo>(seqp);
+```
+
+Architecture Overview
+---------------------
+- **Parser**: Main parser type, parameterized by result type.
+- **ParserResult**: Holds either a successful parse or failure with error message and position.
+- **Combinators**: Functions like `many`, `sequence`, `bind`, `fmap`, etc., to build complex parsers.
+- **ParserRuntime**: Holds input string, state, and error messages. Used for running parsers safely.
+- **State**: Simple user state (not implemented yet).
+- **Error Handling**: Failures are tracked with messages and positions.
+- **Tuple Mapping**: Results from sequences can be mapped into user structs with `as<T>`.
+
+This library lets you write expressive and type-safe parsers in C++ using a functional style, similar to Haskell's Parsec. You can parse structured text, validate formats, and build custom DSLs with clear and composable code.
+
 
 **Additional materials**
-- [Monadic Parsers in C++ (Talk, Rus)](https://www.youtube.com/watch?v=q39PHTJDaLE) | [Slides (Eng)](https://docs.google.com/presentation/d/1zlwKBX8-DYVWUYmzvmKm7ggDVBugEJzY6OFSWjeQOA4/edit?usp=sharing) | My talk about this implementation at C++ Russia 2019 Moscow.
+- [Monadic Parsers in C++ (Talk, Rus)](https://www.youtube.com/watch?v=q39PHTJDaLE) | [Slides (Eng)](https://docs.google.com/presentation/d/1zlwKBX8-DYVWUYmzvmKm7ggDVBugEJzY6OFSWjeQOA4/edit?usp=sharing) | My talk about previous implementation at C++ Russia 2019 Moscow.
 - [cpp_stm_free](https://github.com/graninas/cpp_stm_free) | Software Transactional Memory with the same Free Monads approach
-
-Requirements
-------------
-
-- GCC 7.2 (C++17)
-
-Samples
--------
-
-### Monadic sequencing
-
-```cpp
-struct R
-{
-    Char dg0;
-    Char ch1;
-    Char ch2;
-};
-
-auto p = bind<Char, R>(digit,         [=](Char dg0) { return
-         bind<Char, R>(lower,         [=](Char ch1) { return
-         bind<Char, R>(symbol('2'),   [=](Char ch2) { return
-         pure<R>(R{dg0, ch1, ch2});
-        }); }); });
-
-ParserResult<R> result = parse(p, "1b2");
-
-QVERIFY(isRight(result));
-R r = getParsed<R>(result);
-QVERIFY(r.dg0 == '1');
-QVERIFY(r.ch1 == 'b');
-QVERIFY(r.ch2 == '2');
-```
-
-### `alt` combinator
-
-```cpp
-ParserResult<Char> result1 = parse(alt(upperPL, lowerPL), "A");
-ParserResult<Char> result2 = parse(alt(upperPL, lowerPL), "a");
-
-QVERIFY(isRight(result1));
-QVERIFY(isRight(result2));
-QVERIFY(getParsed(result1) == 'A');
-QVERIFY(getParsed(result2) == 'a');
-```
-
-### `try` and `safe` combinators
-
-```cpp
-auto f = [](ParserResult<Unit>) {
-    throw std::runtime_error("err2");
-    return pure(unit);
-};
-
-ParserL<Unit> internalP =
-        bind<Char, Unit>(digitThrowPL, [](Char) { return
-        bind<Char, Unit>(digitThrowPL, [](Char) {
-            throw std::runtime_error("err1");
-            return purePL(unit);
-    });
-});
-
-ParserT<Unit> triedP = bind<ParserResult<Unit>, Unit>(tryP(internalP), f);
-ParserT<Unit> safedP = bind<ParserResult<Unit>, Unit>(safeP(internalP), f);
-
-auto result1 = parse(triedP, "123");
-auto result2 = parse(safedP, "123");
-
-QVERIFY(isLeft(result1));
-QVERIFY(getError(result1).message == "err1");
-QVERIFY(isLeft(result2));
-QVERIFY(getError(result2).message == "err2");
-```
-
-### `many` combinator
-
-```cpp
-ParserT<Many<Char>> p = manyPL<Char>(digitThrowPL);
-
-ParserResult<Many<Char>> result = parse(p, "4321");
-
-QVERIFY(isRight(result));
-Many<Char> parsed = getParsed(result);
-QVERIFY(parsed.size() == 4);
-QVERIFY(parsed.front() == '4');
-parsed.pop_front();
-QVERIFY(parsed.front() == '3');
-parsed.pop_front();
-QVERIFY(parsed.front() == '2');
-parsed.pop_front();
-QVERIFY(parsed.front() == '1');
-```

@@ -1,5 +1,5 @@
-#ifndef PS_TYPES_H
-#define PS_TYPES_H
+#ifndef PS_CORE_TYPES_H
+#define PS_CORE_TYPES_H
 
 #include <functional>
 #include <string>
@@ -9,6 +9,8 @@
 #include <vector>
 
 namespace ps
+{
+namespace core
 {
 
 // Short definitions
@@ -27,7 +29,6 @@ struct Unit
 
 const Unit unit = {};
 
-// TODO: && and std::forward??
 const auto id = [](const auto& val) { return val; };
 
 
@@ -49,12 +50,15 @@ bool isLeft(const Either<E,T>& e)
 struct ParserFailed
 {
     std::string message;
+    Pos pos;    // Position in the source string where the parsing failed
 };
 
 template <typename T>
 struct ParserSucceeded
 {
     T parsed;
+    Pos from;   // Start position of the parsed substring in the source string
+    Pos to;     // End position of the parsed substring in the source string (exclusive)
 };
 
 template <typename T>
@@ -62,42 +66,41 @@ using ParserResult = Either<ParserFailed, ParserSucceeded<T>>;
 
 // unsafe get parsed
 template <typename T>
-T getParsed(const ps::ParserResult<T>& r)
+ParserSucceeded<T> getParseSucceeded(const ParserResult<T>& r)
 {
-    ParserSucceeded<T> s = std::get<ps::ParserSucceeded<T>>(r);
-    return s.parsed;
+    return std::get<ParserSucceeded<T>>(r);
+}
+
+// unsafe convert success
+template <typename A, typename B>
+ParserSucceeded<B> convertParseSucceeded(const ParserResult<A>& r,
+                                       const std::function<B(A)>& f)
+{
+  ParserSucceeded<A> s = getParseSucceeded(r);
+  ParserSucceeded<B> res;
+  res.parsed = f(s.parsed);
+  res.from = s.from;
+  res.to = s.to;
+  return res;
 }
 
 // unsafe get error
 template <typename T>
-ParserFailed getError(const ps::ParserResult<T>& r)
+ParserFailed getParseFailed(const ParserResult<T>& r)
 {
     return std::get<ParserFailed>(r);
 }
 
-// fmap
-
-template <typename A, typename B>
-ParserResult<B> fmapPR(
-        const std::function<B(A)>& f,
-        const ParserResult<A>& pr)
-{
-    if (isLeft(pr))
-    {
-        return getError(pr);
-    }
-
-    A parsed = getParsed(pr);
-    return ParserSucceeded<B> { f(parsed) };
-}
-
 // state
+
+// TODO: redesign
 
 struct State
 {
-    Pos pos;
+  int data = 0;   // TODO: for new design, this can be any type, and we can have multiple states. For now we just keep it simple with one int state.
 };
 
+} // namespace core
 } // namespace ps
 
-#endif // PS_TYPES_H
+#endif // PS_CORE_TYPES_H

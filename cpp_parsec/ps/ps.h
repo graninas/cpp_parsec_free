@@ -1,11 +1,15 @@
 #ifndef PS_H
 #define PS_H
 
-#include "free/parser.h"
+#include "core/types.h"
+#include "core/runtime.h"
+#include "core/interpreter.h"
+#include "core/parser.h"
+#include "core/parser/functor.h"
 
 namespace ps {
 
-using namespace free;
+using namespace core;
 
 } // namespace ps
 

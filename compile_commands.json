@@ -228,10 +228,10 @@
         "/home/gas/Qt/5.10.1/gcc_64/mkspecs/linux-g++",
         "-x",
         "c++-header",
-        "/home/gas/workspace/Pets/cpp_parsec_free/cpp_parsec/ps/psf/parserf.h"
+        "/home/gas/workspace/Pets/cpp_parsec_free/cpp_parsec/ps/psf/parser_adt.h"
     ],
     "directory": "/home/gas/workspace/Pets/build-cpp_parsec-G_7-Debug",
-    "file": "/home/gas/workspace/Pets/cpp_parsec_free/cpp_parsec/ps/psf/parserf.h"
+    "file": "/home/gas/workspace/Pets/cpp_parsec_free/cpp_parsec/ps/psf/parser_adt.h"
 },
 {
     "arguments": [

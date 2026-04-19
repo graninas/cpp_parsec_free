@@ -29,7 +29,6 @@ struct Unit
 
 const Unit unit = {};
 
-// TODO: && and std::forward??
 const auto id = [](const auto& val) { return val; };
 
 

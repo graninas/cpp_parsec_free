@@ -27,7 +27,7 @@ void ParsecTest::singleDigitParserTest()
   std::string_view src_view(src);
 
   ParserRuntime runtime(src, State{});
-  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit);
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
 
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
@@ -43,7 +43,7 @@ void ParsecTest::onlyOneDigitTest()
 
   auto src = "12";
   ParserRuntime runtime(src, State{});
-  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit);
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
 
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
@@ -59,7 +59,7 @@ void ParsecTest::singleDigitFromManyTest()
 
   auto src = "123";
   ParserRuntime runtime(src, State{});
-  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 0);
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 0);
 
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
@@ -75,7 +75,7 @@ void ParsecTest::singleDigitFromMiddleTest()
 
   auto src = "a1b";
   ParserRuntime runtime(src, State{});
-  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 1);
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 1);
 
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
@@ -91,7 +91,7 @@ void ParsecTest::onlyOneDigitFromMiddleTest()
 
   auto src = "123";
   ParserRuntime runtime(src, State{});
-  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit, 1);
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 1);
 
   QVERIFY(isRight(result));
   auto parseSucceeded = getParseSucceeded(result);
@@ -108,7 +108,7 @@ void ParsecTest::singleDigitFailureTest()
   auto src = "a";
 
   ParserRuntime runtime(src, State{});
-  ParserResult<Char> result = parse_with_runtime<Char>(runtime, digit);
+  ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
 
   QVERIFY(isLeft(result));
   auto parseFailed = getParseFailed(result);
@@ -125,7 +125,7 @@ void ParsecTest::litParserTest()
 
     ParserRuntime runtime(src, State{});
     ParserResult<std::string> result =
-        parse_with_runtime<std::string>(runtime, my_lit);
+        parseWithRuntime<std::string>(runtime, my_lit);
 
     QVERIFY(isRight(result));
     std::string r = getParseSucceeded<std::string>(result).parsed;
@@ -159,13 +159,13 @@ void ParsecTest::digitCastTest()
           }}
   };
 
-  ParserADT<int> digitIntADT = methods_fmap<char, int>(charToInt, digitADT);
+  ParserADT<int> digitIntADT = fmapMethods<char, int>(charToInt, digitADT);
 
   auto src = "1";
 
   ParserL<int> digit_casted = fmap<Char, int>(charToInt, digit);
   ParserRuntime runtime(src, State{});
-  ParserResult<int> result = parse_with_runtime<int>(runtime, digit_casted);
+  ParserResult<int> result = parseWithRuntime<int>(runtime, digit_casted);
 
   QVERIFY(isRight(result));
   QVERIFY(getParseSucceeded(result).parsed == 1);
@@ -186,7 +186,7 @@ void ParsecTest::manyTest()
   ParserL<Many<Char>> manyDigits = many<char>(digit);
   ParserResult<Many<Char>> result;
 
-  result = parse_with_runtime<Many<Char>>(runtime, manyDigits);
+  result = parseWithRuntime<Many<Char>>(runtime, manyDigits);
 
   QVERIFY(isRight(result));
   Many<Char> parsed = getParseSucceeded(result).parsed;
@@ -208,7 +208,7 @@ void ParsecTest::manyDigitsCastedTest()
   ParserL<int> digitIntObj = fmap<Char, int>([](char ch) { return ch - '0'; }, digit);
   ParserL<Many<int>> manyDigitsInt = many<int>(digitIntObj);
 
-  ParserResult<Many<int>> result = parse_with_runtime<Many<int>>(runtime, manyDigitsInt);
+  ParserResult<Many<int>> result = parseWithRuntime<Many<int>>(runtime, manyDigitsInt);
 
   QVERIFY(isRight(result));
   Many<int> parsed = getParseSucceeded(result).parsed;
@@ -239,7 +239,7 @@ void ParsecTest::manyParserCastedTest()
       },
       manyDigits);
 
-  ParserResult<Many<int>> result = parse_with_runtime<Many<int>>(runtime, manyDigitsInt);
+  ParserResult<Many<int>> result = parseWithRuntime<Many<int>>(runtime, manyDigitsInt);
 
   QVERIFY(isRight(result));
   Many<int> parsed = getParseSucceeded(result).parsed;
@@ -266,7 +266,7 @@ void ParsecTest::bindPureTest()
 
   auto src = "242fddvf";
   ParserRuntime runtime(src, State{});
-  ParserResult<R> result = parse_with_runtime<R>(runtime, p, 0);
+  ParserResult<R> result = parseWithRuntime<R>(runtime, p, 0);
 
   QVERIFY(isRight(result));
   R r = getParseSucceeded<R>(result).parsed;
@@ -285,8 +285,8 @@ void ParsecTest::bindLeftIdentityTest()
   ParserL<std::string> right = f(5);
 
   ParserRuntime runtime("", State{});
-  ParserResult<std::string> rLeft = parse_with_runtime<std::string>(runtime, left);
-  ParserResult<std::string> rRight = parse_with_runtime<std::string>(runtime, right);
+  ParserResult<std::string> rLeft = parseWithRuntime<std::string>(runtime, left);
+  ParserResult<std::string> rRight = parseWithRuntime<std::string>(runtime, right);
 
   QVERIFY(isRight(rLeft));
   QVERIFY(isRight(rRight));
@@ -301,8 +301,8 @@ void ParsecTest::bindRightIdentityTest()
   ParserL<Char> rightId = bind<Char, Char>(digit, [](Char c) { return pure<Char>(c); });
 
   ParserRuntime runtime("1", State{});
-  ParserResult<Char> rOrig = parse_with_runtime<Char>(runtime, digit);
-  ParserResult<Char> rRight = parse_with_runtime<Char>(runtime, rightId);
+  ParserResult<Char> rOrig = parseWithRuntime<Char>(runtime, digit);
+  ParserResult<Char> rRight = parseWithRuntime<Char>(runtime, rightId);
 
   QVERIFY(isRight(rOrig));
   QVERIFY(isRight(rRight));
@@ -321,8 +321,8 @@ void ParsecTest::bindAssociativityTest()
   ParserL<std::string> right = bind<Char, std::string>(digit, [=](Char c) { return bind<int, std::string>(f(c), g); });
 
   ParserRuntime runtime("7", State{});
-  ParserResult<std::string> rLeft = parse_with_runtime<std::string>(runtime, left);
-  ParserResult<std::string> rRight = parse_with_runtime<std::string>(runtime, right);
+  ParserResult<std::string> rLeft = parseWithRuntime<std::string>(runtime, left);
+  ParserResult<std::string> rRight = parseWithRuntime<std::string>(runtime, right);
 
   QVERIFY(isRight(rLeft));
   QVERIFY(isRight(rRight));
@@ -344,7 +344,7 @@ void ParsecTest::nestedBindSequenceTest()
   });
 
   ParserRuntime runtime("123", State{});
-  ParserResult<R> res = parse_with_runtime<R>(runtime, inSequence, 0);
+  ParserResult<R> res = parseWithRuntime<R>(runtime, inSequence, 0);
 
   QVERIFY(isRight(res));
   R out = getParseSucceeded<R>(res).parsed;
@@ -361,13 +361,13 @@ void ParsecTest::parserRuntimeTest()
   std::string src = "hello world";
   State st{5};
   ParserRuntime runtime(src, st);
-  QVERIFY(runtime.get_state().data == 5);
+  QVERIFY(runtime.getState().data == 5);
 
   // put_state to 2 -> "llo world"
   State s2{2};
-  runtime.put_state(s2);
-  QVERIFY(runtime.get_state().data == 2);
-  QVERIFY(runtime.get_view() == std::string_view("hello world"));
+  runtime.putState(s2);
+  QVERIFY(runtime.getState().data == 2);
+  QVERIFY(runtime.getView() == std::string_view("hello world"));
 }
 
 void ParsecTest::seqTest()
@@ -379,7 +379,7 @@ void ParsecTest::seqTest()
   ParserRuntime runtime(src, State{});
 
   ParserL<Char> p = seq<Char, Char>(digit, digit);
-  ParserResult<Char> r = parse_with_runtime<Char>(runtime, p);
+  ParserResult<Char> r = parseWithRuntime<Char>(runtime, p);
 
   QVERIFY(isRight(r));
   QVERIFY(getParseSucceeded(r).parsed == '2');
@@ -397,12 +397,12 @@ void ParsecTest::leftRightTest()
   // right: run two parsers and return second
 
   ParserL<Char> leftP = left<Char, std::string>(digit, parseLit("a"));
-  ParserResult<Char> rl = parse_with_runtime<Char>(runtime, leftP);
+  ParserResult<Char> rl = parseWithRuntime<Char>(runtime, leftP);
   QVERIFY(isRight(rl));
   QVERIFY(getParseSucceeded(rl).parsed == '1');
 
   ParserL<std::string> rightP = right<Char, std::string>(digit, parseLit("a"));
-  ParserResult<std::string> rr = parse_with_runtime<std::string>(runtime, rightP);
+  ParserResult<std::string> rr = parseWithRuntime<std::string>(runtime, rightP);
   QVERIFY(isRight(rr));
   QVERIFY(getParseSucceeded(rr).parsed == "a");
 }
@@ -420,7 +420,7 @@ void ParsecTest::many1Test()
 
   ParserL<Char> digitObj = digit;
   ParserL<Many<Char>> p = many1<Char>(digitObj);
-  ParserResult<Many<Char>> r = parse_with_runtime<Many<Char>>(runtime, p);
+  ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
 
   QVERIFY(isRight(r));
   Many<Char> parsed = getParseSucceeded(r).parsed;
@@ -441,7 +441,7 @@ void ParsecTest::sepBy1Test()
 
   // sepBy1: run parser one or more times separated by sep parser, and return list of results from main parser
   ParserL<Many<Char>> p = sepBy1<Char, std::string>(digit, parseLit(","));
-  ParserResult<Many<Char>> r = parse_with_runtime<Many<Char>>(runtime, p);
+  ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
 
   QVERIFY(isRight(r));
   Many<Char> parsed = getParseSucceeded(r).parsed;
@@ -463,7 +463,7 @@ void ParsecTest::betweenTest()
   // between: run open parser, then main parser, then close parser, and return result from main parser
 
   ParserL<std::string> p = between<std::string, std::string, std::string>(parseLit("("), parseLit("foo"), parseLit(")"));
-  ParserResult<std::string> r = parse_with_runtime<std::string>(runtime, p);
+  ParserResult<std::string> r = parseWithRuntime<std::string>(runtime, p);
 
   QVERIFY(isRight(r));
   QVERIFY(getParseSucceeded(r).parsed == "foo");
@@ -479,7 +479,7 @@ void ParsecTest::countTest()
   // count: run parser n times and return list of results
 
   ParserL<Many<Char>> p = count<Char>(3, digit);
-  ParserResult<Many<Char>> r = parse_with_runtime<Many<Char>>(runtime, p);
+  ParserResult<Many<Char>> r = parseWithRuntime<Many<Char>>(runtime, p);
 
   QVERIFY(isRight(r));
   Many<Char> parsed = getParseSucceeded(r).parsed;
@@ -501,7 +501,7 @@ void ParsecTest::discardTest()
   // discard: run parser and discard its result, returning unit
 
   ParserL<Unit> p = discard<Char>(digit);
-  ParserResult<Unit> r = parse_with_runtime<Unit>(runtime, p);
+  ParserResult<Unit> r = parseWithRuntime<Unit>(runtime, p);
 
   QVERIFY(isRight(r));
 }
@@ -516,7 +516,7 @@ void ParsecTest::bothTest()
   // both: run two parsers and return pair of their results
 
   ParserL<std::pair<Char, Char>> p = both<Char, Char>(digit, alpha);
-  ParserResult<std::pair<Char, Char>> r = parse_with_runtime<std::pair<Char, Char>>(runtime, p);
+  ParserResult<std::pair<Char, Char>> r = parseWithRuntime<std::pair<Char, Char>>(runtime, p);
 
   QVERIFY(isRight(r));
   std::pair<Char, Char> parsed = getParseSucceeded(r).parsed;

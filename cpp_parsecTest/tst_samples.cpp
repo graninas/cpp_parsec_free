@@ -44,7 +44,7 @@ ps::ParserL<std::string> lastNameParser()
 
 ps::ParserL<int> ageParser()
 {
-    return ps::merge_to<int>(ps::many(ps::digit));
+    return ps::mergeTo<int>(ps::many(ps::digit));
 }
 
 
@@ -63,7 +63,7 @@ ps::ParserL<std::string> ssnParser()
         skip(many(space)),
         digit, digit, digit, digit
     );
-    return merge_to<std::string>(parser);
+    return mergeTo<std::string>(parser);
 }
 
 ps::ParserL<PersonInfo> personInfoParser()
@@ -94,7 +94,7 @@ void SamplesTest::personInfoParserTest()
 
     ParserL<PersonInfo> p = personInfoParser();
 
-    ParserResult<PersonInfo> r = parse_with_runtime<PersonInfo>(runtime, p);
+    ParserResult<PersonInfo> r = parseWithRuntime<PersonInfo>(runtime, p);
 
     QVERIFY(isRight(r));
     PersonInfo info = getParseSucceeded(r).parsed;

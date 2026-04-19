@@ -33,7 +33,7 @@ ParserResult<A> parse(
 }
 
 template <typename A>
-ParserResult<A> parse_with_runtime(
+ParserResult<A> parseWithRuntime(
     ParserRuntime &runtime,
     const ParserL<A> &pst,
     Pos from = 0)
@@ -55,13 +55,13 @@ ParserL<Char> parseSymbolCond(
       return cond_copy(ch);
   };
 
-    return make_free(ParseSymbolCond<ParserL<Char>>{
+    return makeFree(ParseSymbolCond<ParserL<Char>>{
                       name,
                       condAny,
                       [](const Any& any)  {
                           char ch = std::any_cast<char>(any);
                           {
-                              return make_pure(ch);
+                              return makePure(ch);
                           }
                       }
                 });
@@ -70,10 +70,10 @@ ParserL<Char> parseSymbolCond(
 template <typename Dummy = int>
 ParserL<std::string> parseLit(const std::string& s)
 {
-    return make_free(ParseLit<ParserL<std::string>>{
+    return makeFree(ParseLit<ParserL<std::string>>{
                       s,
                       [](const std::string& resS) {
-                          return make_pure(resS);
+                          return makePure(resS);
                       }
                 });
 }
@@ -107,7 +107,7 @@ ParserL<Many<A>> many(const ParserL<A>& item)
       fmap<A, Any>([](const A &a)
                    { return a; }, itemCopy));
 
-  return make_free(ParseMany<ParserL<Many<A>>>{
+  return makeFree(ParseMany<ParserL<Many<A>>>{
       pCopy,
       [](const std::list<Any> &resList)
       {
@@ -117,7 +117,7 @@ ParserL<Many<A>> many(const ParserL<A>& item)
           A a = std::any_cast<A>(any);
           res.push_back(a);
         }
-        return make_pure(res);
+        return makePure(res);
       }});
 }
 
@@ -203,7 +203,7 @@ ParserL<A> between(const ParserL<O>& open, const ParserL<A>& content, const Pars
     return bind<O, A>(open, [=](const O&) {
         return bind<A, A>(content, [=](const A& a) {
             return bind<C, A>(close, [=](const C&) {
-                return make_pure(a);
+                return makePure(a);
             });
         });
     });
@@ -214,7 +214,7 @@ ParserL<Many<A>> count(size_t n, const ParserL<A>& p)
 {
     if (n == 0)
     {
-        return make_pure(Many<A>{});
+        return makePure(Many<A>{});
     }
 
     // create a copy for passing to many/count recursively
@@ -305,7 +305,7 @@ struct filter_units<T, Ts...>
 // Base: zero parsers -> pure empty tuple
 inline ParserL<std::tuple<>> sequence()
 {
-    return make_pure(std::tuple<>{});
+    return makePure(std::tuple<>{});
 }
 
 // Single parser

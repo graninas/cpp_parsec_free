@@ -65,7 +65,7 @@ struct BindParserADTVisitor
       {
           std::function<ParserL<B>(A)> g = fTemplate;
           ParseMany<ParserL<B>> fb;
-          fb.raw_parser = fa.raw_parser;   // keep the same raw parser
+          fb.rawParser = fa.rawParser;   // keep the same raw parser
           fb.next = [=](const std::list<Any>& d)
           {
               ParserL<A> intermediate = fa.next(d);

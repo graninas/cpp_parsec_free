@@ -65,7 +65,7 @@ ParserL<B> fmap(
       {
           MapFunc<A, B> g = fTemplate;
           ParseMany<B> fb;
-          fb.raw_parser = fa.raw_parser;   // TODO: check if this is ok, might need to be fmapped as well
+          fb.rawParser = fa.rawParser;
           fb.next = [=](const std::list<Any>& d)
           {
               A faResult = fa.next(d);
@@ -105,8 +105,8 @@ ParserL<B> fmap(
 };
 
 template <typename A, typename B>
-ParserADT<B> methods_fmap(const MapFunc<A, B> &f,
-                          const ParserADT<A> &method)
+ParserADT<B> fmapMethods(const MapFunc<A, B> &f,
+                         const ParserADT<A> &method)
 {
     ParserADTVisitor<A, B> visitor(f);
     std::visit(visitor, method.psf);
@@ -156,7 +156,7 @@ struct FunctorParserLVisitor
             return fmap<A, B>(f, pslInt);
         };
 
-        ParserADT<ParserL<B>> visited = methods_fmap(f2, fa.psf);
+        ParserADT<ParserL<B>> visited = fmapMethods(f2, fa.psf);
         result = ParserL<B> { FreeF<B> { visited } };
     }
 

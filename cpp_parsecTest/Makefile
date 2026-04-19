@@ -396,8 +396,7 @@ tst_parsec.o: tst_parsec.cpp common.h \
 		tst_parsec.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tst_parsec.o tst_parsec.cpp
 
-tst_samples.o: tst_samples.cpp common.h \
-		../cpp_parsec/ps/ps.h \
+tst_samples.o: tst_samples.cpp ../cpp_parsec/ps/ps.h \
 		../cpp_parsec/ps/core/types.h \
 		../cpp_parsec/ps/core/runtime.h \
 		../cpp_parsec/ps/core/interpreter.h \
@@ -407,6 +406,7 @@ tst_samples.o: tst_samples.cpp common.h \
 		../cpp_parsec/ps/core/conds.h \
 		../cpp_parsec/ps/core/parser/functor.h \
 		../cpp_parsec/ps/core/parser/bind.h \
+		../cpp_parsec/ps/core/parser/merge.h \
 		tst_samples.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o tst_samples.o tst_samples.cpp
 

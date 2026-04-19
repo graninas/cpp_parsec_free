@@ -18,18 +18,18 @@ namespace core
       const std::function<bool(char)> &validator,
       const std::string &name)
   {
-    std::string_view s = runtime.get_view().substr(from);
+    std::string_view s = runtime.getView().substr(from);
 
     if (s.empty())
     {
       std::string failedMsg = std::string("Failed to parse ") + name + ": end of input.";
-      runtime.push_message(failedMsg);
+      runtime.pushMessage(failedMsg);
       return {ParserFailed{failedMsg, from}};
     }
     else if (!validator(s.at(0)))
     {
       std::string failedMsg = std::string("Failed to parse ") + name + ": '" + s.at(0) + "' does not satisfy the condition.";
-      runtime.push_message(failedMsg);
+      runtime.pushMessage(failedMsg);
       return {ParserFailed{failedMsg, from}};
     }
 
@@ -37,7 +37,7 @@ namespace core
     r.parsed = s.at(0);
     r.from = from;
     r.to = from + 1;
-    runtime.push_message(std::string("Parsed ") + name + ": '" + s.at(0) + "'.");
+    runtime.pushMessage(std::string("Parsed ") + name + ": '" + s.at(0) + "'.");
     return r;
   }
 
@@ -48,18 +48,18 @@ namespace core
       Pos from,
       const std::string &litS)
   {
-    std::string_view s = runtime.get_view().substr(from);
+    std::string_view s = runtime.getView().substr(from);
 
     if (s.size() < litS.size())
     {
       std::string failedMsg = std::string("Failed to parse lit:") + litS + ": end of input.";
-      runtime.push_message(failedMsg);
+      runtime.pushMessage(failedMsg);
       return {ParserFailed{failedMsg, from}};
     }
     else if (s.substr(0, litS.size()) != litS)
     {
       std::string failedMsg = std::string("Failed to parse lit: ") + litS;
-      runtime.push_message(failedMsg);
+      runtime.pushMessage(failedMsg);
       return {ParserFailed{failedMsg, from}};
     }
 
@@ -67,7 +67,7 @@ namespace core
     r.parsed = litS;
     r.from = from;
     r.to = from + litS.size();
-    runtime.push_message(std::string("Parsed lit: ") + litS + ".");
+    runtime.pushMessage(std::string("Parsed lit: ") + litS + ".");
     return r;
   }
 

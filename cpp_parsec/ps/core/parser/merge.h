@@ -47,13 +47,13 @@ struct TupleToString<std::tuple<char, char>> {
 
 // Generic TupleToString for any tuple of chars/strings
 namespace detail {
-    inline void tuple_to_string_elem(std::string& s, char c) { s += c; }
-    inline void tuple_to_string_elem(std::string& s, const std::string& str) { s += str; }
+    inline void tupleToStringElem(std::string& s, char c) { s += c; }
+    inline void tupleToStringElem(std::string& s, const std::string& str) { s += str; }
     template <typename Tuple, std::size_t... Is>
-    std::string tuple_to_string_impl(const Tuple& t, std::index_sequence<Is...>) {
+    std::string tupleToStringImpl(const Tuple& t, std::index_sequence<Is...>) {
         std::string s;
         (void)std::initializer_list<int>{
-            (tuple_to_string_elem(s, std::get<Is>(t)), 0)...
+            (tupleToStringElem(s, std::get<Is>(t)), 0)...
         };
         return s;
     }
@@ -62,7 +62,7 @@ namespace detail {
 template <typename... Ts>
 struct TupleToString<std::tuple<Ts...>> {
     static std::string convert(const std::tuple<Ts...>& t) {
-        return detail::tuple_to_string_impl(t, std::index_sequence_for<Ts...>{});
+        return detail::tupleToStringImpl(t, std::index_sequence_for<Ts...>{});
     }
 };
 
@@ -91,12 +91,11 @@ template <typename T>
 struct is_tuple : std::false_type {};
 template <typename... Ts>
 struct is_tuple<std::tuple<Ts...>> : std::true_type {};
-
-// Generic merge_to<T> for containers of char or tuples
+// Generic mergeTo<T> for containers of char or tuples
 // Special handling for std::string
 // Accepts a parser returning a container or tuple, returns a parser returning T
 template <typename T, typename ParserContainer>
-auto merge_to(ParserContainer p) {
+auto mergeTo(ParserContainer p) {
     using ValueType = typename parser_result_type<ParserContainer>::type;
     return fmap<ValueType, T>(
         [](const ValueType& chars) {
@@ -111,7 +110,7 @@ auto merge_to(ParserContainer p) {
             } else if constexpr (std::is_same<T, double>::value) {
                 return std::stod(std::string(chars.begin(), chars.end()));
             } else {
-                static_assert(sizeof(T) == 0, "merge_to: unsupported type");
+                static_assert(sizeof(T) == 0, "mergeTo: unsupported type");
             }
         },
         p

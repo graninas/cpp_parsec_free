@@ -13,6 +13,8 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
 
+    void tryCombinatorTest();
+
     void singleDigitParserTest();
     void onlyOneDigitTest();
     void singleDigitFromManyTest();

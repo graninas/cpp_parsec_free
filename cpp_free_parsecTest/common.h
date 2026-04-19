@@ -23,4 +23,13 @@ void printError(const ps::ParserResult<A> &pr)
   }
 }
 
+template <typename Dummy=int>
+void printMessages(const ps::ParserRuntime &runtime)
+{
+  for (const auto &msg : runtime.getMessages())
+  {
+    std::cout << msg << std::endl;
+  }
+}
+
 #endif // COMMON_H

@@ -61,19 +61,48 @@ Parser<B> fmap(
         result.psf = fb;
     }
 
-      void operator()(const ParseMany<A>& fa)
-      {
-          MapFunc<A, B> g = fTemplate;
-          ParseMany<B> fb;
-          fb.rawParser = fa.rawParser;
-          fb.next = [=](const std::list<Any>& d)
-          {
-              A faResult = fa.next(d);
-              B gResult = g(faResult);
-              return gResult;
-          };
-          result.psf = fb;
-      }
+    void operator()(const ParseMany<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        ParseMany<B> fb;
+        fb.rawParser = fa.rawParser;
+        fb.next = [=](const std::list<Any>& d)
+        {
+            A faResult = fa.next(d);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
+
+    void operator()(const TryOrErrorParser<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        TryOrErrorParser<B> fb;
+        fb.rawParser = fa.rawParser;   // keep the same raw parser
+        fb.next = [=](const ParserResult<Any>& d)
+        {
+            A faResult = fa.next(d);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
+
+    void operator()(const AltParser<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        AltParser<B> fb;
+        fb.p = fa.p;
+        fb.q = fa.q;
+        fb.next = [=](const Any& d)
+        {
+            A faResult = fa.next(d);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
 
     void operator()(const GetSt<A> &fa)
     {

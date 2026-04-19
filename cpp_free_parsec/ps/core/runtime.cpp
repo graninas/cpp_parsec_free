@@ -31,5 +31,10 @@ const std::vector<std::string>& ParserRuntime::getMessages() const
     return _messages;
 }
 
+void ParserRuntime::clearMessages()
+{
+    _messages.clear();
+}
+
 } // namespace core
 } // namespace ps

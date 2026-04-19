@@ -50,7 +50,7 @@ bool isLeft(const Either<E,T>& e)
 struct ParserFailed
 {
     std::string message;
-    Pos pos;    // Position in the source string where the parsing failed
+    Pos at;    // Position in the source string where the parsing failed
 };
 
 template <typename T>
@@ -69,6 +69,20 @@ template <typename T>
 ParserSucceeded<T> getParseSucceeded(const ParserResult<T>& r)
 {
     return std::get<ParserSucceeded<T>>(r);
+}
+
+template <typename T>
+bool isConsumedInput(const ParserResult<T>& r)
+{
+    if (isRight(r))
+    {
+        ParserSucceeded<T> s = getParseSucceeded(r);
+        return s.to > s.from;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 // unsafe convert success

@@ -74,6 +74,33 @@ struct BindParserADTVisitor
           newParserADT.psf = fb;
       }
 
+      void operator()(const TryOrErrorParser<Parser<A>>& fa)
+      {
+          std::function<Parser<B>(A)> g = fTemplate;
+          TryOrErrorParser<Parser<B>> fb;
+          fb.rawParser = fa.rawParser;   // keep the same raw parser
+          fb.next = [=](const ParserResult<Any> &d)
+          {
+              Parser<A> intermediate = fa.next(d);
+              return runBind<A, B>(intermediate, g);
+          };
+          newParserADT.psf = fb;
+      }
+
+      void operator()(const AltParser<Parser<A>>& fa)
+      {
+          std::function<Parser<B>(A)> g = fTemplate;
+          AltParser<Parser<B>> fb;
+          fb.p = fa.p;
+          fb.q = fa.q;
+          fb.next = [=](const Any& d)
+          {
+              Parser<A> intermediate = fa.next(d);
+              return runBind<A, B>(intermediate, g);
+          };
+          newParserADT.psf = fb;
+      }
+
       void operator()(const GetSt<Parser<A>>& fa)
       {
           std::function<Parser<B>(A)> g = fTemplate;

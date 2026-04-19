@@ -19,6 +19,64 @@ void FreeParsecTest::cleanupTestCase()
 {
 }
 
+void FreeParsecTest::tryCombinatorTest()
+{
+  using namespace ps;
+
+  // Case 1: try allows backtracking on failure after consuming input
+  // Try to parse "ab" or "ac" from "ac". Without try, the first parser would consume 'a' and fail, blocking the second.
+  auto src = "ac";
+  ParserRuntime runtime1(src, State{});
+  Parser<std::string> p1 = alt(
+      try_(seq(parseLit("a"), parseLit("b"))), // will consume 'a', fail on 'b'
+      seq(parseLit("a"), parseLit("c"))        // should succeed due to try
+  );
+  ParserResult<std::string> r1 = parseWithRuntime<std::string>(runtime1, p1);
+
+  // std::cout << "Test case 1: try allows backtracking on failure after consuming input" << std::endl;
+  // printMessages(runtime1);
+
+  QVERIFY(isRight(r1));
+  QVERIFY(getParseSucceeded(r1).parsed == "c");
+  QVERIFY(getParseSucceeded(r1).from == 0);
+  QVERIFY(getParseSucceeded(r1).to == 2);
+
+  // Case 2: try does not interfere with success
+  ParserRuntime runtime2("ab", State{});
+  Parser<std::string> p2 = try_(parseLit("ab"));
+  ParserResult<std::string> r2 = parseWithRuntime<std::string>(runtime2, p2);
+
+  // std::cout << "Test case 2: try does not interfere with success" << std::endl;
+  // printMessages(runtime2);
+
+  QVERIFY(isRight(r2));
+  QVERIFY(getParseSucceeded(r2).parsed == "ab");
+
+  // Case 3: try on a parser that fails without consuming input (should be a no-op)
+  ParserRuntime runtime3("xy", State{});
+  Parser<std::string> p3 = try_(parseLit("z"));
+  ParserResult<std::string> r3 = parseWithRuntime<std::string>(runtime3, p3);
+
+  // std::cout << "Test case 3: try on a parser that fails without consuming input (should be a no-op)" << std::endl;
+  // printMessages(runtime3);
+
+  QVERIFY(isLeft(r3));
+  // Input position should not advance
+  QVERIFY(getParseFailed(r3).at == 0);
+
+  // Case 4: try with alternative, first succeeds, second not tried
+  ParserRuntime runtime4("ab", State{});
+  Parser<std::string> p4 = alt(try_(parseLit("ab")), parseLit("a"));
+  ParserResult<std::string> r4 = parseWithRuntime<std::string>(runtime4, p4);
+
+  // std::cout << "Test case 4: try with alternative, first succeeds, second not tried" << std::endl;
+  // printMessages(runtime4);
+
+  QVERIFY(isRight(r4));
+  QVERIFY(getParseSucceeded(r4).parsed == "ab");
+}
+
+
 
 void FreeParsecTest::singleDigitParserTest()
 {

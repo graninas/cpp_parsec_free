@@ -124,20 +124,20 @@ struct Parser
 
 
 template <typename A>
-Parser<A> makePure(const A &a, const std::string& debugInfo = "")
+Parser<A> makePure(const A &a, const std::string& debugInfo)
 {
   return {PureF<A>{a}, debugInfo};
 }
 
 template <typename A,
           template <typename> class Method>
-Parser<A> makeFree(const Method<Parser<A>> &method, const std::string& debugInfo = "")
+Parser<A> makeFree(const Method<Parser<A>> &method, const std::string& debugInfo)
 {
   return {FreeF<A>{ParserADT<Parser<A>>{method}}, debugInfo};
 }
 
 template <typename A>
-Parser<A> pure(const A &a, const std::string& debugInfo = "")
+Parser<A> pure(const A &a, const std::string& debugInfo)
 {
   return makePure(a, debugInfo);
 }

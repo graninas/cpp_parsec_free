@@ -19,6 +19,7 @@ Parser<B> runBind(const Parser<A>& psl,
 {
     BindParserVisitor<A, B> visitor(f);
     std::visit(visitor, psl.psl);
+    visitor.newParserFreeADT.debugInfo = psl.debugInfo + " (bind)";
     return visitor.newParserFreeADT;
 }
 

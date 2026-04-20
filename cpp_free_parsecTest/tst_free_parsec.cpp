@@ -355,7 +355,8 @@ void FreeParsecTest::bindPureTest()
 {
   using namespace ps;
 
-  Parser<R> p = bind<Char, R>(digit, [=](Char d1) { return pure<R>(R{d1, 'a', '0'}); });
+  Parser<R> p = bind<Char, R>(digit, [=](Char d1)
+    { return pure<R>(R{d1, 'a', '0'}, "bindPureTest"); });
 
   auto src = "242fddvf";
   ParserRuntime runtime(src, State{});
@@ -374,10 +375,10 @@ void FreeParsecTest::applicativeCombinatorTest()
 
   // Parser that produces a function
   auto addParser = pure<std::function<int(int)>>([](int x)
-                                                 { return x + 10; });
+                                                 { return x + 10; }, "addParser");
 
   // Parser that produces a value
-  auto valueParser = pure<int>(5);
+  auto valueParser = pure<int>(5, "5 parser");
 
   // Combine parsers using applicative
   auto combinedParser = applicative(addParser, valueParser);
@@ -398,10 +399,11 @@ void FreeParsecTest::applicativeCombinatorTestWithStrings()
 
   // Parser that produces a function
   auto concatParser = pure<std::function<std::string(std::string)>>([](const std::string &s)
-                                                                    { return s + " World"; });
+                                                                    { return s + " World"; }
+                                                                    , "concatParser");
 
   // Parser that produces a value
-  auto valueParser = pure<std::string>("Hello");
+  auto valueParser = pure<std::string>("Hello", "Hello parser");
 
   // Combine parsers using applicative
   auto combinedParser = applicative(concatParser, valueParser);
@@ -420,9 +422,9 @@ void FreeParsecTest::bindLeftIdentityTest()
 {
   using namespace ps;
 
-  auto f = [](int x) { return pure<std::string>(std::to_string(x)); };
+  auto f = [](int x) { return pure<std::string>(std::to_string(x), "bindLeftIdentityTest"); };
 
-  Parser<std::string> left = bind<int, std::string>(pure<int>(5), f);
+  Parser<std::string> left = bind<int, std::string>(pure<int>(5, "5 pure"), f);
   Parser<std::string> right = f(5);
 
   ParserRuntime runtime("", State{});
@@ -439,7 +441,7 @@ void FreeParsecTest::bindRightIdentityTest()
 {
   using namespace ps;
 
-  Parser<Char> rightId = bind<Char, Char>(digit, [](Char c) { return pure<Char>(c); });
+  Parser<Char> rightId = bind<Char, Char>(digit, [](Char c) { return pure<Char>(c, "pure char"); });
 
   ParserRuntime runtime("1", State{});
   ParserResult<Char> rOrig = parseWithRuntime<Char>(runtime, digit);
@@ -455,8 +457,8 @@ void FreeParsecTest::bindAssociativityTest()
 {
   using namespace ps;
 
-  auto f = [](Char c) { return pure<int>(static_cast<int>(c - '0')); };
-  auto g = [](int v) { return pure<std::string>(std::to_string(v)); };
+  auto f = [](Char c) { return pure<int>(static_cast<int>(c - '0'), ""); };
+  auto g = [](int v) { return pure<std::string>(std::to_string(v), ""); };
 
   Parser<std::string> left = bind<int, std::string>(bind<Char, int>(digit, f), g);
   Parser<std::string> right = bind<Char, std::string>(digit, [=](Char c) { return bind<int, std::string>(f(c), g); });
@@ -479,7 +481,7 @@ void FreeParsecTest::nestedBindSequenceTest()
   Parser<R> inSequence = bind<Char, R>(digit, [=](Char d1) {
     return bind<Char, R>(digit, [=](Char d2) {
       return bind<Char, R>(digit, [=](Char d3) {
-        return pure<R>(R{d1, d2, d3});
+        return pure<R>(R{d1, d2, d3}, "");
       });
     });
   });

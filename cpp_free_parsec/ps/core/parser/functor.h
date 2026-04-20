@@ -20,10 +20,10 @@ Parser<B> fmap(
     const std::function<B(A)> &f,
     const Parser<A> &psl);
 
-    // Methods functor
+// Methods functor
 
-    template <typename A, typename B>
-    struct ParserADTVisitor
+template <typename A, typename B>
+struct ParserADTVisitor
 {
     MapFunc<A, B> fTemplate;
     ParserADT<B> result;
@@ -168,6 +168,7 @@ Parser<B> fmap(
 {
   FunctorParserVisitor<A, B> visitor(f);
   std::visit(visitor, psl.psl);
+  visitor.result.debugInfo = psl.debugInfo + " (fmap)";
   return visitor.result;
 }
 

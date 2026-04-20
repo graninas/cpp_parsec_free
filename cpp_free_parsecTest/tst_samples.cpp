@@ -103,3 +103,4 @@ void SamplesTest::personInfoParserTest()
     QVERIFY(info.age == 30);
     QVERIFY(info.ssn == "123-45-6789");
 }
+

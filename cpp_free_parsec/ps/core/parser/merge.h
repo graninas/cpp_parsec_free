@@ -4,9 +4,12 @@
 #include <list>
 #include <vector>
 #include <type_traits>
+
+#include "../types.h"
 #include "functor.h" // for fmap
 
 namespace ps {
+namespace core {
 
 // Helper: tuple to string for (char, list<char>) or (char, vector<char>)
 template <typename Tuple>
@@ -117,4 +120,5 @@ auto mergeTo(ParserContainer p) {
     );
 }
 
+} // namespace core
 } // namespace ps

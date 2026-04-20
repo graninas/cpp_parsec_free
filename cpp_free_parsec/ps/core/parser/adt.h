@@ -69,15 +69,16 @@ struct PutSt
 template <class Ret>
 struct ParserADT        // TODO: rename to Methods
 {
-    std::variant<
-        ParseSymbolCond<Ret>,
-        ParseMany<Ret>,
-        ParseLit<Ret>,
-        GetSt<Ret>,
-        PutSt<Ret>,
-        TryOrErrorParser<Ret>,
-        AltParser<Ret>
-    > psf;
+  using ResultType = Ret;
+  std::variant<
+      ParseSymbolCond<Ret>,
+      ParseMany<Ret>,
+      ParseLit<Ret>,
+      GetSt<Ret>,
+      PutSt<Ret>,
+      TryOrErrorParser<Ret>,
+      AltParser<Ret>>
+      psf;
 };
 
 // Free language
@@ -88,18 +89,21 @@ struct ParserADT        // TODO: rename to Methods
 template <typename Ret>
 struct PureF
 {
+  using ResultType = Ret;
   Ret ret;
 };
 
 template <typename Ret>
 struct FreeF
 {
+  using ResultType = Ret;
   ParserADT<Parser<Ret>> psf;
 };
 
 template <typename A>
 struct Parser
 {
+  using ResultType = A;
   std::variant<PureF<A>, FreeF<A>> psl;
 };
 

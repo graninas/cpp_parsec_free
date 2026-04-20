@@ -9,6 +9,7 @@
 #include "core/parser/applicative.h"
 #include "core/parser.h"
 #include "core/merge.h"
+#include "core/choice.h"
 
 namespace ps {
 

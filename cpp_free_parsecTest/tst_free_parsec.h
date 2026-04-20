@@ -14,6 +14,7 @@ private slots:
     void cleanupTestCase();
 
     void tryCombinatorTest();
+    void choiceCombinatorTest();
 
     void singleDigitParserTest();
     void onlyOneDigitTest();

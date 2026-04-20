@@ -11,6 +11,8 @@ public:
 
 private slots:
     void personInfoParserTest();
+
+    void customLanguageParserTest();
 };
 
 #endif // TST_SAMPLES_H

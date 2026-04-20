@@ -20,6 +20,7 @@ HEADERS += \
     ps/core/raw_parsers.h \
     ps/core/parser.h \
     ps/core/merge.h \
+    ps/core/choice.h \
     ps/free_parsec.h
 
 unix {

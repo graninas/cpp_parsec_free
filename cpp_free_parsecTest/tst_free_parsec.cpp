@@ -76,7 +76,42 @@ void FreeParsecTest::tryCombinatorTest()
   QVERIFY(getParseSucceeded(r4).parsed == "ab");
 }
 
+void FreeParsecTest::choiceCombinatorTest()
+{
+  using namespace ps;
 
+  // Test 1: Simple choice between two literals
+  Parser<std::string> parser1 = choice(parseLit("A"), parseLit("B"));
+  ParserRuntime runtime1("A", State{});
+  auto result1 = parseWithRuntime(runtime1, parser1);
+  QVERIFY(isRight(result1));
+  QVERIFY(getParseSucceeded(result1).parsed == "A");
+
+  // Test 2: Choice with the second option succeeding
+  ParserRuntime runtime2("B", State{});
+  auto result2 = parseWithRuntime(runtime2, parser1);
+  QVERIFY(isRight(result2));
+  QVERIFY(getParseSucceeded(result2).parsed == "B");
+
+  // Test 3: Choice with no options succeeding
+  ParserRuntime runtime3("C", State{});
+  auto result3 = parseWithRuntime(runtime3, parser1);
+  QVERIFY(isLeft(result3));
+
+  // Test 4: Choice with multiple options
+  Parser<std::string> parser2 = choice(parseLit("X"), parseLit("Y"), parseLit("Z"));
+  ParserRuntime runtime4("Y", State{});
+  auto result4 = parseWithRuntime(runtime4, parser2);
+  QVERIFY(isRight(result4));
+  QVERIFY(getParseSucceeded(result4).parsed == "Y");
+
+  // Test 5: Nested choice
+  Parser<std::string> parser3 = choice(parser1, parser2);
+  ParserRuntime runtime5("Z", State{});
+  auto result5 = parseWithRuntime(runtime5, parser3);
+  QVERIFY(isRight(result5));
+  QVERIFY(getParseSucceeded(result5).parsed == "Z");
+}
 
 void FreeParsecTest::singleDigitParserTest()
 {

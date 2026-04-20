@@ -6,6 +6,7 @@
 #include "core/interpreter.h"
 #include "core/parser/functor.h"
 #include "core/parser/bind.h"
+#include "core/parser/applicative.h"
 #include "core/parser.h"
 #include "core/merge.h"
 

@@ -334,6 +334,54 @@ void FreeParsecTest::bindPureTest()
   QVERIFY(r.ch2 == '0');
 }
 
+void FreeParsecTest::applicativeCombinatorTest()
+{
+  using namespace ps;
+
+  // Parser that produces a function
+  auto addParser = pure<std::function<int(int)>>([](int x)
+                                                 { return x + 10; });
+
+  // Parser that produces a value
+  auto valueParser = pure<int>(5);
+
+  // Combine parsers using applicative
+  auto combinedParser = applicative(addParser, valueParser);
+
+  // Run the parser
+  ParserRuntime runtime("", State{});
+  ParserResult<int> result = parseWithRuntime<int>(runtime, combinedParser);
+
+  // Verify the result
+  QVERIFY(isRight(result));
+  int parsedValue = getParseSucceeded(result).parsed;
+  QVERIFY(parsedValue == 15);
+}
+
+void FreeParsecTest::applicativeCombinatorTestWithStrings()
+{
+  using namespace ps;
+
+  // Parser that produces a function
+  auto concatParser = pure<std::function<std::string(std::string)>>([](const std::string &s)
+                                                                    { return s + " World"; });
+
+  // Parser that produces a value
+  auto valueParser = pure<std::string>("Hello");
+
+  // Combine parsers using applicative
+  auto combinedParser = applicative(concatParser, valueParser);
+
+  // Run the parser
+  ParserRuntime runtime("", State{});
+  ParserResult<std::string> result = parseWithRuntime<std::string>(runtime, combinedParser);
+
+  // Verify the result
+  QVERIFY(isRight(result));
+  std::string parsedValue = getParseSucceeded(result).parsed;
+  QVERIFY(parsedValue == "Hello World");
+}
+
 void FreeParsecTest::bindLeftIdentityTest()
 {
   using namespace ps;

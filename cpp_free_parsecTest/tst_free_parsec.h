@@ -30,6 +30,8 @@ private slots:
     void manyParserCastedTest();
 
     void bindPureTest();
+    void applicativeCombinatorTest();
+    void applicativeCombinatorTestWithStrings();
 
     void bindLeftIdentityTest();
     void bindRightIdentityTest();
@@ -46,6 +48,7 @@ private slots:
     void countTest();
     void discardTest();
     void bothTest();
+
 };
 
 #endif // TST_FREE_PARSEC_H

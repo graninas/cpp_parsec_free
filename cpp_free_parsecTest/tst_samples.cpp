@@ -89,8 +89,7 @@ struct ASTNode
   {
     Parameter,
     Operator,
-    Number,
-    Parentheses
+    Number
   };
 
   Type type;
@@ -133,7 +132,7 @@ ps::Parser<std::shared_ptr<ASTNode>> numberParser()
       {
         return std::make_shared<ASTNode>(ASTNode::Type::Number, num);
       },
-      mergeTo<int>(many(digit)));
+      mergeTo<int>(many1(digit)));
 }
 
 ps::Parser<std::shared_ptr<ASTNode>> operatorParser()
@@ -152,14 +151,10 @@ ps::Parser<std::shared_ptr<ASTNode>> expressionParser();
 ps::Parser<std::shared_ptr<ASTNode>> parenthesesParser()
 {
   using namespace ps;
-  return fmap<std::tuple<std::string, std::shared_ptr<ASTNode>, std::string>, std::shared_ptr<ASTNode>>(
-      [](const std::tuple<std::string, std::shared_ptr<ASTNode>, std::string> &tuple)
-      {
-        auto node = std::make_shared<ASTNode>(ASTNode::Type::Parentheses, "");
-        node->left = std::get<1>(tuple);
-        return node;
-      },
-      sequence(parseLit("("), expressionParser(), parseLit(")")));
+  return between(
+      parseChar('('),
+      expressionParser(),
+      parseChar(')'));
 }
 
 ps::Parser<std::shared_ptr<ASTNode>> expressionParser()
@@ -226,8 +221,6 @@ int evaluateAST(const std::shared_ptr<ASTNode> &node, const std::map<std::string
       throw std::runtime_error("Unknown operator: " + node->value);
     }
   }
-  case ASTNode::Type::Parentheses:
-    return evaluateAST(node->left, params);
   default:
     throw std::runtime_error("Unknown AST node type");
   }

@@ -36,7 +36,6 @@ Parser<B> fmap(
     {
       MapFunc<A, B> g = fTemplate;
       ParseSymbolCond<B> fb;
-      fb.name = fa.name;
       fb.validator = fa.validator;
       fb.next = [=](const Any& d)
       {
@@ -170,8 +169,6 @@ Parser<B> fmap(
   FunctorParserVisitor<A, B> visitor(f);
   std::visit(visitor, psl.psl);
   return visitor.result;
-
-  return {};
 }
 
 template <typename A, typename B>
@@ -187,7 +184,7 @@ struct FunctorParserVisitor
     void operator()(const PureF<A>& fa)
     {
         std::function<B(A)> f = fTemplate;
-        result = Parser<B> { PureF<B> { f(fa.ret) } };
+        result = Parser<B> { PureF<B> { f(fa.ret) }, "" };
     }
 
     void operator()(const FreeF<A>& fa)
@@ -200,10 +197,8 @@ struct FunctorParserVisitor
         };
 
         ParserADT<Parser<B>> visited = fmapMethods(f2, fa.psf);
-        result = Parser<B> { FreeF<B> { visited } };
+        result = Parser<B> { FreeF<B> { visited }, "" };
     }
-
-
 };
 
 } // namespace core

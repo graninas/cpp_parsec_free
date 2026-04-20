@@ -121,7 +121,8 @@ ps::Parser<std::shared_ptr<ASTNode>> parameterParser()
       {
         return std::make_shared<ASTNode>(ASTNode::Type::Parameter, param);
       },
-      between(parseChar('['), parameterIdentifier(), parseChar(']')));
+      between(parseChar('['), parameterIdentifier(), parseChar(']')))
+      + "param";
 }
 
 ps::Parser<std::shared_ptr<ASTNode>> numberParser()
@@ -132,7 +133,8 @@ ps::Parser<std::shared_ptr<ASTNode>> numberParser()
       {
         return std::make_shared<ASTNode>(ASTNode::Type::Number, num);
       },
-      mergeTo<int>(many1(digit)));
+      mergeTo<int>(many1(digit)))
+      + "number";
 }
 
 ps::Parser<std::shared_ptr<ASTNode>> operatorParser()
@@ -143,7 +145,8 @@ ps::Parser<std::shared_ptr<ASTNode>> operatorParser()
       {
         return std::make_shared<ASTNode>(ASTNode::Type::Operator, op);
       },
-      choice(parseLit(">="), parseLit("+"), parseLit("*"), parseLit("/")));
+      choice(parseLit(">=") + "ge", parseLit("+") + "add", parseLit("*") + "mul", parseLit("/") + "div"))
+      + "op";
 }
 
 ps::Parser<std::shared_ptr<ASTNode>> expressionParser();
@@ -151,10 +154,15 @@ ps::Parser<std::shared_ptr<ASTNode>> expressionParser();
 ps::Parser<std::shared_ptr<ASTNode>> parenthesesParser()
 {
   using namespace ps;
-  return between(
+
+  Parser<std::shared_ptr<ASTNode>> parser =
+    between(
       parseChar('('),
       expressionParser(),
-      parseChar(')'));
+      parseChar(')'))
+        + "parens";
+
+  return parser;
 }
 
 ps::Parser<std::shared_ptr<ASTNode>> expressionParser()
@@ -167,7 +175,8 @@ ps::Parser<std::shared_ptr<ASTNode>> expressionParser()
                                               parenthesesParser(),
                                               parameterParser(),
                                               numberParser(),
-                                              operatorParser()); });
+                                              operatorParser()) + "expr choice"; })
+                                              + "expr";
 }
 
 // Evaluate the AST using the parameter map

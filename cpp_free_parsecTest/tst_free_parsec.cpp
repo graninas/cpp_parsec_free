@@ -243,7 +243,6 @@ void FreeParsecTest::digitCastTest()
   ParserADT<char> digitADT =
   {
       ParseSymbolCond<char>{
-          "",
           cond,
           [](const std::any& any)
           {

@@ -37,7 +37,6 @@ struct BindParserADTVisitor
         std::function<Parser<B>(A)> g = fTemplate;
 
         ParseSymbolCond<Parser<B>> fb;
-        fb.name = fa.name;
         fb.validator = fa.validator;
         fb.next = [=](const Any& d)
         {
@@ -155,6 +154,7 @@ struct BindParserVisitor
     {
         std::function<Parser<B>(A)> f = fTemplate;
         newParserFreeADT = f(fa.ret);
+        newParserFreeADT.debugInfo = "";
     }
 
     void operator()(const FreeF<A>& fa)
@@ -162,7 +162,7 @@ struct BindParserVisitor
         std::function<Parser<B>(A)> f = fTemplate;
         BindParserADTVisitor<A, B> visitor(f);
         std::visit(visitor, fa.psf.psf);
-        newParserFreeADT = { FreeF<B>{ visitor.newParserADT } };
+        newParserFreeADT = { FreeF<B>{ visitor.newParserADT }, "" };
     }
 };
 

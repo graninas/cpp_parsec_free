@@ -210,6 +210,25 @@ Parser<A> alt(const Parser<A> &p, const Parser<A> &q)
       }});
 }
 
+
+template <typename A>
+Parser<A> lazy(const std::function<Parser<A>()>& parserFactory)
+{
+    std::function<Parser<Any>()> parserFactoryAny = [=]() {
+        Parser<A> actualParser = parserFactory();
+        return fmap<A, Any>([](const A &a)
+                            { return a; }, actualParser);
+    };
+    return makeFree(LazyParser<Parser<A>>{
+        parserFactoryAny,
+        [](const Any& res)
+        {
+            A a = std::any_cast<A>(res);
+            return makePure(a);
+        }
+    });
+}
+
 // seq: run two parsers in sequence and return the result of the second one
 template <typename A, typename B>
 Parser<B> seq(const Parser<A>& p, const Parser<B>& q)

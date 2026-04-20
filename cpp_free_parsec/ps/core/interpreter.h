@@ -270,6 +270,23 @@ struct InterpretingADTVisitor
       }
     }
 
+    void operator()(const LazyParser<Parser<Ret>> &method)
+    {
+      Parser<Any> actualParser = method.parserFactory();
+      ParserResult<Any> r = runParser<Any>(_runtime, actualParser, _startFrom);
+
+      if (isLeft(r))
+      {
+        ParserFailed failed = getParseFailed(r);
+        result = ParserFailed{std::string("Lazy parser failed. Error message: ") + failed.message, failed.at};
+      }
+      else
+      {
+        ParserSucceeded<Any> succeeded = getParseSucceeded(r);
+        result = runParser<Ret>(_runtime, method.next(succeeded.parsed), succeeded.to);
+      }
+    }
+
     void operator()(const GetSt<Parser<Ret>> &method)
     {
       auto rNext = method.next(_runtime.getState());

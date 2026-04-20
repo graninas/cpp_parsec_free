@@ -44,42 +44,50 @@ namespace core
     std::function<Next(Any)> next;
   };
 
-
-template <typename Next>
-struct ParseLit
-{
-  std::string s;
-  std::function<Next(std::string)> next;
-};
-
-template <typename Next>
-struct GetSt
-{
-  std::function<Next(State)> next;
-};
-
-template <typename Next>
-struct PutSt
-{
-    State st;
-    std::function<Next(Unit)> next;
-};
+  template <typename Next>
+  struct LazyParser
+  {
+    std::function<Parser<Any>()> parserFactory;   // Factory is always the same
+    std::function<Next(Any)> next;
+  };
 
 
-template <class Ret>
-struct ParserADT        // TODO: rename to Methods
-{
-  using ResultType = Ret;
-  std::variant<
-      ParseSymbolCond<Ret>,
-      ParseMany<Ret>,
-      ParseLit<Ret>,
-      GetSt<Ret>,
-      PutSt<Ret>,
-      TryOrErrorParser<Ret>,
-      AltParser<Ret>>
-      psf;
-};
+  template <typename Next>
+  struct ParseLit
+  {
+    std::string s;
+    std::function<Next(std::string)> next;
+  };
+
+  template <typename Next>
+  struct GetSt
+  {
+    std::function<Next(State)> next;
+  };
+
+  template <typename Next>
+  struct PutSt
+  {
+      State st;
+      std::function<Next(Unit)> next;
+  };
+
+
+  template <class Ret>
+  struct ParserADT        // TODO: rename to Methods
+  {
+    using ResultType = Ret;
+    std::variant<
+        ParseSymbolCond<Ret>,
+        ParseMany<Ret>,
+        ParseLit<Ret>,
+        GetSt<Ret>,
+        PutSt<Ret>,
+        TryOrErrorParser<Ret>,
+        AltParser<Ret>,
+        LazyParser<Ret>>
+        psf;
+  };
 
 // Free language
 

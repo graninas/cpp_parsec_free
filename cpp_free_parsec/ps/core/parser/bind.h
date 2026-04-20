@@ -101,6 +101,19 @@ struct BindParserADTVisitor
           newParserADT.psf = fb;
       }
 
+      void operator()(const LazyParser<Parser<A>>& fa)
+      {
+          std::function<Parser<B>(A)> g = fTemplate;
+          LazyParser<Parser<B>> fb;
+          fb.parserFactory = fa.parserFactory;   // keep the same factory
+          fb.next = [=](const Any& d)
+          {
+              Parser<A> intermediate = fa.next(d);
+              return runBind<A, B>(intermediate, g);
+          };
+          newParserADT.psf = fb;
+      }
+
       void operator()(const GetSt<Parser<A>>& fa)
       {
           std::function<Parser<B>(A)> g = fTemplate;

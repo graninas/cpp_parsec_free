@@ -104,6 +104,20 @@ Parser<B> fmap(
         result.psf = fb;
     }
 
+    void operator()(const LazyParser<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        LazyParser<B> fb;
+        fb.parserFactory = fa.parserFactory;   // keep the same factory
+        fb.next = [=](const Any& d)
+        {
+            A faResult = fa.next(d);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
+
     void operator()(const GetSt<A> &fa)
     {
       MapFunc<A, B> g = fTemplate;

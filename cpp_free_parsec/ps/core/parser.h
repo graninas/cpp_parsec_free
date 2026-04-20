@@ -70,7 +70,7 @@ Parser<Char> parseSymbolCond(
 template <typename Dummy = int>
 Parser<Char> parseChar(char expected)
 {
-    return parseSymbolCond(std::string("char '") + expected + "'", [=](char ch) { return ch == expected; });
+    return parseSymbolCond("", [=](char ch) { return ch == expected; });
 }
 
 template <typename Dummy = int>

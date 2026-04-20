@@ -104,16 +104,25 @@ struct ASTNode
   ASTNode(Type t, int num) : type(t), number(num) {}
 };
 
-// Parser for the custom language
+ps::Parser<std::string> parameterIdentifier()
+{
+  using namespace ps;
+  Parser<char> firstChar = alt(upper, lower);
+  Parser<std::list<char>> restChars = many(alphanum);
+  auto seqp = sequence(firstChar, restChars);
+  return merge(seqp);
+}
+
+// Parser for the custom language using between
 ps::Parser<std::shared_ptr<ASTNode>> parameterParser()
 {
   using namespace ps;
-  return fmap<std::tuple<std::string, std::string, std::string>, std::shared_ptr<ASTNode>>(
-      [](const std::tuple<std::string, std::string, std::string> &tuple)
+  return fmap<std::string, std::shared_ptr<ASTNode>>(
+      [](const std::string &param)
       {
-        return std::make_shared<ASTNode>(ASTNode::Type::Parameter, std::get<1>(tuple));
+        return std::make_shared<ASTNode>(ASTNode::Type::Parameter, param);
       },
-      sequence(parseLit("["), capitalizedWord(), parseLit("]")));
+      between(parseChar('['), parameterIdentifier(), parseChar(']')));
 }
 
 ps::Parser<std::shared_ptr<ASTNode>> numberParser()
@@ -160,10 +169,10 @@ ps::Parser<std::shared_ptr<ASTNode>> expressionParser()
   // Define the parser lazily to handle recursion
   return lazy<std::shared_ptr<ASTNode>>([]()
                                         { return choice(
+                                              parenthesesParser(),
                                               parameterParser(),
                                               numberParser(),
-                                              operatorParser(),
-                                              parenthesesParser()); });
+                                              operatorParser()); });
 }
 
 // Evaluate the AST using the parameter map
@@ -247,8 +256,8 @@ void SamplesTest::customLanguageParserTest()
 {
   using namespace ps;
 
-  // Expressions example: `[p1] >= ([p2]+1) * [p3]/[p4]`
-  // Where p1, p2, p3, p4 are parameter names (capitalized words), and the operators are >=, +, *, /, and parentheses.
+  // Expressions example: `([P1]>=(([P2]+1)*([P3]/[P4])))`
+  // Where P1, P2, P3, P4 are parameter names, and the operators are >=, +, *, /, and parentheses.
   // Actual parameters are defined separately as a map.
   // When evaluating, parameter names will be replaced by their values from the map, and the expression will be evaluated according to operator precedence.
 
@@ -260,11 +269,13 @@ void SamplesTest::customLanguageParserTest()
       {"P4", 2}};
 
   // Parse the expression
-  std::string expression = "[P1] >= ([P2]+1) * [P3]/[P4]";
+  std::string expression = "([P1]>=(([P2]+1)*([P3]/[P4])))";
   ParserRuntime runtime(expression, State{});
   Parser<std::shared_ptr<ASTNode>> parser = expressionParser();
 
   ParserResult<std::shared_ptr<ASTNode>> result = parseWithRuntime(runtime, parser);
+
+  printMessages(runtime);
 
   QVERIFY(isRight(result));
 

@@ -147,7 +147,9 @@ struct InterpretingADTVisitor
 
       _runtime.pushMessage("ParseMany: starting first runParser. Current position: " + std::to_string(currentPos) + ".");
       ParserResult<Any> r = runParser<Any>(_runtime, *method.rawParser, currentPos);
-      _runtime.pushMessage("ParseMany: entering loop.");
+
+      if (isRight(r))
+        _runtime.pushMessage("ParseMany: entering loop.");
 
       while (isRight(r))
       {
@@ -165,10 +167,12 @@ struct InterpretingADTVisitor
           break;
         }
       }
-      _runtime.pushMessage("ParseMany: loop ended after " + std::to_string(iteration) + " iterations.");
 
-      result = runParser<Ret>(_runtime, method.next(acc), currentPos);
+      if (iteration > 0)
+        _runtime.pushMessage("ParseMany: loop ended after " + std::to_string(iteration) + " iterations.");
+
       _runtime.pushMessage("ParseMany: finished.");
+      result = runParser<Ret>(_runtime, method.next(acc), currentPos);
     }
 
     void operator()(const TryOrErrorParser<Parser<Ret>>& method)
@@ -183,8 +187,8 @@ struct InterpretingADTVisitor
       // Create a temporary runtime to run the raw parser, so that we don't modify the original runtime's state and messages during the loop.
       // N.B. For now, the source string is copied. It is highly suboptimal.
       ParserRuntime tempRuntime = _runtime;
-
-      tempRuntime.pushMessage("TryOrError: starting runParser. Current position: " + std::to_string(_startFrom) + ".");
+      _runtime.pushMessage("TryOrError: starting runParser. Current position: " + std::to_string(_startFrom) + ".");
+      tempRuntime.clearMessages();
       ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, _startFrom);
 
       auto messages = tempRuntime.getMessages(); // Get messages from the temporary runtime and push them to the original runtime, so that we have the messages from all iterations of the loop.
@@ -219,8 +223,9 @@ struct InterpretingADTVisitor
       }
 
       ParserRuntime tempRuntime = _runtime;   // Create a temporary runtime to run the first parser, so that we don't modify the original runtime's state and messages during the first attempt.
-
       _runtime.pushMessage("AltParser: starting first parser. Current position: " + std::to_string(_startFrom) + ".");
+
+      tempRuntime.clearMessages();
       ParserResult<Any> r = runParser<Any>(tempRuntime, *method.p, _startFrom);
 
       auto messages = tempRuntime.getMessages(); // Get messages from the temporary runtime and push them to the original runtime, so that we have the messages from all iterations of the loop.
@@ -247,7 +252,6 @@ struct InterpretingADTVisitor
 
       _runtime.pushMessage("AltParser: first parser failed without consumption. Starting second parser. Current position: " + std::to_string(_startFrom) + ".");
       tempRuntime.clearMessages();
-
       ParserResult<Any> r2 = runParser<Any>(tempRuntime, *method.q, _startFrom);
 
       auto messages2 = tempRuntime.getMessages(); // Get messages from the temporary runtime and push them to the original runtime, so that we have the messages from all iterations of the loop.

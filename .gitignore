@@ -14,3 +14,5 @@ bin/
 # Project test executable
 **/tst_freeparsectest
 **/moc_*.cpp
+**/moc_*.h
+Makefile

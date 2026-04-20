@@ -254,6 +254,30 @@ void SamplesTest::personInfoParserTest()
   QVERIFY(info.ssn == "123-45-6789");
 }
 
+void SamplesTest::simpleExprTest()
+{
+  using namespace ps;
+
+  std::string src = "(2+3)";
+  ParserRuntime runtime(src, State{});
+
+  Parser<std::shared_ptr<ASTNode>> parser = expressionParser();
+
+  ParserResult<std::shared_ptr<ASTNode>> result = parseWithRuntime(runtime, parser);
+
+  printMessages(runtime);
+
+  QVERIFY(isRight(result));
+
+  // Evaluate the AST
+  std::map<std::string, int> params;
+  std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
+  int evaluationResult = evaluateAST(ast, params);
+
+  // Verify the result
+  QVERIFY(evaluationResult == 5);
+}
+
 void SamplesTest::customLanguageParserTest()
 {
   using namespace ps;

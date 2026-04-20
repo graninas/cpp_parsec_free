@@ -21,12 +21,12 @@ namespace core
 
     if (s.empty())
     {
-      std::string failedMsg = std::string("Failed to parse: end of input.");
+      std::string failedMsg = std::string("No parse char (eof)");
       return {ParserFailed{failedMsg, from}};
     }
     else if (!validator(s.at(0)))
     {
-      std::string failedMsg = std::string("Failed to parse: '") + s.at(0) + "' does not satisfy the condition.";
+      std::string failedMsg = std::string("No parse char '") + s.at(0) + "'";
       return {ParserFailed{failedMsg, from}};
     }
 
@@ -34,7 +34,7 @@ namespace core
     r.parsed = s.at(0);
     r.from = from;
     r.to = from + 1;
-    runtime.pushMessage(std::string("Parsed: '") + s.at(0) + "'.");
+    // runtime.pushMessage(std::string("Parsed: '") + s.at(0) + "'.");
     return r;
   }
 
@@ -49,12 +49,12 @@ namespace core
 
     if (s.size() < litS.size())
     {
-      std::string failedMsg = std::string("Failed to parse lit:") + litS + ": end of input.";
+      std::string failedMsg = std::string("No parse '") + litS + "' (eof)";
       return {ParserFailed{failedMsg, from}};
     }
     else if (s.substr(0, litS.size()) != litS)
     {
-      std::string failedMsg = std::string("Failed to parse lit: ") + litS;
+      std::string failedMsg = std::string("No parse '") + litS + "'";
       return {ParserFailed{failedMsg, from}};
     }
 
@@ -62,7 +62,7 @@ namespace core
     r.parsed = litS;
     r.from = from;
     r.to = from + litS.size();
-    runtime.pushMessage(std::string("Parsed lit: ") + litS + ".");
+    // runtime.pushMessage(std::string("Parsed lit: ") + litS + ".");
     return r;
   }
 

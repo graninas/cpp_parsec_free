@@ -19,13 +19,17 @@ template <typename Ret>
 ParserResult<Ret> runParser(
         ParserRuntime& runtime,
         const Parser<Ret>& next,
-        Pos startFrom)
+        Pos startFrom,
+        const std::string& indent = "")
 {
-  InterpretingVisitor<Ret> visitor(runtime, startFrom);
+  InterpretingVisitor<Ret> visitor(runtime, startFrom, indent + "  ");
+
+  auto x = std::to_string(startFrom);
+  auto paddedTo4Symb = std::string(4 - x.length(), ' ') + x;
 
   try
   {
-    runtime.pushMessage("Parser <" + next.debugInfo + ">: starting. From position: " + std::to_string(startFrom) + ".");
+    runtime.pushMessage("[" + paddedTo4Symb + "] " + indent + "<" + next.debugInfo + ">");
     std::visit(visitor, next.psl);
   }
   catch (const std::exception& e)
@@ -34,29 +38,27 @@ ParserResult<Ret> runParser(
       if (isLeft(result))
       {
         ParserFailed failed = getParseFailed(result);
-        runtime.pushMessage("Exception in runParser <" + next.debugInfo + ">: " + std::string(e.what()) + ". Original error message: " + failed.message);
-        return ParserFailed{"Exception in runParser <" + next.debugInfo + ">: " + std::string(e.what()) + ". Original error message: " + failed.message, failed.at};
+        return ParserFailed{"<" + next.debugInfo + "> exception: " + std::string(e.what()) + ". Msg: " + failed.message, failed.at};
       }
       else
       {
         // Should not happen
         ParserSucceeded<Ret> succeeded = getParseSucceeded(result);
-        runtime.pushMessage("Impossible state: Exception in runParser <" + next.debugInfo + ">: " + std::string(e.what()) + ". However, the parser succeeded with a value.");
-        return ParserFailed{"Impossible state in runParser <" + next.debugInfo + ">", succeeded.from};
+        return ParserFailed{"<" + next.debugInfo + "> impossible " + std::string(e.what()), succeeded.from};
       }
   }
 
   if (isLeft(visitor.result))
   {
     ParserFailed failed = getParseFailed(visitor.result);
-    runtime.pushMessage("Parser <" + next.debugInfo + ">: Failure.");
+    runtime.pushMessage("[" + paddedTo4Symb + "] " + indent + "<" + next.debugInfo + "> failed: " + failed.message);
     return failed;
   }
   else
   {
     ParserSucceeded<Ret> succeeded = getParseSucceeded(visitor.result);
     succeeded.from = startFrom;
-    runtime.pushMessage("Parser <" + next.debugInfo + ">: Success.");
+    runtime.pushMessage("[" + paddedTo4Symb + "] " + indent + "<" + next.debugInfo + "> success");
     return succeeded;
   }
 }
@@ -68,15 +70,16 @@ struct InterpretingADTVisitor
     ParserRuntime& _runtime;
     ParserResult<Ret> result;
     Pos _startFrom;
+    std::string _indent;
 
-    InterpretingADTVisitor(ParserRuntime& runtime, Pos startFrom)
-        : _runtime(runtime), _startFrom(startFrom)
+    InterpretingADTVisitor(ParserRuntime& runtime, Pos startFrom, const std::string& indent)
+        : _runtime(runtime), _startFrom(startFrom), _indent(indent)
     {
     }
 
     void operator()(const ParseSymbolCond<Parser<Ret>>& method)
     {
-        ParserResult<Char> r = ParserFailed{"Internal error: null parser in ParseSymbolCond.", _startFrom};  // Default value in case of an error, will be overwritten if the parser is not null.
+        ParserResult<Char> r = ParserFailed{"Fail", _startFrom};
 
         try
         {
@@ -84,7 +87,7 @@ struct InterpretingADTVisitor
         }
         catch (const std::exception& e)
         {
-            result = ParserFailed{"Internal error: exception in parseSingle: " + std::string(e.what()), _startFrom};
+            result = ParserFailed{"Exception in parseSingle: " + std::string(e.what()), _startFrom};
             return;
         }
 
@@ -97,13 +100,13 @@ struct InterpretingADTVisitor
         {
             ParserSucceeded<Char> succeeded = getParseSucceeded(r);
             Parser<Ret> rNext = method.next(succeeded.parsed);
-            result = runParser<Ret>(_runtime, rNext, succeeded.to);
+            result = runParser<Ret>(_runtime, rNext, succeeded.to, _indent);
         }
     }
 
     void operator()(const ParseLit<Parser<Ret>> &method)
     {
-      ParserResult<std::string> r = ParserFailed{"Internal error: null parser in ParseLit.", _startFrom};  // Default value in case of an error, will be overwritten if the parser is not null.
+      ParserResult<std::string> r = ParserFailed{"Fail", _startFrom};
 
       try
       {
@@ -111,7 +114,7 @@ struct InterpretingADTVisitor
       }
       catch (const std::exception& e)
       {
-          result = ParserFailed{"Internal error: exception in parseLit: " + std::string(e.what()), _startFrom};
+          result = ParserFailed{"Exception in parseLit: " + std::string(e.what()), _startFrom};
           return;
       }
 
@@ -124,7 +127,7 @@ struct InterpretingADTVisitor
       {
         ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
         Parser<Ret> rNext = method.next(succeeded.parsed);
-        result = runParser<Ret>(_runtime, rNext, succeeded.to);
+        result = runParser<Ret>(_runtime, rNext, succeeded.to, _indent);
       }
     }
 
@@ -132,7 +135,7 @@ struct InterpretingADTVisitor
     {
       if (method.rawParser == nullptr)
       {
-        result = ParserFailed { "Internal error: null parser in ParseMany.", _startFrom };
+        result = ParserFailed { "Null parser in ParseMany", _startFrom };
         return;
       }
 
@@ -143,11 +146,11 @@ struct InterpretingADTVisitor
       Pos currentPos = _startFrom;
       int iteration = 0;
 
-      _runtime.pushMessage("ParseMany: starting first runParser. Current position: " + std::to_string(currentPos) + ".");
+      // _runtime.pushMessage( "ParseMany: starting first at: " + std::to_string(currentPos));
 
       ParserRuntime tempRuntime = _runtime;
       tempRuntime.clearMessages();
-      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, currentPos);
+      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, currentPos, _indent);
 
       auto messages = tempRuntime.getMessages(); // Get messages from the temporary runtime and push them to the original runtime, so that we have the messages from all iterations of the loop.
       for (const auto &msg : messages)
@@ -155,8 +158,8 @@ struct InterpretingADTVisitor
           _runtime.pushMessage(msg);
       }
 
-      if (isRight(r))
-        _runtime.pushMessage("ParseMany: entering loop.");
+      // if (isRight(r))
+      //   _runtime.pushMessage("ParseMany: entering loop.");
 
       while (isRight(r))
       {
@@ -164,11 +167,11 @@ struct InterpretingADTVisitor
         acc.push_back(succeeded.parsed);    // Result will be converted when fmapped
 
         currentPos = succeeded.to;
-        _runtime.pushMessage("ParseMany: starting next attempt. Current position: " + std::to_string(currentPos) + ".");
+        // _runtime.pushMessage("ParseMany: starting next attempt. Current position: " + std::to_string(currentPos) + ".");
         iteration++;
 
         tempRuntime.clearMessages();
-        r = runParser<Any>(tempRuntime, *method.rawParser, currentPos);
+        r = runParser<Any>(tempRuntime, *method.rawParser, currentPos, _indent);
 
         messages = tempRuntime.getMessages();
         for (const auto &msg : messages)
@@ -183,18 +186,18 @@ struct InterpretingADTVisitor
         }
       }
 
-      if (iteration > 0)
-        _runtime.pushMessage("ParseMany: loop ended after " + std::to_string(iteration) + " iterations.");
+      // if (iteration > 0)
+      //   _runtime.pushMessage("ParseMany: loop ended after " + std::to_string(iteration) + " iterations.");
 
-      _runtime.pushMessage("ParseMany: finished.");
-      result = runParser<Ret>(_runtime, method.next(acc), currentPos);
+      // _runtime.pushMessage("ParseMany: finished.");
+      result = runParser<Ret>(_runtime, method.next(acc), currentPos, _indent);
     }
 
     void operator()(const TryOrErrorParser<Parser<Ret>>& method)
     {
       if (method.rawParser == nullptr)
       {
-        result = ParserFailed{"Internal error: null parser in TryOrError.", _startFrom};
+        result = ParserFailed{"Null parser in TryOrError.", _startFrom};
         return;
       }
 
@@ -202,7 +205,7 @@ struct InterpretingADTVisitor
       // N.B. For now, the source string is copied. It is highly suboptimal.
       ParserRuntime tempRuntime = _runtime;
       tempRuntime.clearMessages();
-      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, _startFrom);
+      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, _startFrom, _indent);
 
       auto messages = tempRuntime.getMessages(); // Get messages from the temporary runtime and push them to the original runtime, so that we have the messages from all iterations of the loop.
       for (const auto &msg : messages)
@@ -213,29 +216,34 @@ struct InterpretingADTVisitor
       if (isRight(r))
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-        result = runParser<Ret>(_runtime, method.next(succeeded), succeeded.to);
+        result = runParser<Ret>(_runtime, method.next(succeeded), succeeded.to, _indent);
       }
       else
       {
         ParserFailed failed = getParseFailed(r);
         failed.at = _startFrom;   // Reset the position to the original position, since try should not consume input on failure.
-        result = runParser<Ret>(_runtime, method.next(failed), _startFrom);
+        result = runParser<Ret>(_runtime, method.next(failed), _startFrom, _indent);
       }
     }
 
     void operator()(const AltParser<Parser<Ret>>& method)
     {
-      if (method.p == nullptr || method.q == nullptr)
+      if (method.p == nullptr)
       {
-        result = ParserFailed{"Internal error: null parser in AltParser.", _startFrom};
+        result = ParserFailed{"Null parser in AltParser (left)", _startFrom};
+        return;
+      }
+      if (method.q == nullptr)
+      {
+        result = ParserFailed{"Null parser in AltParser (right)", _startFrom};
         return;
       }
 
       ParserRuntime tempRuntime = _runtime;
-      _runtime.pushMessage("AltParser: starting first parser. Current position: " + std::to_string(_startFrom) + ".");
+      // _runtime.pushMessage("AltParser: starting first parser. Current position: " + std::to_string(_startFrom) + ".");
 
       tempRuntime.clearMessages();
-      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.p, _startFrom);
+      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.p, _startFrom, _indent);
 
       auto messages = tempRuntime.getMessages();
       for (const auto &msg : messages)
@@ -246,8 +254,8 @@ struct InterpretingADTVisitor
       if (isRight(r))
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-        _runtime.pushMessage("AltParser: first parser succeeded. From: " + std::to_string(succeeded.from) + ", To: " + std::to_string(succeeded.to) + ".");
-        result = runParser<Ret>(_runtime, method.next(succeeded.parsed), succeeded.to);
+        // _runtime.pushMessage("AltParser: first parser succeeded. From: " + std::to_string(succeeded.from) + ", To: " + std::to_string(succeeded.to) + ".");
+        result = runParser<Ret>(_runtime, method.next(succeeded.parsed), succeeded.to, _indent);
         return;
       }
 
@@ -255,13 +263,13 @@ struct InterpretingADTVisitor
 
       if (failed.at != _startFrom)
       {
-        result = ParserFailed{std::string("AltParser: first parser failed after consuming input. Error message: ") + failed.message, failed.at};
+        result = ParserFailed{"No alt: first consumed", failed.at};
         return;
       }
 
-      _runtime.pushMessage("AltParser: first parser failed without consumption. Starting second parser. Current position: " + std::to_string(_startFrom) + ".");
+      // _runtime.pushMessage("AltParser: first parser failed without consumption. Starting second parser. Current position: " + std::to_string(_startFrom) + ".");
       tempRuntime.clearMessages();
-      ParserResult<Any> r2 = runParser<Any>(tempRuntime, *method.q, _startFrom);
+      ParserResult<Any> r2 = runParser<Any>(tempRuntime, *method.q, _startFrom, _indent);
 
       auto messages2 = tempRuntime.getMessages();
       for (const auto &msg : messages2)
@@ -272,44 +280,44 @@ struct InterpretingADTVisitor
       if (isRight(r2))
       {
         ParserSucceeded<Any> succeeded2 = getParseSucceeded(r2);
-        _runtime.pushMessage("AltParser: second parser succeeded. From: " + std::to_string(_startFrom) + ", To: " + std::to_string(succeeded2.to) + ".");
-        result = runParser<Ret>(_runtime, method.next(succeeded2.parsed), succeeded2.to);
+        // _runtime.pushMessage("AltParser: second parser succeeded. From: " + std::to_string(_startFrom) + ", To: " + std::to_string(succeeded2.to) + ".");
+        result = runParser<Ret>(_runtime, method.next(succeeded2.parsed), succeeded2.to, _indent);
       }
       else
       {
         ParserFailed failed2 = getParseFailed(r2);
-        result = ParserFailed{std::string("Both parsers failed. First parser error message: ") + failed.message + " Second parser error message: " + failed2.message, failed2.at};
+        result = ParserFailed{"No alt: both failed", failed2.at};
       }
     }
 
     void operator()(const LazyParser<Parser<Ret>> &method)
     {
       Parser<Any> actualParser = method.parserFactory();
-      ParserResult<Any> r = runParser<Any>(_runtime, actualParser, _startFrom);
+      ParserResult<Any> r = runParser<Any>(_runtime, actualParser, _startFrom, _indent);
 
       if (isLeft(r))
       {
         ParserFailed failed = getParseFailed(r);
-        result = ParserFailed{std::string("Lazy parser failed. Error message: ") + failed.message, failed.at};
+        result = ParserFailed{failed.message, failed.at};
       }
       else
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-        result = runParser<Ret>(_runtime, method.next(succeeded.parsed), succeeded.to);
+        result = runParser<Ret>(_runtime, method.next(succeeded.parsed), succeeded.to, _indent);
       }
     }
 
     void operator()(const GetSt<Parser<Ret>> &method)
     {
       auto rNext = method.next(_runtime.getState());
-      result = runParser<Ret>(_runtime, rNext, _startFrom);
+      result = runParser<Ret>(_runtime, rNext, _startFrom, _indent);
     }
 
     void operator()(const PutSt<Parser<Ret>> &method)
     {
       _runtime.putState(method.st);
       auto rNext = method.next(unit);
-      result = runParser<Ret>(_runtime, rNext, _startFrom);
+      result = runParser<Ret>(_runtime, rNext, _startFrom, _indent);
     }
 };
 
@@ -319,11 +327,13 @@ struct InterpretingVisitor
     ParserRuntime& _runtime;
     ParserResult<Ret> result;
     Pos _startFrom;
+    std::string _indent;
 
-    InterpretingVisitor(ParserRuntime& runtime, Pos startFrom)
+    InterpretingVisitor(ParserRuntime& runtime, Pos startFrom, const std::string& indent)
         : _runtime(runtime)
-        , result(ParserFailed{"Internal error: null parser in InterpretingVisitor.", startFrom})  // Default value in case of an error, will be overwritten if the parser is not null.
+        , result(ParserFailed{"", startFrom})
         , _startFrom(startFrom)
+        , _indent(indent)
     {
     }
 
@@ -334,7 +344,7 @@ struct InterpretingVisitor
 
     void operator()(const FreeF<Ret>& f)
     {
-      InterpretingADTVisitor<Ret> visitor(_runtime, _startFrom);
+      InterpretingADTVisitor<Ret> visitor(_runtime, _startFrom, _indent);
       std::visit(visitor, f.psf.psf);
       result = visitor.result;
     }

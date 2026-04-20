@@ -13,7 +13,7 @@ Parser<typename Parser1::ResultType> choice(const Parser1& p1, const Parsers&...
     if constexpr (sizeof...(parsers) == 0) {
         return p1;
     } else {
-        return alt(p1, choice(parsers...));
+        return alt(try_(p1), choice(parsers...));
     }
 }
 

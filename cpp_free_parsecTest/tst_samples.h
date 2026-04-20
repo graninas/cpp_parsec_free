@@ -12,6 +12,7 @@ public:
 private slots:
     void personInfoParserTest();
 
+    void simpleExprTest();
     void customLanguageParserTest();
 };
 

@@ -4,8 +4,7 @@
 #include <variant>
 #include <iostream>
 
-#include "ps/ps.h"
-#include "ps/core/parser/merge.h"
+#include "common.h"
 
 #include "tst_samples.h"
 #include <QTest>

@@ -1,12 +1,14 @@
-#pragma once
+#ifndef PS_CORE_MERGE_H
+#define PS_CORE_MERGE_H
+
 #include <tuple>
 #include <string>
 #include <list>
 #include <vector>
 #include <type_traits>
 
-#include "../types.h"
-#include "functor.h" // for fmap
+#include "types.h"
+#include "parser/functor.h" // for fmap
 
 namespace ps {
 namespace core {
@@ -122,3 +124,5 @@ auto mergeTo(ParserContainer p) {
 
 } // namespace core
 } // namespace ps
+
+#endif // PS_CORE_MERGE_H

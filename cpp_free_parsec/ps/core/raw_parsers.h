@@ -1,5 +1,5 @@
-#ifndef PS_RAW_PARSERS_H
-#define PS_RAW_PARSERS_H
+#ifndef PS_CORE_RAW_PARSERS_H
+#define PS_CORE_RAW_PARSERS_H
 
 #include <string>
 #include <functional>
@@ -76,4 +76,4 @@ namespace core
 } // namespace core
 } // namespace ps
 
-#endif // PS_RAW_PARSERS_H
+#endif // PS_CORE_RAW_PARSERS_H

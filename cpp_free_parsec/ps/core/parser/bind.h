@@ -19,6 +19,7 @@ Parser<B> runBind(const Parser<A>& psl,
 {
     BindParserVisitor<A, B> visitor(f);
     std::visit(visitor, psl.psl);
+    visitor.newParserFreeADT.debugInfo = psl.debugInfo + " (bind)";
     return visitor.newParserFreeADT;
 }
 
@@ -37,7 +38,6 @@ struct BindParserADTVisitor
         std::function<Parser<B>(A)> g = fTemplate;
 
         ParseSymbolCond<Parser<B>> fb;
-        fb.name = fa.name;
         fb.validator = fa.validator;
         fb.next = [=](const Any& d)
         {
@@ -101,6 +101,19 @@ struct BindParserADTVisitor
           newParserADT.psf = fb;
       }
 
+      void operator()(const LazyParser<Parser<A>>& fa)
+      {
+          std::function<Parser<B>(A)> g = fTemplate;
+          LazyParser<Parser<B>> fb;
+          fb.parserFactory = fa.parserFactory;   // keep the same factory
+          fb.next = [=](const Any& d)
+          {
+              Parser<A> intermediate = fa.next(d);
+              return runBind<A, B>(intermediate, g);
+          };
+          newParserADT.psf = fb;
+      }
+
       void operator()(const GetSt<Parser<A>>& fa)
       {
           std::function<Parser<B>(A)> g = fTemplate;
@@ -142,6 +155,7 @@ struct BindParserVisitor
     {
         std::function<Parser<B>(A)> f = fTemplate;
         newParserFreeADT = f(fa.ret);
+        newParserFreeADT.debugInfo = "";
     }
 
     void operator()(const FreeF<A>& fa)
@@ -149,7 +163,7 @@ struct BindParserVisitor
         std::function<Parser<B>(A)> f = fTemplate;
         BindParserADTVisitor<A, B> visitor(f);
         std::visit(visitor, fa.psf.psf);
-        newParserFreeADT = { FreeF<B>{ visitor.newParserADT } };
+        newParserFreeADT = { FreeF<B>{ visitor.newParserADT }, "" };
     }
 };
 

@@ -20,10 +20,10 @@ Parser<B> fmap(
     const std::function<B(A)> &f,
     const Parser<A> &psl);
 
-    // Methods functor
+// Methods functor
 
-    template <typename A, typename B>
-    struct ParserADTVisitor
+template <typename A, typename B>
+struct ParserADTVisitor
 {
     MapFunc<A, B> fTemplate;
     ParserADT<B> result;
@@ -36,7 +36,6 @@ Parser<B> fmap(
     {
       MapFunc<A, B> g = fTemplate;
       ParseSymbolCond<B> fb;
-      fb.name = fa.name;
       fb.validator = fa.validator;
       fb.next = [=](const Any& d)
       {
@@ -104,6 +103,20 @@ Parser<B> fmap(
         result.psf = fb;
     }
 
+    void operator()(const LazyParser<A>& fa)
+    {
+        MapFunc<A, B> g = fTemplate;
+        LazyParser<B> fb;
+        fb.parserFactory = fa.parserFactory;   // keep the same factory
+        fb.next = [=](const Any& d)
+        {
+            A faResult = fa.next(d);
+            B gResult = g(faResult);
+            return gResult;
+        };
+        result.psf = fb;
+    }
+
     void operator()(const GetSt<A> &fa)
     {
       MapFunc<A, B> g = fTemplate;
@@ -155,9 +168,8 @@ Parser<B> fmap(
 {
   FunctorParserVisitor<A, B> visitor(f);
   std::visit(visitor, psl.psl);
+  visitor.result.debugInfo = psl.debugInfo + " (fmap)";
   return visitor.result;
-
-  return {};
 }
 
 template <typename A, typename B>
@@ -173,7 +185,7 @@ struct FunctorParserVisitor
     void operator()(const PureF<A>& fa)
     {
         std::function<B(A)> f = fTemplate;
-        result = Parser<B> { PureF<B> { f(fa.ret) } };
+        result = Parser<B> { PureF<B> { f(fa.ret) }, "" };
     }
 
     void operator()(const FreeF<A>& fa)
@@ -186,10 +198,8 @@ struct FunctorParserVisitor
         };
 
         ParserADT<Parser<B>> visited = fmapMethods(f2, fa.psf);
-        result = Parser<B> { FreeF<B> { visited } };
+        result = Parser<B> { FreeF<B> { visited }, "" };
     }
-
-
 };
 
 } // namespace core

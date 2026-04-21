@@ -10,7 +10,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "ps/ps.h"
+#include "ps/free_parsec.h"
 
 template <typename A>
 void printError(const ps::ParserResult<A> &pr)

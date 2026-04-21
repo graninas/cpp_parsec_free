@@ -1,5 +1,5 @@
-#ifndef PS_RAW_PARSERS_H
-#define PS_RAW_PARSERS_H
+#ifndef PS_CORE_RAW_PARSERS_H
+#define PS_CORE_RAW_PARSERS_H
 
 #include <string>
 #include <functional>
@@ -15,21 +15,18 @@ namespace core
   ParserResult<char> parseSingle(
       ParserRuntime &runtime,
       Pos from,
-      const std::function<bool(char)> &validator,
-      const std::string &name)
+      const std::function<bool(char)> &validator)
   {
     std::string_view s = runtime.getView().substr(from);
 
     if (s.empty())
     {
-      std::string failedMsg = std::string("Failed to parse ") + name + ": end of input.";
-      runtime.pushMessage(failedMsg);
+      std::string failedMsg = std::string("No parse char (eof)");
       return {ParserFailed{failedMsg, from}};
     }
     else if (!validator(s.at(0)))
     {
-      std::string failedMsg = std::string("Failed to parse ") + name + ": '" + s.at(0) + "' does not satisfy the condition.";
-      runtime.pushMessage(failedMsg);
+      std::string failedMsg = std::string("No parse char '") + s.at(0) + "'";
       return {ParserFailed{failedMsg, from}};
     }
 
@@ -37,7 +34,7 @@ namespace core
     r.parsed = s.at(0);
     r.from = from;
     r.to = from + 1;
-    runtime.pushMessage(std::string("Parsed ") + name + ": '" + s.at(0) + "'.");
+    // runtime.pushMessage(std::string("Parsed: '") + s.at(0) + "'.");
     return r;
   }
 
@@ -52,14 +49,12 @@ namespace core
 
     if (s.size() < litS.size())
     {
-      std::string failedMsg = std::string("Failed to parse lit:") + litS + ": end of input.";
-      runtime.pushMessage(failedMsg);
+      std::string failedMsg = std::string("No parse '") + litS + "' (eof)";
       return {ParserFailed{failedMsg, from}};
     }
     else if (s.substr(0, litS.size()) != litS)
     {
-      std::string failedMsg = std::string("Failed to parse lit: ") + litS;
-      runtime.pushMessage(failedMsg);
+      std::string failedMsg = std::string("No parse '") + litS + "'";
       return {ParserFailed{failedMsg, from}};
     }
 
@@ -67,7 +62,7 @@ namespace core
     r.parsed = litS;
     r.from = from;
     r.to = from + litS.size();
-    runtime.pushMessage(std::string("Parsed lit: ") + litS + ".");
+    // runtime.pushMessage(std::string("Parsed lit: ") + litS + ".");
     return r;
   }
 
@@ -76,4 +71,4 @@ namespace core
 } // namespace core
 } // namespace ps
 
-#endif // PS_RAW_PARSERS_H
+#endif // PS_CORE_RAW_PARSERS_H

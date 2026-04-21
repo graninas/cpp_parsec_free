@@ -19,7 +19,9 @@ HEADERS += \
     ps/core/interpreter.h \
     ps/core/raw_parsers.h \
     ps/core/parser.h \
-    ps/ps.h
+    ps/core/merge.h \
+    ps/core/choice.h \
+    ps/free_parsec.h
 
 unix {
     target.path = /usr/lib

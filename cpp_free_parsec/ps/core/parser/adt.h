@@ -17,7 +17,6 @@ namespace core
   template <typename Next>
   struct ParseSymbolCond
   {
-    std::string name;
     std::function<bool(Any)> validator;
     std::function<Next(Any)> next;
   };
@@ -44,31 +43,39 @@ namespace core
     std::function<Next(Any)> next;
   };
 
-
-template <typename Next>
-struct ParseLit
-{
-  std::string s;
-  std::function<Next(std::string)> next;
-};
-
-template <typename Next>
-struct GetSt
-{
-  std::function<Next(State)> next;
-};
-
-template <typename Next>
-struct PutSt
-{
-    State st;
-    std::function<Next(Unit)> next;
-};
+  template <typename Next>
+  struct LazyParser
+  {
+    std::function<Parser<Any>()> parserFactory;   // Factory is always the same
+    std::function<Next(Any)> next;
+  };
 
 
-template <class Ret>
-struct ParserADT        // TODO: rename to Methods
-{
+  template <typename Next>
+  struct ParseLit
+  {
+    std::string s;
+    std::function<Next(std::string)> next;
+  };
+
+  template <typename Next>
+  struct GetSt
+  {
+    std::function<Next(State)> next;
+  };
+
+  template <typename Next>
+  struct PutSt
+  {
+      State st;
+      std::function<Next(Unit)> next;
+  };
+
+
+  template <class Ret>
+  struct ParserADT        // TODO: rename to Methods
+  {
+    using ResultType = Ret;
     std::variant<
         ParseSymbolCond<Ret>,
         ParseMany<Ret>,
@@ -76,9 +83,10 @@ struct ParserADT        // TODO: rename to Methods
         GetSt<Ret>,
         PutSt<Ret>,
         TryOrErrorParser<Ret>,
-        AltParser<Ret>
-    > psf;
-};
+        AltParser<Ret>,
+        LazyParser<Ret>>
+        psf;
+  };
 
 // Free language
 
@@ -88,39 +96,50 @@ struct ParserADT        // TODO: rename to Methods
 template <typename Ret>
 struct PureF
 {
+  using ResultType = Ret;
   Ret ret;
 };
 
 template <typename Ret>
 struct FreeF
 {
+  using ResultType = Ret;
   ParserADT<Parser<Ret>> psf;
 };
 
 template <typename A>
 struct Parser
 {
+  using ResultType = A;
   std::variant<PureF<A>, FreeF<A>> psl;
+  std::string debugInfo;
+
+  Parser<A> operator+( const std::string& info ) const
+  {
+    Parser<A> newParser = *this;
+    newParser.debugInfo = info;
+    return newParser;
+  }
 };
 
 
 template <typename A>
-Parser<A> makePure(const A &a)
+Parser<A> makePure(const A &a, const std::string& debugInfo)
 {
-  return {PureF<A>{a}};
+  return {PureF<A>{a}, debugInfo};
 }
 
 template <typename A,
           template <typename> class Method>
-Parser<A> makeFree(const Method<Parser<A>> &method)
+Parser<A> makeFree(const Method<Parser<A>> &method, const std::string& debugInfo)
 {
-  return {FreeF<A>{ParserADT<Parser<A>>{method}}};
+  return {FreeF<A>{ParserADT<Parser<A>>{method}}, debugInfo};
 }
 
 template <typename A>
-Parser<A> pure(const A &a)
+Parser<A> pure(const A &a, const std::string& debugInfo)
 {
-  return makePure(a);
+  return makePure(a, debugInfo);
 }
 
 } // namespace core

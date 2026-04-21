@@ -22,7 +22,7 @@ ParserResult<Ret> runParser(
         Pos startFrom,
         const std::string& indent = "")
 {
-  InterpretingVisitor<Ret> visitor(runtime, startFrom, indent + "  ");
+  InterpretingVisitor<Ret> visitor(runtime, startFrom, indent + "  ", next.debugInfo);
 
   auto x = std::to_string(startFrom);
   auto paddedTo4Symb = std::string(4 - x.length(), ' ') + x;
@@ -58,7 +58,7 @@ ParserResult<Ret> runParser(
   {
     ParserSucceeded<Ret> succeeded = getParseSucceeded(visitor.result);
     succeeded.from = startFrom;
-    runtime.pushMessage("[" + paddedTo4Symb + "] " + indent + "<" + next.debugInfo + "> success");
+    runtime.pushMessage("[" + paddedTo4Symb + "] " + indent + "<" + next.debugInfo + "> success " + visitor._successMsg);
     return succeeded;
   }
 }
@@ -71,15 +71,24 @@ struct InterpretingADTVisitor
     ParserResult<Ret> result;
     Pos _startFrom;
     std::string _indent;
+    std::string _parserDebugInfo;
+    std::string _successMsg;
 
-    InterpretingADTVisitor(ParserRuntime& runtime, Pos startFrom, const std::string& indent)
-        : _runtime(runtime), _startFrom(startFrom), _indent(indent)
+    InterpretingADTVisitor(ParserRuntime& runtime, Pos startFrom, const std::string& indent,
+      std::string parserDebugInfo)
+        : _runtime(runtime)
+        , _startFrom(startFrom)
+        , _indent(indent)
+        , _parserDebugInfo(parserDebugInfo)
     {
     }
 
     void operator()(const ParseSymbolCond<Parser<Ret>>& method)
     {
         ParserResult<Char> r = ParserFailed{"Fail", _startFrom};
+
+        auto x = std::to_string(_startFrom);
+        auto paddedTo4Symb = std::string(4 - x.length(), ' ') + x;
 
         try
         {
@@ -100,6 +109,10 @@ struct InterpretingADTVisitor
         {
             ParserSucceeded<Char> succeeded = getParseSucceeded(r);
             Parser<Ret> rNext = method.next(succeeded.parsed);
+            _successMsg = std::string("Parsed char: '") + succeeded.parsed + "'";
+            _runtime.pushMessage("[" + paddedTo4Symb + "] " +
+                _indent.substr(0, _indent.size() - 2)
+                + "<" + _parserDebugInfo + "> success " + _successMsg);
             result = runParser<Ret>(_runtime, rNext, succeeded.to, _indent);
         }
     }
@@ -107,6 +120,9 @@ struct InterpretingADTVisitor
     void operator()(const ParseLit<Parser<Ret>> &method)
     {
       ParserResult<std::string> r = ParserFailed{"Fail", _startFrom};
+
+      auto x = std::to_string(_startFrom);
+      auto paddedTo4Symb = std::string(4 - x.length(), ' ') + x;
 
       try
       {
@@ -127,6 +143,9 @@ struct InterpretingADTVisitor
       {
         ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
         Parser<Ret> rNext = method.next(succeeded.parsed);
+        _successMsg = std::string("Parsed lit: '") + succeeded.parsed + "'";
+        _runtime.pushMessage("[" + paddedTo4Symb + "] " +
+                            _indent.substr(0, _indent.size() - 2) + "<" + _parserDebugInfo + "> success " + _successMsg);
         result = runParser<Ret>(_runtime, rNext, succeeded.to, _indent);
       }
     }
@@ -328,12 +347,16 @@ struct InterpretingVisitor
     ParserResult<Ret> result;
     Pos _startFrom;
     std::string _indent;
+    std::string _parserDebugInfo;
+    std::string _successMsg;
 
-    InterpretingVisitor(ParserRuntime& runtime, Pos startFrom, const std::string& indent)
+    InterpretingVisitor(ParserRuntime& runtime, Pos startFrom, const std::string& indent,
+      std::string parserDebugInfo)
         : _runtime(runtime)
         , result(ParserFailed{"", startFrom})
         , _startFrom(startFrom)
         , _indent(indent)
+        , _parserDebugInfo(parserDebugInfo)
     {
     }
 
@@ -344,9 +367,10 @@ struct InterpretingVisitor
 
     void operator()(const FreeF<Ret>& f)
     {
-      InterpretingADTVisitor<Ret> visitor(_runtime, _startFrom, _indent);
+      InterpretingADTVisitor<Ret> visitor(_runtime, _startFrom, _indent, _parserDebugInfo);
       std::visit(visitor, f.psf.psf);
       result = visitor.result;
+      _successMsg = visitor._successMsg;
     }
 };
 

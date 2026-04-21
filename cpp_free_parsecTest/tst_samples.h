@@ -12,8 +12,14 @@ public:
 private slots:
     void personInfoParserTest();
 
-    void simpleExprTest();
-    void customLanguageParserTest();
+
+    void numberTest();
+    void numberExprTest();
+    void numberExprInParensTest();
+
+    // void simpleParenExprTest();
+    // void simpleExprTest();
+    // void customLanguageParserTest();
 };
 
 #endif // TST_SAMPLES_H

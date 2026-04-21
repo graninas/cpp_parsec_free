@@ -1,13 +1,8 @@
 #ifndef PS_CORE_PARSER_H
 #define PS_CORE_PARSER_H
 
-#include "types.h"
-#include "runtime.h"
+#include "engine.h"
 #include "conds.h"
-#include "parser/adt.h"
-#include "parser/functor.h"
-#include "parser/bind.h"
-#include "interpreter.h"
 
 #include <tuple>
 #include <type_traits>
@@ -18,27 +13,16 @@ namespace ps
 namespace core
 {
 
-// New design
 
-// Interface
+// Generic
 
-template <typename A>
-ParserResult<A> parse(
-        const Parser<A>& pst,
-        const std::string& s,
-        Pos from = 0)
+template <typename A, typename B>
+Parser<B> applicative(const Parser<std::function<B(A)>> &pf,
+                      const Parser<A> &pa)
 {
-    ParserRuntime runtime (s, State{});
-    return runParser(runtime, pst, from);
-}
-
-template <typename A>
-ParserResult<A> parseWithRuntime(
-    ParserRuntime &runtime,
-    const Parser<A> &pst,
-    Pos from = 0)
-{
-  return runParser(runtime, pst, from);
+  return bind<std::function<B(A)>, B>(
+      pf, [=](const std::function<B(A)> &f)
+      { return fmap<A, B>(f, pa); });
 }
 
 // Parsers
@@ -54,13 +38,14 @@ Parser<Char> parseSymbolCond(
         return cond_copy(ch);
     };
 
-    return makeFree(ParseSymbolCond<Parser<Char>>{
+    return wrap<Char, ParseSymbolCond<Parser<Char>, Parser>>
+      (ParseSymbolCond<Parser<Char>, Parser>{
                       condAny,
                       [](const Any& any)  {
                           char ch = std::any_cast<char>(any);
                           {
-                              // return makePure(ch, "Pure of parseSymbolCond");
-                              return makePure(ch, "");
+                              // return pure(ch, "Pure of parseSymbolCond");
+                              return pure(ch, "");
                           }
                       }
                 }, "parseSymbolCond");
@@ -76,11 +61,12 @@ Parser<Char> parseChar(char expected)
 template <typename Dummy = int>
 Parser<std::string> parseLit(const std::string& s)
 {
-    return makeFree(ParseLit<Parser<std::string>>{
+    return wrap<std::string, ParseLit<Parser<std::string>, Parser>>
+      (ParseLit<Parser<std::string>, Parser>{
                       s,
                       [](const std::string& resS) {
-                          return makePure(resS, "");
-                          // return makePure(resS, "Pure of parseLit");
+                          return pure(resS, "");
+                          // return pure(resS, "Pure of parseLit");
                       }
                 }, "parseLit \"" + s + "\"");
 }
@@ -107,7 +93,8 @@ Parser<Many<A>> many(const Parser<A>& item)
       fmap<A, Any>([](const A &a)
                    { return a; }, itemCopy));
 
-  return makeFree(ParseMany<Parser<Many<A>>>{
+  return wrap<Many<A>, ParseMany<Parser<Many<A>>, Parser>>
+    (ParseMany<Parser<Many<A>>, Parser>{
       pCopy,
       [=](const std::list<Any> &resList)
       {
@@ -117,8 +104,8 @@ Parser<Many<A>> many(const Parser<A>& item)
           A a = std::any_cast<A>(any);
           res.push_back(a);
         }
-        // return makePure(res, "Pure of many of " + itemCopy.debugInfo);
-        return makePure(res, "");
+        // return pure(res, "Pure of many of " + itemCopy.debugInfo);
+        return pure(res, "");
       }}, "many of " + itemCopy.debugInfo);
 }
 
@@ -144,14 +131,15 @@ Parser<ParserResult<A>> tryOrError(const Parser<A> &p)
         fmap<A, Any>([](const A &a)
                      { return a; }, itemCopy));
 
-    return makeFree(TryOrErrorParser<Parser<ParserResult<A>>>{
+    return wrap<ParserResult<A>, TryOrErrorParser<Parser<ParserResult<A>>, Parser>>
+      (TryOrErrorParser<Parser<ParserResult<A>>, Parser>{
         pCopy,
         [=](const ParserResult<Any> &res)
         {
             if (isRight(res))
             {
                 A a = std::any_cast<A>(getParseSucceeded(res).parsed);
-                return makePure(
+                return pure(
                   ParserResult<A>{ParserSucceeded<A>{a, getParseSucceeded(res).from, getParseSucceeded(res).to}},
                   "");
                   // "Pure of tryOrError of " + itemCopy.debugInfo);
@@ -159,7 +147,7 @@ Parser<ParserResult<A>> tryOrError(const Parser<A> &p)
             else
             {
                 ParserFailed failed = std::get<ParserFailed>(res);
-                return makePure(ParserResult<A>{ParserFailed{failed.message, failed.at}},
+                return pure(ParserResult<A>{ParserFailed{failed.message, failed.at}},
                   // "Pure of tryOrError of " + itemCopy.debugInfo);
                   "");
             }
@@ -173,7 +161,7 @@ Parser<A> tryOrThrow(const Parser<A> &p)
     return bind<ParserResult<A>, A>(tryOrError(p), [=](const ParserResult<A>& res) {
         if (isRight(res))
         {
-            return makePure(std::any_cast<A>(getParseSucceeded(res).parsed),
+            return pure(std::any_cast<A>(getParseSucceeded(res).parsed),
               "");
               // "Pure of tryOrThrow of " + p.debugInfo);
         }
@@ -202,14 +190,15 @@ Parser<A> alt(const Parser<A> &p, const Parser<A> &q)
       fmap<A, Any>([](const A &a)
                    { return a; }, q));
 
-  return makeFree(AltParser<Parser<A>>{
+  return wrap<A, AltParser<Parser<A>, Parser>>
+    (AltParser<Parser<A>, Parser>{
       pCopy,
       qCopy,
       [=](const Any &res)
       {
         A a = std::any_cast<A>(res);
-        return makePure(a, "");
-        // return makePure(a, "Pure of alt of " + p.debugInfo + " and " + q.debugInfo);
+        return pure(a, "");
+        // return pure(a, "Pure of alt of " + p.debugInfo + " and " + q.debugInfo);
       }}, "alt of " + p.debugInfo + " and " + q.debugInfo);
 }
 
@@ -222,13 +211,14 @@ Parser<A> lazy(const std::function<Parser<A>()>& parserFactory)
         return fmap<A, Any>([](const A &a)
                             { return a; }, actualParser);
     };
-    return makeFree(LazyParser<Parser<A>>{
+    return wrap<A, LazyParser<Parser<A>, Parser>>
+      (LazyParser<Parser<A>, Parser>{
         parserFactoryAny,
         [](const Any& res)
         {
             A a = std::any_cast<A>(res);
-            return makePure(a, "");
-            // return makePure(a, "Pure of lazy parser");
+            return pure(a, "");
+            // return pure(a, "Pure of lazy parser");
         }
     }, "lazy");
 }
@@ -306,8 +296,8 @@ Parser<A> between(const Parser<O>& open, const Parser<A>& content, const Parser<
     return bind<O, A>(open, [=](const O&) {
         return bind<A, A>(content, [=](const A& a) {
             return bind<C, A>(close, [=](const C&) {
-                // return makePure(a, "Pure of between of " + open.debugInfo + " and " + close.debugInfo + " with content " + content.debugInfo);
-                return makePure(a, "");
+                // return pure(a, "Pure of between of " + open.debugInfo + " and " + close.debugInfo + " with content " + content.debugInfo);
+                return pure(a, "");
             });
         });
     }) + ("between of " + open.debugInfo + " and " + close.debugInfo + " with content " + content.debugInfo);
@@ -318,8 +308,8 @@ Parser<Many<A>> count(size_t n, const Parser<A>& p)
 {
     if (n == 0)
     {
-        // return makePure(Many<A>{}, "Pure of count 0 of " + p.debugInfo);
-        return makePure(Many<A>{}, "");
+        // return pure(Many<A>{}, "Pure of count 0 of " + p.debugInfo);
+        return pure(Many<A>{}, "");
     }
 
     // create a copy for passing to many/count recursively
@@ -403,8 +393,8 @@ struct filter_units<T, Ts...>
 // Base: zero parsers -> pure empty tuple
 inline Parser<std::tuple<>> sequence()
 {
-    // return makePure(std::tuple<>{}, "Pure of empty sequence");
-    return makePure(std::tuple<>{}, "");
+    // return pure(std::tuple<>{}, "Pure of empty sequence");
+    return pure(std::tuple<>{}, "");
 }
 
 // Single parser
@@ -489,6 +479,20 @@ Parser<Target> as(const Parser<Tuple>& p)
     }, p);
 }
 
+// Variadic template implementation of choice
+// Tries each parser in sequence and returns the result of the first one that succeeds.
+template <typename Parser1, typename... Parsers>
+Parser<typename Parser1::ResultType> choice(const Parser1 &p1, const Parsers &...parsers)
+{
+  if constexpr (sizeof...(parsers) == 0)
+  {
+    return p1;
+  }
+  else
+  {
+    return alt(try_(p1), choice(parsers...));
+  }
+}
 
 } // namespace core
 } // namespace ps

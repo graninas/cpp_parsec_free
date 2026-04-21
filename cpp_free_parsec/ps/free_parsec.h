@@ -2,14 +2,12 @@
 #define FREE_PARSEC_H
 
 #include "core/types.h"
-#include "core/runtime.h"
-#include "core/interpreter.h"
-#include "core/parser/functor.h"
-#include "core/parser/bind.h"
-#include "core/parser/applicative.h"
+#include "core/conds.h"
+#include "core/engine.h"
 #include "core/parser.h"
-#include "core/merge.h"
-#include "core/choice.h"
+#include "core/extra/merge.h"
+#include "core/runtime.h"
+#include "core/runner.h"
 
 namespace ps {
 

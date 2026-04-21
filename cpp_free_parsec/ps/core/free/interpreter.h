@@ -1,13 +1,22 @@
-#ifndef PS_CORE_INTERPRETER_H
-#define PS_CORE_INTERPRETER_H
+#ifndef PS_CORE_FREE_INTERPRETER_H
+#define PS_CORE_FREE_INTERPRETER_H
 
-#include "runtime.h"
-#include "raw_parsers.h"
-#include "parser/adt.h"
+#include "../types.h"
+#include "../methods/adt.h"
+#include "../methods/functor.h"
+#include "adt.h"
+#include "bind.h"
+#include "functor.h"
+
+#include "../runtime.h"
+#include "../internal/raw_parsers.h"
+
 
 namespace ps
 {
 namespace core
+{
+namespace free
 {
 
 // Forward declaration
@@ -83,7 +92,7 @@ struct InterpretingADTVisitor
     {
     }
 
-    void operator()(const ParseSymbolCond<Parser<Ret>>& method)
+    void operator()(const ParseSymbolCond<Parser<Ret>, Parser>& method)
     {
         ParserResult<Char> r = ParserFailed{"Fail", _startFrom};
 
@@ -117,7 +126,7 @@ struct InterpretingADTVisitor
         }
     }
 
-    void operator()(const ParseLit<Parser<Ret>> &method)
+    void operator()(const ParseLit<Parser<Ret>, Parser>& method)
     {
       ParserResult<std::string> r = ParserFailed{"Fail", _startFrom};
 
@@ -150,7 +159,7 @@ struct InterpretingADTVisitor
       }
     }
 
-    void operator()(const ParseMany<Parser<Ret>>& method)
+    void operator()(const ParseMany<Parser<Ret>, Parser>& method)
     {
       if (method.rawParser == nullptr)
       {
@@ -212,7 +221,7 @@ struct InterpretingADTVisitor
       result = runParser<Ret>(_runtime, method.next(acc), currentPos, _indent);
     }
 
-    void operator()(const TryOrErrorParser<Parser<Ret>>& method)
+    void operator()(const TryOrErrorParser<Parser<Ret>, Parser> &method)
     {
       if (method.rawParser == nullptr)
       {
@@ -245,7 +254,7 @@ struct InterpretingADTVisitor
       }
     }
 
-    void operator()(const AltParser<Parser<Ret>>& method)
+    void operator()(const AltParser<Parser<Ret>, Parser> &method)
     {
       if (method.p == nullptr)
       {
@@ -309,7 +318,7 @@ struct InterpretingADTVisitor
       }
     }
 
-    void operator()(const LazyParser<Parser<Ret>> &method)
+    void operator()(const LazyParser<Parser<Ret>, Parser> &method)
     {
       Parser<Any> actualParser = method.parserFactory();
       ParserResult<Any> r = runParser<Any>(_runtime, actualParser, _startFrom, _indent);
@@ -326,13 +335,13 @@ struct InterpretingADTVisitor
       }
     }
 
-    void operator()(const GetSt<Parser<Ret>> &method)
+    void operator()(const GetSt<Parser<Ret>, Parser> &method)
     {
       auto rNext = method.next(_runtime.getState());
       result = runParser<Ret>(_runtime, rNext, _startFrom, _indent);
     }
 
-    void operator()(const PutSt<Parser<Ret>> &method)
+    void operator()(const PutSt<Parser<Ret>, Parser> &method)
     {
       _runtime.putState(method.st);
       auto rNext = method.next(unit);
@@ -374,7 +383,9 @@ struct InterpretingVisitor
     }
 };
 
+
+} // namespace free
 } // namespace core
 } // namespace ps
 
-#endif // PS_CORE_INTERPRETER_H
+#endif // PS_CORE_FREE_INTERPRETER_H

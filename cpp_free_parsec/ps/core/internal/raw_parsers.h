@@ -1,10 +1,10 @@
-#ifndef PS_CORE_RAW_PARSERS_H
-#define PS_CORE_RAW_PARSERS_H
+#ifndef PS_CORE_INTERNAL_RAW_PARSERS_H
+#define PS_CORE_INTERNAL_RAW_PARSERS_H
 
 #include <string>
 #include <functional>
 
-#include "types.h"
+#include "../types.h"
 
 namespace ps
 {
@@ -71,4 +71,4 @@ namespace core
 } // namespace core
 } // namespace ps
 
-#endif // PS_CORE_RAW_PARSERS_H
+#endif // PS_CORE_INTERNAL_RAW_PARSERS_H

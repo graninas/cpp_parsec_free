@@ -240,20 +240,6 @@ void FreeParsecTest::digitCastTest()
       return ch - '0';
   };
 
-  ParserADT<char> digitADT =
-  {
-      ParseSymbolCond<char>{
-          cond,
-          [](const std::any& any)
-          {
-              char ch = std::any_cast<char>(any);
-              int digitValue = ch - '0';
-              return digitValue;
-          }}
-  };
-
-  ParserADT<int> digitIntADT = fmapMethods<char, int>(charToInt, digitADT);
-
   auto src = "1";
 
   Parser<int> digit_casted = fmap<Char, int>(charToInt, digit);

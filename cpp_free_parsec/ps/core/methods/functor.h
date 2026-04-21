@@ -1,5 +1,5 @@
-#ifndef PS_CORE_PARSER_FUNCTOR_H
-#define PS_CORE_PARSER_FUNCTOR_H
+#ifndef PS_CORE_METHODS_FUNCTOR_H
+#define PS_CORE_METHODS_FUNCTOR_H
 
 #include "../types.h"
 #include "adt.h"
@@ -9,33 +9,25 @@ namespace ps
 namespace core
 {
 
-
 template <typename A, typename B>
 using MapFunc = std::function<B(A)>;
 
-// Forward
-
-template <typename A, typename B>
-Parser<B> fmap(
-    const std::function<B(A)> &f,
-    const Parser<A> &psl);
-
 // Methods functor
 
-template <typename A, typename B>
-struct ParserADTVisitor
+template <typename A, typename B, template <typename> class Parser>
+struct ParserMethodsVisitor
 {
     MapFunc<A, B> fTemplate;
-    ParserADT<B> result;
+    ParserMethods<B, Parser> result;
 
-    ParserADTVisitor(const MapFunc<A, B>& func)
+    ParserMethodsVisitor(const MapFunc<A, B>& func)
         : fTemplate(func)
     {}
 
-    void operator()(const ParseSymbolCond<A>& fa)
+    void operator()(const ParseSymbolCond<A, Parser>& fa)
     {
       MapFunc<A, B> g = fTemplate;
-      ParseSymbolCond<B> fb;
+      ParseSymbolCond<B, Parser> fb;
       fb.validator = fa.validator;
       fb.next = [=](const Any& d)
       {
@@ -46,10 +38,10 @@ struct ParserADTVisitor
       result.psf = fb;
     }
 
-    void operator()(const ParseLit<A>& fa)
+    void operator()(const ParseLit<A, Parser>& fa)
     {
         MapFunc<A, B> g = fTemplate;
-        ParseLit<B> fb;
+        ParseLit<B, Parser> fb;
         fb.s = fa.s;
         fb.next = [=](const std::string& d)
         {
@@ -60,10 +52,10 @@ struct ParserADTVisitor
         result.psf = fb;
     }
 
-    void operator()(const ParseMany<A>& fa)
+    void operator()(const ParseMany<A, Parser>& fa)
     {
         MapFunc<A, B> g = fTemplate;
-        ParseMany<B> fb;
+        ParseMany<B, Parser> fb;
         fb.rawParser = fa.rawParser;
         fb.next = [=](const std::list<Any>& d)
         {
@@ -74,10 +66,10 @@ struct ParserADTVisitor
         result.psf = fb;
     }
 
-    void operator()(const TryOrErrorParser<A>& fa)
+    void operator()(const TryOrErrorParser<A, Parser> &fa)
     {
         MapFunc<A, B> g = fTemplate;
-        TryOrErrorParser<B> fb;
+        TryOrErrorParser<B, Parser> fb;
         fb.rawParser = fa.rawParser;   // keep the same raw parser
         fb.next = [=](const ParserResult<Any>& d)
         {
@@ -88,10 +80,10 @@ struct ParserADTVisitor
         result.psf = fb;
     }
 
-    void operator()(const AltParser<A>& fa)
+    void operator()(const AltParser<A, Parser> &fa)
     {
         MapFunc<A, B> g = fTemplate;
-        AltParser<B> fb;
+        AltParser<B, Parser> fb;
         fb.p = fa.p;
         fb.q = fa.q;
         fb.next = [=](const Any& d)
@@ -103,10 +95,10 @@ struct ParserADTVisitor
         result.psf = fb;
     }
 
-    void operator()(const LazyParser<A>& fa)
+    void operator()(const LazyParser<A, Parser> &fa)
     {
         MapFunc<A, B> g = fTemplate;
-        LazyParser<B> fb;
+        LazyParser<B, Parser> fb;
         fb.parserFactory = fa.parserFactory;   // keep the same factory
         fb.next = [=](const Any& d)
         {
@@ -117,10 +109,10 @@ struct ParserADTVisitor
         result.psf = fb;
     }
 
-    void operator()(const GetSt<A> &fa)
+    void operator()(const GetSt<A, Parser> &fa)
     {
       MapFunc<A, B> g = fTemplate;
-      GetSt<B> fb;
+      GetSt<B, Parser> fb;
       fb.next = [=](const State &st)
       {
         A faResult = fa.next(st);
@@ -130,10 +122,10 @@ struct ParserADTVisitor
       result.psf = fb;
     }
 
-    void operator()(const PutSt<A>& fa)
+    void operator()(const PutSt<A, Parser>& fa)
     {
         MapFunc<A, B> g = fTemplate;
-        PutSt<B> fb;
+        PutSt<B, Parser> fb;
         fb.st = fa.st;
         fb.next = [=](const Unit& unit)
         {
@@ -146,63 +138,18 @@ struct ParserADTVisitor
 
 };
 
-template <typename A, typename B>
-ParserADT<B> fmapMethods(const MapFunc<A, B> &f,
-                         const ParserADT<A> &method)
+template <typename A, typename B, template <typename> class Parser>
+ParserMethods<B, Parser> fmapMethods(
+    const MapFunc<A, B> &f,
+    const ParserMethods<A, Parser> &method)
 {
-    ParserADTVisitor<A, B> visitor(f);
+    ParserMethodsVisitor<A, B, Parser> visitor(f);
     std::visit(visitor, method.psf);
     return visitor.result;
 }
 
-// // Free functor
-
-// Forward
-template <typename A, typename B>
-struct FunctorParserVisitor;
-
-template <typename A, typename B>
-Parser<B> fmap(
-    const std::function<B(A)> &f,
-    const Parser<A> &psl)
-{
-  FunctorParserVisitor<A, B> visitor(f);
-  std::visit(visitor, psl.psl);
-  visitor.result.debugInfo = psl.debugInfo + " (fmap)";
-  return visitor.result;
-}
-
-template <typename A, typename B>
-struct FunctorParserVisitor
-{
-    std::function<B(A)> fTemplate;
-    Parser<B> result;
-
-    FunctorParserVisitor(const std::function<B(A)>& func)
-        : fTemplate(func)
-    {}
-
-    void operator()(const PureF<A>& fa)
-    {
-        std::function<B(A)> f = fTemplate;
-        result = Parser<B> { PureF<B> { f(fa.ret) }, "" };
-    }
-
-    void operator()(const FreeF<A>& fa)
-    {
-        std::function<B(A)> f = fTemplate;
-        std::function<Parser<B>(Parser<A>)> f2 =
-                [=](const Parser<A>& pslInt)
-        {
-            return fmap<A, B>(f, pslInt);
-        };
-
-        ParserADT<Parser<B>> visited = fmapMethods(f2, fa.psf);
-        result = Parser<B> { FreeF<B> { visited }, "" };
-    }
-};
 
 } // namespace core
 } // namespace ps
 
-#endif // PS_CORE_PARSER_FUNCTOR_H
+#endif // PS_CORE_METHODS_FUNCTOR_H

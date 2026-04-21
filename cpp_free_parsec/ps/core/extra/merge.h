@@ -1,5 +1,5 @@
-#ifndef PS_CORE_MERGE_H
-#define PS_CORE_MERGE_H
+#ifndef PS_CORE_EXTRA_MERGE_H
+#define PS_CORE_EXTRA_MERGE_H
 
 #include <tuple>
 #include <string>
@@ -7,8 +7,8 @@
 #include <vector>
 #include <type_traits>
 
-#include "types.h"
-#include "parser/functor.h" // for fmap
+
+#include "../engine.h"
 
 namespace ps {
 namespace core {
@@ -125,4 +125,4 @@ auto mergeTo(ParserContainer p) {
 } // namespace core
 } // namespace ps
 
-#endif // PS_CORE_MERGE_H
+#endif // PS_CORE_EXTRA_MERGE_H

@@ -40,11 +40,10 @@ struct Parser
   std::variant<PureF<A>, FreeF<A>> psl;
   std::string debugInfo;
 
-  Parser<A> operator+( const std::string& info ) const
+  Parser<A>& operator+( const std::string& info)
   {
-    Parser<A> newParser = *this;
-    newParser.debugInfo = info;
-    return newParser;
+    this->debugInfo = info;
+    return *this;
   }
 };
 

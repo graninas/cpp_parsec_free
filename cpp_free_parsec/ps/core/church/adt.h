@@ -2,102 +2,26 @@
 #define PS_CORE_CHURCH_ADT_H
 
 #include "../types.h"
+#include "../methods/adt.h"
 
 namespace ps
 {
 namespace core
 {
+namespace church
+{
 
-  // Forward declaration
-  template <typename A>
-  struct Parser;
-
-  // PS methods
-
-  template <typename Next>
-  struct ParseSymbolCond
-  {
-    std::function<bool(Any)> validator;
-    std::function<Next(Any)> next;
-  };
-
-  template <typename Next>
-  struct ParseMany
-  {
-    std::shared_ptr<Parser<Any>> rawParser;   // Parser is always the same
-    std::function<Next(std::list<Any>)> next;
-  };
-
-  template <typename Next>
-  struct TryOrErrorParser
-  {
-    std::shared_ptr<Parser<Any>> rawParser;   // Parser is always the same
-    std::function<Next(ParserResult<Any>)> next;
-  };
-
-  template <typename Next>
-  struct AltParser
-  {
-    std::shared_ptr<Parser<Any>> p;   // Parser is always the same
-    std::shared_ptr<Parser<Any>> q;   // Parser is always the same
-    std::function<Next(Any)> next;
-  };
-
-  template <typename Next>
-  struct LazyParser
-  {
-    std::function<Parser<Any>()> parserFactory;   // Factory is always the same
-    std::function<Next(Any)> next;
-  };
-
-
-  template <typename Next>
-  struct ParseLit
-  {
-    std::string s;
-    std::function<Next(std::string)> next;
-  };
-
-  template <typename Next>
-  struct GetSt
-  {
-    std::function<Next(State)> next;
-  };
-
-  template <typename Next>
-  struct PutSt
-  {
-      State st;
-      std::function<Next(Unit)> next;
-  };
-
-
-  template <class Ret>
-  struct ParserADT        // TODO: rename to Methods
-  {
-    using ResultType = Ret;
-    std::variant<
-        ParseSymbolCond<Ret>,
-        ParseMany<Ret>,
-        ParseLit<Ret>,
-        GetSt<Ret>,
-        PutSt<Ret>,
-        TryOrErrorParser<Ret>,
-        AltParser<Ret>,
-        LazyParser<Ret>>
-        psf;
-  };
+// Forward declaration
+template <typename A>
+struct Parser;
 
 // Church Free language
 
-
-// Church Free methods
-
 template <typename Ret>
-using Continuation = std::function<
-    Any(
-        std::function<Any(Ret)>,
-        std::function<Any(ParserADT<Any>)>)>;
+using Continuation =
+  std::function<
+    Any(std::function<Any(Ret)>,
+        std::function<Any(ParserMethods<Any, Parser>)>)>;
 
 template <typename A>
 struct Parser
@@ -106,62 +30,48 @@ struct Parser
   Continuation<A> runF;
   std::string debugInfo;
 
-  Parser<A> operator+(const std::string &info) const
+  Parser<A> &operator+(const std::string &info)
   {
-    Parser<A> newParser = *this;
-    newParser.debugInfo = info;
-    return newParser;
+    this->debugInfo = info;
+    return *this;
   }
 };
 
+// TODO: debugInfo is blank by default
 template <typename A>
-Parser<A> pure(const A &a, const std::string &debugInfo)
+Parser<A> makePure(const A &a, const std::string &debugInfo)
 {
   Parser<A> n;
   n.debugInfo = debugInfo;
   n.runF = [=](const std::function<Any(A)> &p,
-               const std::function<Any(Parser<Any>)> &)
+               const std::function<Any(ParserMethods<Any, Parser>)> &)
   {
     return p(a);
   };
   return n;
 }
 
-template <typename A, template <typename, typename> class Method>
-Parser<A> wrap(const Method<Any, A> &method)
+// TODO: debugInfo is blank by default
+template <typename A, typename Method>
+Parser<A> makeChurch(const Method &method, const std::string &debugInfo)
 {
   Parser<A> n;
 
+  n.debugInfo = debugInfo;
   n.runF = [=](const std::function<Any(A)> &p,
-               const std::function<Any(Parser<Any>)> &r)
+               const std::function<Any(ParserMethods<Any, Parser>)> &r)
   {
-    Parser<A> f{method};
-    Parser<Any> mapped = fmap<A, Any>(p, f);
+    ParserMethods<A, Parser> methodWrapper{method};
+
+    ParserMethods<Any, Parser> mapped = fmapMethods(p, methodWrapper);
     return r(mapped);
   };
 
   return n;
 }
 
-// template <typename A>
-// Parser<A> makePure(const A &a, const std::string& debugInfo)
-// {
-//   return {PureF<A>{a}, debugInfo};
-// }
 
-// template <typename A,
-//           template <typename> class Method>
-// Parser<A> makeFree(const Method<Parser<A>> &method, const std::string& debugInfo)
-// {
-//   return {FreeF<A>{ParserADT<Parser<A>>{method}}, debugInfo};
-// }
-
-// template <typename A>
-// Parser<A> pure(const A &a, const std::string& debugInfo)
-// {
-//   return makePure(a, debugInfo);
-// }
-
+} // namespace church
 } // namespace core
 } // namespace ps
 

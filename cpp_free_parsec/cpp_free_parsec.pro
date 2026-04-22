@@ -17,6 +17,9 @@ HEADERS += \
     ps/core/free/functor.h \
     ps/core/free/bind.h \
     ps/core/free/interpreter.h \
+    ps/core/church/adt.h \
+    ps/core/church/functor.h \
+    ps/core/church/bind.h \
     ps/core/conds.h \
     ps/core/engine.h \
     ps/core/parser.h \

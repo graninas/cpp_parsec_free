@@ -128,7 +128,6 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       }
 
       std::list<Any> acc;
-      // Pos currentPos = state._parsePosition;       ??????????????????
       int iteration = 0;
 
       ParserRuntime tempRuntime = state._runtime.cloneClean();
@@ -182,7 +181,7 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       else
       {
         ParserFailed failed = getParseFailed(r);
-        method.next(r);
+        state.result = ParserFailed{failed.message, failed.at};
       }
     }
 
@@ -234,7 +233,6 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       else
       {
         ParserFailed failed2 = getParseFailed(r2);
-        // _parsePosition == ?
         state.result = ParserFailed{"No alt: both failed", failed2.at};
       }
     }

@@ -25,7 +25,7 @@ void FreeParsecTest::tryCombinatorTest()
 
   // Case 1: try allows backtracking on failure after consuming input
   // Try to parse "ab" or "ac" from "ac". Without try, the first parser would consume 'a' and fail, blocking the second.
-  auto src = "ac";
+  std::string src = "ac";
   ParserRuntime runtime1(src, State{});
   Parser<std::string> p1 = alt(
       try_(seq(parseLit("a"), parseLit("b"))), // will consume 'a', fail on 'b'
@@ -42,7 +42,8 @@ void FreeParsecTest::tryCombinatorTest()
   QVERIFY(getParseSucceeded(r1).to == 2);
 
   // Case 2: try does not interfere with success
-  ParserRuntime runtime2("ab", State{});
+  std::string src2 = "ab";
+  ParserRuntime runtime2(src2, State{});
   Parser<std::string> p2 = try_(parseLit("ab"));
   ParserResult<std::string> r2 = parseWithRuntime<std::string>(runtime2, p2);
 
@@ -53,7 +54,8 @@ void FreeParsecTest::tryCombinatorTest()
   QVERIFY(getParseSucceeded(r2).parsed == "ab");
 
   // Case 3: try on a parser that fails without consuming input (should be a no-op)
-  ParserRuntime runtime3("xy", State{});
+  std::string src3 = "xy";
+  ParserRuntime runtime3(src3, State{});
   Parser<std::string> p3 = try_(parseLit("z"));
   ParserResult<std::string> r3 = parseWithRuntime<std::string>(runtime3, p3);
 
@@ -65,7 +67,8 @@ void FreeParsecTest::tryCombinatorTest()
   QVERIFY(getParseFailed(r3).at == 0);
 
   // Case 4: try with alternative, first succeeds, second not tried
-  ParserRuntime runtime4("ab", State{});
+  std::string src4 = "ab";
+  ParserRuntime runtime4(src4, State{});
   Parser<std::string> p4 = alt(try_(parseLit("ab")), parseLit("a"));
   ParserResult<std::string> r4 = parseWithRuntime<std::string>(runtime4, p4);
 
@@ -81,33 +84,38 @@ void FreeParsecTest::choiceCombinatorTest()
   using namespace ps;
 
   // Test 1: Simple choice between two literals
+  std::string src1 = "A";
   Parser<std::string> parser1 = choice(parseLit("A"), parseLit("B"));
-  ParserRuntime runtime1("A", State{});
+  ParserRuntime runtime1(src1, State{});
   auto result1 = parseWithRuntime(runtime1, parser1);
   QVERIFY(isRight(result1));
   QVERIFY(getParseSucceeded(result1).parsed == "A");
 
   // Test 2: Choice with the second option succeeding
-  ParserRuntime runtime2("B", State{});
+  std::string src2 = "B";
+  ParserRuntime runtime2(src2, State{});
   auto result2 = parseWithRuntime(runtime2, parser1);
   QVERIFY(isRight(result2));
   QVERIFY(getParseSucceeded(result2).parsed == "B");
 
   // Test 3: Choice with no options succeeding
-  ParserRuntime runtime3("C", State{});
+  std::string src3 = "C";
+  ParserRuntime runtime3(src3, State{});
   auto result3 = parseWithRuntime(runtime3, parser1);
   QVERIFY(isLeft(result3));
 
   // Test 4: Choice with multiple options
+  std::string src4 = "Y";
   Parser<std::string> parser2 = choice(parseLit("X"), parseLit("Y"), parseLit("Z"));
-  ParserRuntime runtime4("Y", State{});
+  ParserRuntime runtime4(src4, State{});
   auto result4 = parseWithRuntime(runtime4, parser2);
   QVERIFY(isRight(result4));
   QVERIFY(getParseSucceeded(result4).parsed == "Y");
 
   // Test 5: Nested choice
+  std::string src5 = "Z";
   Parser<std::string> parser3 = choice(parser1, parser2);
-  ParserRuntime runtime5("Z", State{});
+  ParserRuntime runtime5(src5, State{});
   auto result5 = parseWithRuntime(runtime5, parser3);
   QVERIFY(isRight(result5));
   QVERIFY(getParseSucceeded(result5).parsed == "Z");
@@ -117,8 +125,7 @@ void FreeParsecTest::singleDigitParserTest()
 {
   using namespace ps;
 
-  auto src = "1";
-  std::string_view src_view(src);
+  std::string src = "1";
 
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
@@ -135,7 +142,7 @@ void FreeParsecTest::onlyOneDigitTest()
 {
   using namespace ps;
 
-  auto src = "12";
+  std::string src = "12";
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
 
@@ -151,7 +158,7 @@ void FreeParsecTest::singleDigitFromManyTest()
 {
   using namespace ps;
 
-  auto src = "123";
+  std::string src = "123";
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 0);
 
@@ -167,7 +174,7 @@ void FreeParsecTest::singleDigitFromMiddleTest()
 {
   using namespace ps;
 
-  auto src = "a1b";
+  std::string src = "a1b";
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 1);
 
@@ -183,7 +190,7 @@ void FreeParsecTest::onlyOneDigitFromMiddleTest()
 {
   using namespace ps;
 
-  auto src = "123";
+  std::string src = "123";
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit, 1);
 
@@ -199,7 +206,7 @@ void FreeParsecTest::singleDigitFailureTest()
 {
   using namespace ps;
 
-  auto src = "a";
+  std::string src = "a";
 
   ParserRuntime runtime(src, State{});
   ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
@@ -213,7 +220,7 @@ void FreeParsecTest::litParserTest()
 {
     using namespace ps;
 
-    auto src = "str12";
+    std::string src = "str12";
 
     auto my_lit = parseLit("str");
 
@@ -240,7 +247,7 @@ void FreeParsecTest::digitCastTest()
       return ch - '0';
   };
 
-  auto src = "1";
+  std::string src = "1";
 
   Parser<int> digit_casted = fmap<Char, int>(charToInt, digit);
   ParserRuntime runtime(src, State{});
@@ -254,7 +261,7 @@ void FreeParsecTest::manyTest()
 {
   using namespace ps;
 
-  auto src = "123";
+  std::string src = "123";
   ParserRuntime runtime(src, State{});
 
   // many: run parser zero or more times and return list of results
@@ -281,7 +288,7 @@ void FreeParsecTest::manyDigitsCastedTest()
 {
   using namespace ps;
 
-  auto src = "123";
+  std::string src = "123";
   ParserRuntime runtime(src, State{});
 
   Parser<int> digitIntObj = fmap<Char, int>([](char ch) { return ch - '0'; }, digit);
@@ -303,7 +310,7 @@ void FreeParsecTest::manyParserCastedTest()
 {
   using namespace ps;
 
-  auto src = "123";
+  std::string src = "123";
   ParserRuntime runtime(src, State{});
 
   Parser<Many<Char>> manyDigits = many<char>(digit);
@@ -344,7 +351,7 @@ void FreeParsecTest::bindPureTest()
   Parser<R> p = bind<Char, R>(digit, [=](Char d1)
     { return pure<R>(R{d1, 'a', '0'}, "bindPureTest"); });
 
-  auto src = "242fddvf";
+  std::string src = "242fddvf";
   ParserRuntime runtime(src, State{});
   ParserResult<R> result = parseWithRuntime<R>(runtime, p, 0);
 
@@ -370,7 +377,8 @@ void FreeParsecTest::applicativeCombinatorTest()
   auto combinedParser = applicative(addParser, valueParser);
 
   // Run the parser
-  ParserRuntime runtime("", State{});
+  std::string src = "";
+  ParserRuntime runtime(src, State{});
   ParserResult<int> result = parseWithRuntime<int>(runtime, combinedParser);
 
   // Verify the result
@@ -395,7 +403,8 @@ void FreeParsecTest::applicativeCombinatorTestWithStrings()
   auto combinedParser = applicative(concatParser, valueParser);
 
   // Run the parser
-  ParserRuntime runtime("", State{});
+  std::string src = "";
+  ParserRuntime runtime(src, State{});
   ParserResult<std::string> result = parseWithRuntime<std::string>(runtime, combinedParser);
 
   // Verify the result
@@ -413,7 +422,8 @@ void FreeParsecTest::bindLeftIdentityTest()
   Parser<std::string> left = bind<int, std::string>(pure<int>(5, "5 pure"), f);
   Parser<std::string> right = f(5);
 
-  ParserRuntime runtime("", State{});
+  std::string src = "";
+  ParserRuntime runtime(src, State{});
   ParserResult<std::string> rLeft = parseWithRuntime<std::string>(runtime, left);
   ParserResult<std::string> rRight = parseWithRuntime<std::string>(runtime, right);
 
@@ -429,7 +439,8 @@ void FreeParsecTest::bindRightIdentityTest()
 
   Parser<Char> rightId = bind<Char, Char>(digit, [](Char c) { return pure<Char>(c, "pure char"); });
 
-  ParserRuntime runtime("1", State{});
+  std::string src = "1";
+  ParserRuntime runtime(src, State{});
   ParserResult<Char> rOrig = parseWithRuntime<Char>(runtime, digit);
   ParserResult<Char> rRight = parseWithRuntime<Char>(runtime, rightId);
 
@@ -449,7 +460,8 @@ void FreeParsecTest::bindAssociativityTest()
   Parser<std::string> left = bind<int, std::string>(bind<Char, int>(digit, f), g);
   Parser<std::string> right = bind<Char, std::string>(digit, [=](Char c) { return bind<int, std::string>(f(c), g); });
 
-  ParserRuntime runtime("7", State{});
+  std::string src = "7";
+  ParserRuntime runtime(src, State{});
   ParserResult<std::string> rLeft = parseWithRuntime<std::string>(runtime, left);
   ParserResult<std::string> rRight = parseWithRuntime<std::string>(runtime, right);
 
@@ -472,7 +484,8 @@ void FreeParsecTest::nestedBindSequenceTest()
     });
   });
 
-  ParserRuntime runtime("123", State{});
+  std::string src = "123";
+  ParserRuntime runtime(src, State{});
   ParserResult<R> res = parseWithRuntime<R>(runtime, inSequence, 0);
 
   QVERIFY(isRight(res));
@@ -504,7 +517,7 @@ void FreeParsecTest::seqTest()
   using namespace ps;
 
   // seq: run two parsers and return second
-  auto src = "12";
+  std::string src = "12";
   ParserRuntime runtime(src, State{});
 
   Parser<Char> p = seq<Char, Char>(digit, digit);
@@ -519,7 +532,7 @@ void FreeParsecTest::leftRightTest()
 {
   using namespace ps;
 
-  auto src = "1a";
+  std::string src = "1a";
   ParserRuntime runtime(src, State{});
 
   // left: run two parsers and return first
@@ -540,7 +553,7 @@ void FreeParsecTest::many1Test()
 {
   using namespace ps;
 
-  auto src = "123";
+  std::string src = "123";
   ParserRuntime runtime(src, State{});
 
   // many1: run parser one or more times and return list of results
@@ -565,7 +578,7 @@ void FreeParsecTest::sepBy1Test()
 {
   using namespace ps;
 
-  auto src = "1,2,3";
+  std::string src = "1,2,3";
   ParserRuntime runtime(src, State{});
 
   // sepBy1: run parser one or more times separated by sep parser, and return list of results from main parser
@@ -586,7 +599,7 @@ void FreeParsecTest::betweenTest()
 {
   using namespace ps;
 
-  auto src = "(foo)";
+  std::string src = "(foo)";
   ParserRuntime runtime(src, State{});
 
   // between: run open parser, then main parser, then close parser, and return result from main parser
@@ -602,7 +615,7 @@ void FreeParsecTest::countTest()
 {
   using namespace ps;
 
-  auto src = "12345";
+  std::string src = "12345";
   ParserRuntime runtime(src, State{});
 
   // count: run parser n times and return list of results
@@ -624,7 +637,7 @@ void FreeParsecTest::discardTest()
 {
   using namespace ps;
 
-  auto src = "12345";
+  std::string src = "12345";
   ParserRuntime runtime(src, State{});
 
   // discard: run parser and discard its result, returning unit
@@ -639,7 +652,7 @@ void FreeParsecTest::bothTest()
 {
   using namespace ps;
 
-  auto src = "1a345";
+  std::string src = "1a345";
   ParserRuntime runtime(src, State{});
 
   // both: run two parsers and return pair of their results

@@ -46,15 +46,15 @@ struct State
 template <typename Ret>
 ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
 
-  // Visitor for the methods variant
   template <typename Ret>
   struct MethodsVisitor
   {
     State<Ret> &state;
-    const ParserMethods<Any, Parser> &methodAnyRef;
 
-    MethodsVisitor(State<Ret> &o, const ParserMethods<Any, Parser> &m)
-        : state(o), methodAnyRef(m) {}
+    MethodsVisitor(State<Ret> &o)
+      : state(o)
+    {
+    }
 
     void operator()(const ParseSymbolCond<Any, Parser> &method)
     {
@@ -84,7 +84,7 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
         state._parsePosition = succeeded.to;
         state._successMsg = std::string("Parsed char: '") + succeeded.parsed + "'";
 
-        method.next(succeeded.parsed); // Result is not used???
+        method.next(succeeded.parsed);
       }
     }
 
@@ -115,12 +115,6 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
         ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
         state._parsePosition = succeeded.to;
         state._successMsg = std::string("Parsed lit: '") + succeeded.parsed + "'";
-
-        // Need success message:
-        // _successMsg = std::string("Parsed lit: '") + succeeded.parsed + "'";
-        // _runtime.pushMessage("[" + paddedTo4Symb + "] " +
-                            //  _indent.substr(0, _indent.size() - 2) + "<" + _parserDebugInfo + "> success " + _successMsg);
-
         method.next(succeeded.parsed);
       }
     }
@@ -134,7 +128,7 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       }
 
       std::list<Any> acc;
-      // Pos currentPos = state._parsePosition;
+      // Pos currentPos = state._parsePosition;       ??????????????????
       int iteration = 0;
 
       ParserRuntime tempRuntime = state._runtime.cloneClean();
@@ -163,7 +157,7 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       }
 
       state._parsePosition = tempState._parsePosition;
-      method.next(acc);       // Result is not used??
+      method.next(acc);
     }
 
     void operator()(const TryOrErrorParser<Any, Parser> &method)
@@ -183,7 +177,7 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
         state._parsePosition = succeeded.to;
-        method.next(r);       // Result is not used??
+        method.next(r);
       }
       else
       {
@@ -282,6 +276,7 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
 template <typename Ret>
 ParserResult<Ret> runParser(State<Ret> &state, const Parser<Ret> &parser)
 {
+  auto initialPosition = state._parsePosition;
   auto x = std::to_string(state._parsePosition);
   auto paddedTo4Symb = std::string(4 - x.length(), ' ') + x;
 
@@ -293,21 +288,21 @@ ParserResult<Ret> runParser(State<Ret> &state, const Parser<Ret> &parser)
     succeeded.from = state._parsePosition;
     succeeded.to = state._parsePosition;
     state.result = succeeded;
-    return Any{}; ////////////////////////////////////////////MISTAKE?
+    return Any{};
   };
 
   // runMethods: called by the church-encoded parser when it exposes a ParserMethods to be executed.
   std::function<Any(ParserMethods<Any, Parser>)> runMethods = [&](const ParserMethods<Any, Parser> &methodAny) -> Any
   {
-    MethodsVisitor<Ret> mv(state, methodAny);
+    MethodsVisitor<Ret> mv(state);
     std::visit(mv, const_cast<ParserMethods<Any, Parser> &>(methodAny).psf);
-    return Any{}; //////////////////////////////// MISTAKE??
+    return Any{};
   };
 
   try
   {
     state._runtime.pushMessage("[" + paddedTo4Symb + "] " + state._indent + "<" + parser.debugInfo + ">");
-    parser.runF(pureFunc, runMethods); // Result is not used??
+    parser.runF(pureFunc, runMethods);
   }
   catch (const std::exception &e)
   {
@@ -333,7 +328,7 @@ ParserResult<Ret> runParser(State<Ret> &state, const Parser<Ret> &parser)
   else
   {
     ParserSucceeded<Ret> succeeded = getParseSucceeded(state.result);
-    succeeded.from = state._parsePosition;
+    succeeded.from = initialPosition;
     state._runtime.pushMessage("[" + paddedTo4Symb + "] " + state._indent + "<" + parser.debugInfo + "> success " + state._successMsg);
     return succeeded;
   }

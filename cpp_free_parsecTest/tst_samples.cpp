@@ -269,7 +269,7 @@ void SamplesTest::personInfoParserTest()
 {
   using namespace ps;
 
-  auto src = "John,Doe,30,123-45  -    6789}";
+  std::string src = "John,Doe,30,123-45  -    6789}";
   ParserRuntime runtime(src, State{});
 
   Parser<PersonInfo> p = personInfoParser();
@@ -343,15 +343,15 @@ void SamplesTest::numberExprInParensTest()
 
   // printMessages(runtime);
 
-  // QVERIFY(isRight(result));
+  QVERIFY(isRight(result));
 
-  // // Evaluate the AST
-  // std::map<std::string, int> params;
-  // std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
-  // int evaluationResult = evaluateAST(ast, params);
+  // Evaluate the AST
+  std::map<std::string, int> params;
+  std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
+  int evaluationResult = evaluateAST(ast, params);
 
-  // // Verify the result
-  // QVERIFY(evaluationResult == 2);
+  // Verify the result
+  QVERIFY(evaluationResult == 2);
 }
 
 

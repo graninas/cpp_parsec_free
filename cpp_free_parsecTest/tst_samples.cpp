@@ -261,7 +261,7 @@ int evaluateAST(const std::shared_ptr<ASTNode> &node, const std::map<std::string
     }
     else if (node->value == "-")
     {
-      return leftValue + rightValue;
+      return leftValue - rightValue;
     }
     else if (node->value == "*")
     {
@@ -455,7 +455,6 @@ void SamplesTest::customLanguageParserTest()
   std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
   int evaluationResult = evaluateAST(ast, params);
 
-  std::cout << evaluationResult << "\n";
   // Verify the result
-  QVERIFY(evaluationResult == 1);
+  QVERIFY(evaluationResult == (-160));
 }

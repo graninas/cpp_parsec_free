@@ -118,7 +118,7 @@ struct InterpretingADTVisitor
         {
             ParserSucceeded<Char> succeeded = getParseSucceeded(r);
             Parser<Ret> rNext = method.next(succeeded.parsed);
-            _successMsg = std::string("Parsed char: '") + succeeded.parsed + "'";
+            _successMsg = std::string("PARSED CHAR: '") + succeeded.parsed + "'";
             _runtime.pushMessage("[" + paddedTo4Symb + "] " +
                 _indent.substr(0, _indent.size() - 2)
                 + "<" + _parserDebugInfo + "> success " + _successMsg);
@@ -152,7 +152,7 @@ struct InterpretingADTVisitor
       {
         ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
         Parser<Ret> rNext = method.next(succeeded.parsed);
-        _successMsg = std::string("Parsed lit: '") + succeeded.parsed + "'";
+        _successMsg = std::string("PARSED LIT: '") + succeeded.parsed + "'";
         _runtime.pushMessage("[" + paddedTo4Symb + "] " +
                             _indent.substr(0, _indent.size() - 2) + "<" + _parserDebugInfo + "> success " + _successMsg);
         result = runParser<Ret>(_runtime, rNext, succeeded.to, _indent);

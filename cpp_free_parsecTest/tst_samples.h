@@ -17,9 +17,9 @@ private slots:
     void numberExprTest();
     void numberExprInParensTest();
 
-    // void simpleParenExprTest();
-    // void simpleExprTest();
-    // void customLanguageParserTest();
+    void simpleParenExprTest();
+    void simpleExprTest();
+    void customLanguageParserTest();
 };
 
 #endif // TST_SAMPLES_H

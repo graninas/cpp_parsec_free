@@ -27,7 +27,7 @@ Parser<B> runFMap(
 {
   FunctorParserVisitor<A, B> visitor(f);
   std::visit(visitor, psl.psl);
-  visitor.result.debugInfo = psl.debugInfo + " (fmap)";
+  visitor.result.debugInfo = psl.debugInfo;
   return visitor.result;
 }
 

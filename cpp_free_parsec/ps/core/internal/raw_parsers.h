@@ -34,7 +34,6 @@ namespace core
     r.parsed = s.at(0);
     r.from = from;
     r.to = from + 1;
-    // runtime.pushMessage(std::string("Parsed: '") + s.at(0) + "'.");
     return r;
   }
 
@@ -62,7 +61,6 @@ namespace core
     r.parsed = litS;
     r.from = from;
     r.to = from + litS.size();
-    // runtime.pushMessage(std::string("Parsed lit: ") + litS + ".");
     return r;
   }
 

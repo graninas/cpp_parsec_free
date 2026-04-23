@@ -116,6 +116,20 @@ ps::Parser<std::string> parameterIdentifier()
 
 ps::Parser<std::shared_ptr<ASTNode>> expressionParser();
 
+ps::Parser<std::shared_ptr<ASTNode>> parensParser()
+{
+  using namespace ps;
+
+  Parser<std::shared_ptr<ASTNode>> parser =
+      between(
+          parseChar('('),
+          expressionParser(),
+          parseChar(')')) +
+      "parens";
+
+  return parser;
+}
+
 ps::Parser<std::shared_ptr<ASTNode>> parameterParser()
 {
   using namespace ps;
@@ -140,6 +154,13 @@ ps::Parser<std::shared_ptr<ASTNode>> numberParser()
       + "number";
 }
 
+ps::Parser<std::shared_ptr<ASTNode>> termParser()
+{
+  using namespace ps;
+  return alt(try_(numberParser()),
+             alt(try_(parameterParser()), parensParser()));
+}
+
 ps::Parser<std::shared_ptr<ASTNode>> operatorParser()
 {
   using namespace ps;
@@ -148,7 +169,11 @@ ps::Parser<std::shared_ptr<ASTNode>> operatorParser()
       {
         return std::make_shared<ASTNode>(ASTNode::Type::Operator, op);
       },
-      choice(parseLit(">=") + "ge", parseLit("+") + "add", parseLit("*") + "mul", parseLit("/") + "div"))
+      choice(parseLit(">=") + "ge",
+            parseLit("+") + "add",
+            parseLit("-") + "sub",
+            parseLit("*") + "mul",
+            parseLit("/") + "div"))
       + "op";
 }
 
@@ -157,9 +182,11 @@ ps::Parser<std::shared_ptr<ASTNode>> operatorExprParser()
   using namespace ps;
 
   auto seqp = sequence(
+      skip(parseChar('(')),
       expressionParser(),
       operatorParser(),
-      expressionParser())
+      expressionParser(),
+      skip(parseChar(')')))
       + "operator expr";
 
   Parser<std::shared_ptr<ASTNode>> mappedSeqp = fmap<
@@ -181,32 +208,21 @@ ps::Parser<std::shared_ptr<ASTNode>> operatorExprParser()
   return mappedSeqp;
 }
 
-ps::Parser<std::shared_ptr<ASTNode>> parenthesesParser()
-{
-  using namespace ps;
 
-  Parser<std::shared_ptr<ASTNode>> parser =
-      between(
-          parseChar('('),
-          expressionParser(),
-          parseChar(')')) +
-      "parens";
-
-  return parser;
-}
 
 ps::Parser<std::shared_ptr<ASTNode>> expressionParser()
 {
   using namespace ps;
 
   // Define the parser lazily to handle recursion
-  return lazy<std::shared_ptr<ASTNode>>([]()
-                                        { return choice(
-                                              parenthesesParser(),
-                                              parameterParser(),
-                                              numberParser(),
-                                              operatorExprParser()) + "expr choice"; })
-                                              + "expr";
+  return lazy<std::shared_ptr<ASTNode>>(
+    [](){
+      return
+          alt(
+            try_(operatorExprParser()),
+            termParser()
+          );
+    });
 }
 
 // Evaluate the AST using the parameter map
@@ -240,6 +256,10 @@ int evaluateAST(const std::shared_ptr<ASTNode> &node, const std::map<std::string
       return leftValue >= rightValue;
     }
     else if (node->value == "+")
+    {
+      return leftValue + rightValue;
+    }
+    else if (node->value == "-")
     {
       return leftValue + rightValue;
     }
@@ -355,86 +375,87 @@ void SamplesTest::numberExprInParensTest()
 }
 
 
-// void SamplesTest::simpleParenExprTest()
-// {
-//   using namespace ps;
+void SamplesTest::simpleParenExprTest()
+{
+  using namespace ps;
 
-//   std::string src = "((2)+(3))";
-//   ParserRuntime runtime(src, State{});
+  std::string src = "((2)+(3))";
+  ParserRuntime runtime(src, State{});
 
-//   Parser<std::shared_ptr<ASTNode>> parser = expressionParser();
+  Parser<std::shared_ptr<ASTNode>> parser = expressionParser();
 
-//   ParserResult<std::shared_ptr<ASTNode>> result = parseWithRuntime(runtime, parser);
+  ParserResult<std::shared_ptr<ASTNode>> result = parseWithRuntime(runtime, parser);
 
-//   // printMessages(runtime);
+  // printMessages(runtime);
 
-//   QVERIFY(isRight(result));
+  QVERIFY(isRight(result));
 
-//   // Evaluate the AST
-//   std::map<std::string, int> params;
-//   std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
-//   int evaluationResult = evaluateAST(ast, params);
+  // Evaluate the AST
+  std::map<std::string, int> params;
+  std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
+  int evaluationResult = evaluateAST(ast, params);
 
-//   // Verify the result
-//   QVERIFY(evaluationResult == 5);
-// }
+  // Verify the result
+  QVERIFY(evaluationResult == 5);
+}
 
-// void SamplesTest::simpleExprTest()
-// {
-//   using namespace ps;
+void SamplesTest::simpleExprTest()
+{
+  using namespace ps;
 
-//   std::string src = "(2+3)";
-//   ParserRuntime runtime(src, State{});
+  std::string src = "(2+3)";
+  ParserRuntime runtime(src, State{});
 
-//   Parser<std::shared_ptr<ASTNode>> parser = expressionParser();
+  Parser<std::shared_ptr<ASTNode>> parser = expressionParser();
 
-//   ParserResult<std::shared_ptr<ASTNode>> result = parseWithRuntime(runtime, parser);
+  ParserResult<std::shared_ptr<ASTNode>> result = parseWithRuntime(runtime, parser);
 
-//   // printMessages(runtime);
+  // printMessages(runtime);
 
-//   QVERIFY(isRight(result));
+  QVERIFY(isRight(result));
 
-//   // Evaluate the AST
-//   std::map<std::string, int> params;
-//   std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
-//   int evaluationResult = evaluateAST(ast, params);
+  // Evaluate the AST
+  std::map<std::string, int> params;
+  std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
+  int evaluationResult = evaluateAST(ast, params);
 
-//   // Verify the result
-//   QVERIFY(evaluationResult == 5);
-// }
+  // Verify the result
+  QVERIFY(evaluationResult == 5);
+}
 
+void SamplesTest::customLanguageParserTest()
+{
+  using namespace ps;
 
-// void SamplesTest::customLanguageParserTest()
-// {
-//   using namespace ps;
+  // Expressions example: `([P1]-(([P2]+1)*([P3]/[P4])))`
+  // Where P1, P2, P3, P4 are parameter names, and the operators are >=, +, *, /, and parentheses.
+  // Actual parameters are defined separately as a map.
+  // When evaluating, parameter names will be replaced by their values from the map, and the expression will be evaluated according to operator precedence.
 
-//   // Expressions example: `([P1]>=(([P2]+1)*([P3]/[P4])))`
-//   // Where P1, P2, P3, P4 are parameter names, and the operators are >=, +, *, /, and parentheses.
-//   // Actual parameters are defined separately as a map.
-//   // When evaluating, parameter names will be replaced by their values from the map, and the expression will be evaluated according to operator precedence.
+  // Example parameter map
+  std::map<std::string, int> params = {
+      {"P1", 5},
+      {"P2", 10},
+      {"P3", 30},
+      {"P4", 2}};
 
-//   // Example parameter map
-//   std::map<std::string, int> params = {
-//       {"P1", 5},
-//       {"P2", 10},
-//       {"P3", 3},
-//       {"P4", 2}};
+  // Parse the expression
+  //                         -160    11   165   15
+  std::string expression = "([P1]-(([P2]+1)*([P3]/[P4])))";
+  ParserRuntime runtime(expression, State{});
+  Parser<std::shared_ptr<ASTNode>> parser = expressionParser();
 
-//   // Parse the expression
-//   std::string expression = "([P1]>=(([P2]+1)*([P3]/[P4])))";
-//   ParserRuntime runtime(expression, State{});
-//   Parser<std::shared_ptr<ASTNode>> parser = expressionParser();
+  ParserResult<std::shared_ptr<ASTNode>> result = parseWithRuntime(runtime, parser);
 
-//   ParserResult<std::shared_ptr<ASTNode>> result = parseWithRuntime(runtime, parser);
+  // printMessages(runtime);
 
-//   // printMessages(runtime);
+  QVERIFY(isRight(result));
 
-//   QVERIFY(isRight(result));
+  // Evaluate the AST
+  std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
+  int evaluationResult = evaluateAST(ast, params);
 
-//   // Evaluate the AST
-//   std::shared_ptr<ASTNode> ast = getParseSucceeded(result).parsed;
-//   int evaluationResult = evaluateAST(ast, params);
-
-//   // Verify the result
-//   QVERIFY(evaluationResult == 1); // 5 >= (10+1) * 3/2 == 5 >= 16.5 == false
-// }
+  std::cout << evaluationResult << "\n";
+  // Verify the result
+  QVERIFY(evaluationResult == 1);
+}

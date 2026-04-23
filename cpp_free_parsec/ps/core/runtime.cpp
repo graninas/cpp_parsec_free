@@ -25,7 +25,10 @@ void ParserRuntime::putState(const State& state)
 
 void ParserRuntime::pushMessage(const std::string& message)
 {
-    _messages.push_back(message);
+  if (_debugPrint)
+    std::cout << message;
+
+  _messages.push_back(message);
 }
 
 const std::vector<std::string>& ParserRuntime::getMessages() const

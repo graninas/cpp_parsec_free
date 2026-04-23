@@ -127,7 +127,7 @@ Parser<Many<A>> many(const Parser<A>& item)
           res.push_back(a);
         }
         return pure(res, "");
-      }}, "many of " + itemCopy.debugInfo);
+      }}, "many[" + itemCopy.debugInfo + "]");
 }
 
 template <typename A>
@@ -156,7 +156,7 @@ Parser<ParserResult<A>> tryOrError(const Parser<A> &p)
                 return pure(ParserResult<A>{ParserFailed{failed.message, failed.at}}, "");
             }
         }
-      }, "tryOrError of " + itemCopy.debugInfo);
+      }, "try[" + itemCopy.debugInfo + "]");
 }
 
 template <typename A>
@@ -178,7 +178,7 @@ Parser<A> alt(const Parser<A> &p, const Parser<A> &q)
       {
         A a = std::any_cast<A>(res);
         return pure(a, "");
-      }}, "alt of " + p.debugInfo + " and " + q.debugInfo);
+      }}, "alt[" + p.debugInfo + ";" + q.debugInfo + "]");
 }
 
 template <typename A>
@@ -301,7 +301,7 @@ Parser<Many<A>> many(const Parser<A>& item)
           res.push_back(a);
         }
         return res;
-      }}, "many of " + itemCopy.debugInfo);
+      }}, "many[" + itemCopy.debugInfo + "]");
 }
 
 template <typename A>
@@ -330,7 +330,7 @@ Parser<ParserResult<A>> tryOrError(const Parser<A> &p)
                 return ParserResult<A>{ParserFailed{failed.message, failed.at}};
             }
         }
-      }, "tryOrError of " + itemCopy.debugInfo);
+      }, "tryOrErr[" + itemCopy.debugInfo + "]");
 }
 
 template <typename A>
@@ -351,7 +351,7 @@ Parser<A> alt(const Parser<A> &p, const Parser<A> &q)
       [=](const Any &res) {
         A a = std::any_cast<A>(res);
         return a;
-      }}, "alt of " + p.debugInfo + " and " + q.debugInfo);
+      }}, "alt[" + p.debugInfo + ";" + q.debugInfo + "]");
 }
 
 template <typename A>

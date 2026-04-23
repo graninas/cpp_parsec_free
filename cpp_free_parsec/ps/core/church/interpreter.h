@@ -82,8 +82,10 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       {
         ParserSucceeded<Char> succeeded = getParseSucceeded(r);
         state._parsePosition = succeeded.to;
-        state._successMsg = std::string("Parsed char: '") + succeeded.parsed + "'";
-
+        state._successMsg = std::string("(Char '") + succeeded.parsed + "')";
+        state._runtime.pushMessage("[" + paddedTo4Symb + "] " +
+                             state._indent + "<" + state._parserDebugInfo + "> "
+                             + std::string("PARSED CHAR: '") + succeeded.parsed + "'");
         method.next(succeeded.parsed);
       }
     }
@@ -114,7 +116,10 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       {
         ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
         state._parsePosition = succeeded.to;
-        state._successMsg = std::string("Parsed lit: '") + succeeded.parsed + "'";
+        state._successMsg = std::string("(Lit: '") + succeeded.parsed + "')";
+        state._runtime.pushMessage("[" + paddedTo4Symb + "] " +
+                             state._indent + "<" + state._parserDebugInfo + "> "
+                             + std::string("PARSED LIT: '") + succeeded.parsed + "'");
         method.next(succeeded.parsed);
       }
     }
@@ -167,8 +172,10 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
         return;
       }
 
+      Pos initialPosition = state._parsePosition;
+
       ParserRuntime tempRuntime = state._runtime.cloneClean();
-      State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", method.rawParser->debugInfo);
+      State<Any> tempState(tempRuntime, initialPosition, state._indent + "  ", method.rawParser->debugInfo);
       ParserResult<Any> r = runParser<Any>(tempState, *method.rawParser);
       state._runtime.adoptMessages(tempRuntime);
 
@@ -181,7 +188,8 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       else
       {
         ParserFailed failed = getParseFailed(r);
-        state.result = ParserFailed{failed.message, failed.at};
+        state.result = ParserFailed{failed.message, initialPosition};     // Indicating that we didn't consume
+        state._parsePosition = initialPosition;
       }
     }
 
@@ -198,8 +206,11 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
         return;
       }
 
+      Pos initialPosition = state._parsePosition;
+
+      // Try the left parser
       ParserRuntime tempRuntime = state._runtime.cloneClean();
-      State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", method.p->debugInfo);
+      State<Any> tempState(tempRuntime, initialPosition, state._indent + "  ", method.p->debugInfo);
       ParserResult<Any> r = runParser<Any>(tempState, *method.p);
       state._runtime.adoptMessages(tempRuntime);
 
@@ -213,14 +224,15 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
 
       auto failed = getParseFailed(r);
 
-      if (failed.at != state._parsePosition)
+      if (failed.at != initialPosition)
       {
         state.result = ParserFailed{"No alt: first consumed", failed.at};
         return;
       }
 
+      // Try the right parser
       tempRuntime.clearMessages();
-      tempState._parsePosition = state._parsePosition;
+      tempState._parsePosition = initialPosition;
       ParserResult<Any> r2 = runParser<Any>(tempState, *method.q);
       state._runtime.adoptMessages(tempRuntime);
 

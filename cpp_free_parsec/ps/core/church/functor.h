@@ -20,7 +20,7 @@ Parser<B> runFMap(
 {
     Parser<B> n;
 
-    n.debugInfo = church.debugInfo + " (fmap)";
+    n.debugInfo = church.debugInfo;
     n.runF = [=](
             const std::function<Any(B)>& p,
             const std::function<Any(ParserMethods<Any, Parser>)>& s)

@@ -51,14 +51,14 @@ const Parser<Char> comma = parseSymbolCond([](char ch)
 template <typename A>
 Parser<Many<A>> many1(const Parser<A>& p)
 {
-    Parser<Many<A>> manyP = many<A>(p) + "many in many1 of " + p.debugInfo;
+    Parser<Many<A>> manyP = many<A>(p);
 
     return bind<A, Many<A>>(p, [=](const A& a) {
         return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
             rest.push_front(a);
             return rest;
         }, manyP);
-    }) + ("many1 of " + p.debugInfo);
+    }) + ("many1[" + p.debugInfo + "]");
 }
 
 template <typename A>
@@ -67,16 +67,14 @@ Parser<A> tryOrThrow(const Parser<A> &p)
     return bind<ParserResult<A>, A>(tryOrError(p), [=](const ParserResult<A>& res) {
         if (isRight(res))
         {
-            return pure(std::any_cast<A>(getParseSucceeded(res).parsed),
-              "");
-              // "Pure of tryOrThrow of " + p.debugInfo);
+            return pure(std::any_cast<A>(getParseSucceeded(res).parsed), "");
         }
         else
         {
             ParserFailed failed = std::get<ParserFailed>(res);
             throw std::runtime_error("Parsing failed at position " + std::to_string(failed.at) + ": " + failed.message);
         }
-    }) + ("tryOrThrow of " + p.debugInfo);
+    }) + ("tryOrThrow");
 }
 
 template <typename A>
@@ -90,7 +88,7 @@ template <typename A, typename B>
 Parser<B> seq(const Parser<A>& p, const Parser<B>& q)
 {
     return bind<A, B>(p, [=](const A&) { return q; }) +
-      ("seq of " + p.debugInfo + " and " + q.debugInfo);
+      ("seq[" + p.debugInfo + ";" + q.debugInfo + "]");
 }
 
 // TODO: test it
@@ -104,7 +102,7 @@ Parser<Many<A>> bothSequence(const Parser<A>& fst, const Parser<A>& snd)
             res.push_back(b);
             return res;
         }, snd);
-    }) + ("bothSequence of " + fst.debugInfo + " and " + snd.debugInfo);
+    });
 }
 
 // TODO: test it
@@ -115,7 +113,7 @@ Parser<std::pair<A, B>> both(const Parser<A>& fst, const Parser<B>& snd)
         return fmap<B, std::pair<A, B>>([=](const B& b) {
             return std::make_pair(a, b);
         }, snd);
-    }) + ("both of " + fst.debugInfo + " and " + snd.debugInfo);
+    }) + ("both[" + fst.debugInfo + ";" + snd.debugInfo + "]");
 }
 
 template <typename A, typename B>
@@ -123,14 +121,13 @@ Parser<A> left(const Parser<A>& p, const Parser<B>& q)
 {
     return bind<A, A>(p, [=](const A& a) {
         return fmap<B, A>([=](const B&) { return a; }, q);
-    }) + ("left of " + p.debugInfo + " and " + q.debugInfo);
+    });
 }
 
 template <typename A, typename B>
 Parser<B> right(const Parser<A>& p, const Parser<B>& q)
 {
-    return bind<A, B>(p, [=](const A&) { return q; }) +
-      ("right of " + p.debugInfo + " and " + q.debugInfo);
+    return bind<A, B>(p, [=](const A&) { return q; });
 }
 
 
@@ -138,18 +135,15 @@ template <typename A, typename S>
 Parser<Many<A>> sepBy1(const Parser<A>& item, const Parser<S>& sep)
 {
     // sepThenItem = sep *> item
-    Parser<A> sepThenItem = bind<S, A>(sep, [=](const S&) { return item; })
-      + ("sepThenItem of " + sep.debugInfo + " and " + item.debugInfo);
-
-    Parser<Many<A>> restParser = many<A>(sepThenItem)
-      + ("restParser (many) of sepBy1 of " + item.debugInfo + " and " + sep.debugInfo);
+    Parser<A> sepThenItem = bind<S, A>(sep, [=](const S&) { return item; });
+    Parser<Many<A>> restParser = many<A>(sepThenItem);
 
     return bind<A, Many<A>>(item, [=](const A& first) {
         return fmap<Many<A>, Many<A>>([=](Many<A> rest) {
             rest.push_front(first);
             return rest;
         }, restParser);
-    }) + ("sepBy1 of " + item.debugInfo + " and " + sep.debugInfo);
+    }) + ("sepBy1[" + item.debugInfo + "]");
 }
 
 template <typename O, typename A, typename C>
@@ -162,7 +156,7 @@ Parser<A> between(const Parser<O>& open, const Parser<A>& content, const Parser<
                 return pure(a, "");
             });
         });
-    }) + ("between of " + open.debugInfo + " and " + close.debugInfo + " with content " + content.debugInfo);
+    });
 }
 
 template <typename A>
@@ -182,7 +176,7 @@ Parser<Many<A>> count(size_t n, const Parser<A>& p)
             rest.push_front(a);
             return rest;
         }, count(n - 1, pCopy));
-    }) + ("count of " + p.debugInfo);
+    });
 }
 
 template <typename A, typename B, typename R>
@@ -192,14 +186,14 @@ Parser<R> liftA2(const std::function<R(A, B)>& f, const Parser<A>& pa, const Par
         return fmap<B, R>([=](const B& b) {
             return f(a, b);
         }, pb);
-    }) + ("liftA2 of " + pa.debugInfo + " and " + pb.debugInfo);
+    });
 }
 
 template <typename A>
 Parser<Unit> discard(const Parser<A>& p)
 {
     return fmap<A, Unit>([=](const A&) { return unit; }, p) +
-      ("discard of " + p.debugInfo);
+      ("discard[" + p.debugInfo + "]");
 }
 
 
@@ -223,7 +217,7 @@ Parser<Unit> skip(const Parser<A> &p)
 {
   return fmap<A, Unit>([](const A &)
                        { return unit; }, p) +
-                       ("skip of " + p.debugInfo);
+                       ("skip[" + p.debugInfo + "]");
 }
 
 // Variadic sequence combinator and helpers

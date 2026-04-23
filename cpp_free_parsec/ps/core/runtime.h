@@ -18,12 +18,18 @@ private:
     State _state;
 
     int _manyCombinatorThreshold;   // Safety check to prevent infinite loops in the ParseMany combinator, in case of a bug in the raw parser or something like that. In a real implementation we might want to handle this differently, maybe by throwing an exception or something like that.
-
+    bool _debugPrint;
     std::vector<std::string> _messages;
 
 public:
-    ParserRuntime(const std::string& source, const State& state, int many_combinator_threshold = 1000)
-        : _source(source), _state(state), _manyCombinatorThreshold(many_combinator_threshold)
+    ParserRuntime(const std::string& source,
+      const State& state,
+      int many_combinator_threshold = 1000,
+      bool debugPrint = false)
+        : _source(source)
+        , _state(state)
+        , _manyCombinatorThreshold(many_combinator_threshold)
+        , _debugPrint(debugPrint)
     {
     };
 

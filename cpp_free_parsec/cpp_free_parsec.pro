@@ -6,9 +6,6 @@ CONFIG += staticlib
 
 CONFIG += c++1z
 
-SOURCES += \
-    ps/core/runtime.cpp
-
 HEADERS += \
     ps/core/types.h \
     ps/core/runtime.h \

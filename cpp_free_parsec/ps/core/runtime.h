@@ -11,7 +11,8 @@ namespace ps
 namespace core
 {
 
-class ParserRuntime
+template <typename Dummy = int>
+class ParserRuntimeImpl
 {
 private:
     const std::string& _source;
@@ -22,34 +23,68 @@ private:
     std::vector<std::string> _messages;
 
 public:
-    ParserRuntime(const std::string& source,
-      const State& state,
-      int many_combinator_threshold = 1000,
-      bool debugPrint = false)
-        : _source(source)
-        , _state(state)
-        , _manyCombinatorThreshold(many_combinator_threshold)
-        , _debugPrint(debugPrint)
+  ParserRuntimeImpl(const std::string &source,
+                    const State &state,
+                    int many_combinator_threshold = 1000,
+                    bool debugPrint = false)
+      : _source(source), _state(state), _manyCombinatorThreshold(many_combinator_threshold), _debugPrint(debugPrint) {
+        };
+
+  std::string_view getView() const
+  {
+    return std::string_view(_source);
+  }
+
+    State getState() const
     {
-    };
+      return _state;
+    }
 
-    std::string_view getView() const;
+    void putState(const State& state)
+    {
+      _state = state;
+    }
 
-    State getState() const;
-    void putState(const State& state);
+    void pushMessage(const std::string& message)
+    {
+      if (_debugPrint)
+        std::cout << message;
 
-    void pushMessage(const std::string& message);
-    const std::vector<std::string>& getMessages() const;
-    void adoptMessages(const ParserRuntime& other);
-    void clearMessages();
+      _messages.push_back(message);
+    }
 
-    ParserRuntime cloneClean() const;
+    const std::vector<std::string>& getMessages() const
+    {
+      return _messages;
+    }
+
+    void adoptMessages(const ParserRuntimeImpl&other)
+    {
+      auto messages = other.getMessages();
+      for (const auto &msg : messages)
+      {
+        pushMessage(msg);
+      }
+    }
+
+    void clearMessages()
+    {
+      _messages.clear();
+    }
+
+    ParserRuntimeImpl cloneClean() const
+    {
+      return ParserRuntimeImpl(_source, _state, _manyCombinatorThreshold);
+    }
 
     int getManyCombinatorThreshold() const
     {
         return _manyCombinatorThreshold;
     }
 };
+
+using ParserRuntime = ParserRuntimeImpl<int>;
+
 
 } // namespace core
 } // namespace ps

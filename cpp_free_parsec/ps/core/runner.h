@@ -64,7 +64,8 @@ ParserResult<A> parseWithRuntime(
     const Parser<A> &pst,
     Pos from = 0)
 {
-  return ps::core::church::runParser(runtime, pst, from);
+  ps::core::church::State<A> state(runtime, from, "", pst.debugInfo);
+  return ps::core::church::runParser(state, pst);
 }
 
 #endif // CHURCH

@@ -16,129 +16,112 @@ namespace core
 namespace church
 {
 
-// Forward
-
-template <typename Ret>
-ParserResult<Ret> runParser(
-        ParserRuntime& runtime,
-        const Parser<Ret>& next,
-        Pos startFrom,
-        const std::string& indent = "");
-
-
 // Visitor holds state used by the pureFunc and runMethods callbacks
 template <typename Ret>
-struct InterpretingVisitor
+struct State
 {
   ParserRuntime& _runtime;
   ParserResult<Ret> result;
-  Pos _startFrom;
-  Pos _currentTo;
+  Pos _parsePosition;
   std::string _indent;
   std::string _parserDebugInfo;
-  std::string _successMsg;
-  InterpretingVisitor(ParserRuntime& runtime, Pos startFrom, const std::string& indent,
-                      std::string parserDebugInfo)
+  std::string _successMsg = "";
+
+  int _depth = 20;
+
+  State(ParserRuntime& runtime,
+    Pos parsePos,
+    const std::string& indent,
+    std::string parserDebugInfo)
       : _runtime(runtime)
-      , result(ParserFailed{"", startFrom})
-      , _startFrom(startFrom)
-      , _currentTo(startFrom)
+      , result(ParserFailed{"", parsePos})
+      , _parsePosition(parsePos)
       , _indent(indent)
       , _parserDebugInfo(parserDebugInfo)
   {
   }
 };
 
+// Forward
+template <typename Ret>
+ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
+
   // Visitor for the methods variant
   template <typename Ret>
   struct MethodsVisitor
   {
-    InterpretingVisitor<Ret> &outer;
+    State<Ret> &state;
     const ParserMethods<Any, Parser> &methodAnyRef;
 
-    MethodsVisitor(InterpretingVisitor<Ret> &o, const ParserMethods<Any, Parser> &m)
-        : outer(o), methodAnyRef(m) {}
+    MethodsVisitor(State<Ret> &o, const ParserMethods<Any, Parser> &m)
+        : state(o), methodAnyRef(m) {}
 
     void operator()(const ParseSymbolCond<Any, Parser> &method)
     {
-      ParserResult<Char> r = ParserFailed{"Fail", outer._startFrom};
+      ParserResult<Char> r = ParserFailed{"Fail", state._parsePosition};
 
-      auto x = std::to_string(outer._startFrom);
+      auto x = std::to_string(state._parsePosition);
       auto paddedTo4Symb = std::string(4 - x.length(), ' ') + x;
 
       try
       {
-        r = parseSingle<Char>(outer._runtime, outer._currentTo, method.validator);
+        r = parseSingle<Char>(state._runtime, state._parsePosition, method.validator);
       }
       catch (const std::exception &e)
       {
-        outer.result = ParserFailed{"Exception in parseSingle: " + std::string(e.what()), outer._startFrom};
+        state.result = ParserFailed{"Exception in parseSingle: " + std::string(e.what()), state._parsePosition};
         return;
       }
 
       if (isLeft(r))
       {
         ParserFailed failed = getParseFailed(r);
-        outer.result = ParserFailed{failed.message, failed.at};
+        state.result = ParserFailed{failed.message, failed.at};
       }
       else
       {
         ParserSucceeded<Char> succeeded = getParseSucceeded(r);
-        outer._currentTo = succeeded.to;
-        outer._successMsg = std::string("Parsed char: '") + succeeded.parsed + "'";
-        outer._runtime.pushMessage("[" + paddedTo4Symb + "] " +
-                                   outer._indent.substr(0, outer._indent.size() - 2) + "<" + outer._parserDebugInfo + "> success " + outer._successMsg);
+        state._parsePosition = succeeded.to;
+        state._successMsg = std::string("Parsed char: '") + succeeded.parsed + "'";
 
-        // Call the continuation produced by fmapMethods (it will call p internally).
-        try
-        {
-          method.next(succeeded.parsed);
-        }
-        catch (const std::exception &e)
-        {
-          outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-        }
+        method.next(succeeded.parsed); // Result is not used???
       }
     }
 
     void operator()(const ParseLit<Any, Parser> &method)
     {
-      ParserResult<std::string> r = ParserFailed{"Fail", outer._startFrom};
+      ParserResult<std::string> r = ParserFailed{"Fail", state._parsePosition};
 
-      auto x = std::to_string(outer._startFrom);
+      auto x = std::to_string(state._parsePosition);
       auto paddedTo4Symb = std::string(4 - x.length(), ' ') + x;
 
       try
       {
-        r = parseLit<std::string>(outer._runtime, outer._currentTo, method.s);
+        r = parseLit<std::string>(state._runtime, state._parsePosition, method.s);
       }
       catch (const std::exception &e)
       {
-        outer.result = ParserFailed{"Exception in parseLit: " + std::string(e.what()), outer._startFrom};
+        state.result = ParserFailed{"Exception in parseLit: " + std::string(e.what()), state._parsePosition};
         return;
       }
 
       if (isLeft(r))
       {
         ParserFailed failed = getParseFailed(r);
-        outer.result = ParserFailed{failed.message, failed.at};
+        state.result = ParserFailed{failed.message, failed.at};
       }
       else
       {
         ParserSucceeded<std::string> succeeded = getParseSucceeded(r);
-        outer._currentTo = succeeded.to;
-        outer._successMsg = std::string("Parsed lit: '") + succeeded.parsed + "'";
-        outer._runtime.pushMessage("[" + paddedTo4Symb + "] " +
-                                   outer._indent.substr(0, outer._indent.size() - 2) + "<" + outer._parserDebugInfo + "> success " + outer._successMsg);
+        state._parsePosition = succeeded.to;
+        state._successMsg = std::string("Parsed lit: '") + succeeded.parsed + "'";
 
-        try
-        {
-          method.next(succeeded.parsed);
-        }
-        catch (const std::exception &e)
-        {
-          outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-        }
+        // Need success message:
+        // _successMsg = std::string("Parsed lit: '") + succeeded.parsed + "'";
+        // _runtime.pushMessage("[" + paddedTo4Symb + "] " +
+                            //  _indent.substr(0, _indent.size() - 2) + "<" + _parserDebugInfo + "> success " + _successMsg);
+
+        method.next(succeeded.parsed);
       }
     }
 
@@ -146,22 +129,23 @@ struct InterpretingVisitor
     {
       if (method.rawParser == nullptr)
       {
-        outer.result = ParserFailed{"Null parser in ParseMany", outer._startFrom};
+        state.result = ParserFailed{"Null parser in ParseMany", state._parsePosition};
         return;
       }
 
       std::list<Any> acc;
-      Pos currentPos = outer._currentTo;
+      // Pos currentPos = state._parsePosition;
       int iteration = 0;
 
-      ParserRuntime tempRuntime = outer._runtime;
+      ParserRuntime tempRuntime = state._runtime;
+      State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", method.rawParser->debugInfo);
       tempRuntime.clearMessages();
-      ParserResult<Any> rr = runParser<Any>(tempRuntime, *method.rawParser, currentPos, outer._indent);
+      ParserResult<Any> rr = runParser<Any>(tempState, *method.rawParser);
 
       auto messages = tempRuntime.getMessages();
       for (const auto &msg : messages)
       {
-        outer._runtime.pushMessage(msg);
+        state._runtime.pushMessage(msg);
       }
 
       while (isRight(rr))
@@ -169,81 +153,58 @@ struct InterpretingVisitor
         ParserSucceeded<Any> succeeded = getParseSucceeded(rr);
         acc.push_back(succeeded.parsed);
 
-        currentPos = succeeded.to;
         iteration++;
 
         tempRuntime.clearMessages();
-        rr = runParser<Any>(tempRuntime, *method.rawParser, currentPos, outer._indent);
+        tempState._parsePosition = succeeded.to;
+        rr = runParser<Any>(tempState, *method.rawParser);
 
         messages = tempRuntime.getMessages();
         for (const auto &msg : messages)
         {
-          outer._runtime.pushMessage(msg);
+          state._runtime.pushMessage(msg);
         }
 
-        if (iteration > outer._runtime.getManyCombinatorThreshold())
+        if (iteration > state._runtime.getManyCombinatorThreshold())
         {
-          outer._runtime.pushMessage("ParseMany: safety check triggered, breaking loop after " + std::to_string(iteration) + " iterations.");
+          state._runtime.pushMessage("ParseMany: safety check triggered, breaking loop after " + std::to_string(iteration) + " iterations.");
           break;
         }
       }
 
-      outer._currentTo = currentPos;
-
-      try
-      {
-        method.next(acc);
-      }
-      catch (const std::exception &e)
-      {
-        outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-      }
+      state._parsePosition = tempState._parsePosition;
+      method.next(acc);       // Result is not used??
     }
 
     void operator()(const TryOrErrorParser<Any, Parser> &method)
     {
       if (method.rawParser == nullptr)
       {
-        outer.result = ParserFailed{"Null parser in TryOrError.", outer._startFrom};
+        state.result = ParserFailed{"Null parser in TryOrError.", state._parsePosition};
         return;
       }
 
-      ParserRuntime tempRuntime = outer._runtime;
+      ParserRuntime tempRuntime = state._runtime;
+      State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", method.rawParser->debugInfo);
       tempRuntime.clearMessages();
-      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, outer._startFrom, outer._indent);
+      ParserResult<Any> r = runParser<Any>(tempState, *method.rawParser);
 
       auto messages = tempRuntime.getMessages();
       for (const auto &msg : messages)
       {
-        outer._runtime.pushMessage(msg);
+        state._runtime.pushMessage(msg);
       }
 
       if (isRight(r))
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-        outer._currentTo = succeeded.to;
-        try
-        {
-          method.next(r);
-        }
-        catch (const std::exception &e)
-        {
-          outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-        }
+        state._parsePosition = succeeded.to;
+        method.next(r);       // Result is not used??
       }
       else
       {
         ParserFailed failed = getParseFailed(r);
-        failed.at = outer._startFrom;
-        outer._currentTo = outer._startFrom;
-        try
-        {
-          method.next(r);
-        }
-        catch (const std::exception &e)
-        {
-          outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-        }
+        method.next(r);
       }
     }
 
@@ -251,139 +212,110 @@ struct InterpretingVisitor
     {
       if (method.p == nullptr)
       {
-        outer.result = ParserFailed{"Null parser in AltParser (left)", outer._startFrom};
+        state.result = ParserFailed{"Null parser in AltParser (left)", state._parsePosition};
         return;
       }
       if (method.q == nullptr)
       {
-        outer.result = ParserFailed{"Null parser in AltParser (right)", outer._startFrom};
+        state.result = ParserFailed{"Null parser in AltParser (right)", state._parsePosition};
         return;
       }
 
-      ParserRuntime tempRuntime = outer._runtime;
+      ParserRuntime tempRuntime = state._runtime;
       tempRuntime.clearMessages();
-      ParserResult<Any> r = runParser<Any>(tempRuntime, *method.p, outer._startFrom, outer._indent);
+      State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", method.p->debugInfo);
+      ParserResult<Any> r = runParser<Any>(tempState, *method.p);
 
       auto messages = tempRuntime.getMessages();
       for (const auto &msg : messages)
       {
-        outer._runtime.pushMessage(msg);
+        state._runtime.pushMessage(msg);
       }
 
       if (isRight(r))
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-        outer._currentTo = succeeded.to;
-        try
-        {
-          method.next(succeeded.parsed);
-        }
-        catch (const std::exception &e)
-        {
-          outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-        }
+        state._parsePosition = succeeded.to;
+        method.next(succeeded.parsed);
         return;
       }
 
       auto failed = getParseFailed(r);
 
-      if (failed.at != outer._startFrom)
+      if (failed.at != state._parsePosition)
       {
-        outer.result = ParserFailed{"No alt: first consumed", failed.at};
+        state.result = ParserFailed{"No alt: first consumed", failed.at};
         return;
       }
 
       tempRuntime.clearMessages();
-      ParserResult<Any> r2 = runParser<Any>(tempRuntime, *method.q, outer._startFrom, outer._indent);
+      tempState._parsePosition = state._parsePosition;
+      ParserResult<Any> r2 = runParser<Any>(tempState, *method.q);
 
       auto messages2 = tempRuntime.getMessages();
       for (const auto &msg : messages2)
       {
-        outer._runtime.pushMessage(msg);
+        state._runtime.pushMessage(msg);
       }
 
       if (isRight(r2))
       {
         ParserSucceeded<Any> succeeded2 = getParseSucceeded(r2);
-        outer._currentTo = succeeded2.to;
-        try
-        {
-          method.next(succeeded2.parsed);
-        }
-        catch (const std::exception &e)
-        {
-          outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-        }
+        state._parsePosition = succeeded2.to;
+        method.next(succeeded2.parsed);
       }
       else
       {
         ParserFailed failed2 = getParseFailed(r2);
-        outer.result = ParserFailed{"No alt: both failed", failed2.at};
+        // _parsePosition == ?
+        state.result = ParserFailed{"No alt: both failed", failed2.at};
       }
     }
 
     void operator()(const LazyParser<Any, Parser> &method)
     {
       Parser<Any> actualParser = method.parserFactory();
-      ParserResult<Any> r = runParser<Any>(outer._runtime, actualParser, outer._startFrom, outer._indent);
+
+      ParserRuntime tempRuntime = state._runtime;
+      tempRuntime.clearMessages();
+      State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", actualParser.debugInfo);
+      ParserResult<Any> r = runParser<Any>(tempState, actualParser);
+
+      auto messages = tempRuntime.getMessages();
+      for (const auto &msg : messages)
+      {
+        state._runtime.pushMessage(msg);
+      }
 
       if (isLeft(r))
       {
         ParserFailed failed = getParseFailed(r);
-        outer.result = ParserFailed{failed.message, failed.at};
+        state.result = ParserFailed{failed.message, failed.at};
       }
       else
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-        outer._currentTo = succeeded.to;
-        try
-        {
-          method.next(succeeded.parsed);
-        }
-        catch (const std::exception &e)
-        {
-          outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-        }
+        state._parsePosition = succeeded.to;
+        method.next(succeeded.parsed);
       }
     }
 
     void operator()(const GetSt<Any, Parser> &method)
     {
-      try
-      {
-        method.next(outer._runtime.getState());
-      }
-      catch (const std::exception &e)
-      {
-        outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-      }
+      method.next(state._runtime.getState());
     }
 
     void operator()(const PutSt<Any, Parser> &method)
     {
-      outer._runtime.putState(method.st);
-      try
-      {
-        method.next(unit);
-      }
-      catch (const std::exception &e)
-      {
-        outer.result = ParserFailed{std::string("Exception in continuation: ") + e.what(), outer._startFrom};
-      }
+      state._runtime.putState(method.st);
+      method.next(unit);
     }
   };
 
 template <typename Ret>
-ParserResult<Ret> runParser(
-        ParserRuntime& runtime,
-        const Parser<Ret>& next,
-        Pos startFrom,
-        const std::string& indent)
+ParserResult<Ret> runParser(State<Ret> &state, const Parser<Ret> &parser)
 {
-
-  InterpretingVisitor<Ret> visitor(runtime, startFrom, indent + "  ", next.debugInfo);
-
-  auto x = std::to_string(startFrom);
+  auto x = std::to_string(state._parsePosition);
   auto paddedTo4Symb = std::string(4 - x.length(), ' ') + x;
 
   // pureFunc: called by the church-encoded parser when a pure value is produced.
@@ -391,57 +323,54 @@ ParserResult<Ret> runParser(
   {
     ParserSucceeded<Ret> succeeded;
     succeeded.parsed = a;
-    succeeded.from = visitor._startFrom;
-    succeeded.to = visitor._currentTo;
-    visitor.result = succeeded;
-    return Any{};////////////////////////////////////////////MISTAKE?
+    succeeded.from = state._parsePosition;
+    succeeded.to = state._parsePosition;
+    state.result = succeeded;
+    return Any{}; ////////////////////////////////////////////MISTAKE?
   };
 
   // runMethods: called by the church-encoded parser when it exposes a ParserMethods to be executed.
   std::function<Any(ParserMethods<Any, Parser>)> runMethods = [&](const ParserMethods<Any, Parser> &methodAny) -> Any
   {
-    MethodsVisitor<Ret> mv(visitor, methodAny);
-    std::visit(mv, const_cast<ParserMethods<Any, Parser>&>(methodAny).psf);
-    return Any{};     /// MISTAKE??
+    MethodsVisitor<Ret> mv(state, methodAny);
+    std::visit(mv, const_cast<ParserMethods<Any, Parser> &>(methodAny).psf);
+    return Any{}; //////////////////////////////// MISTAKE??
   };
 
   try
   {
-    runtime.pushMessage("[" + paddedTo4Symb + "] " + indent + "<" + next.debugInfo + ">");
-    next.runF(pureFunc, runMethods);
+    state._runtime.pushMessage("[" + paddedTo4Symb + "] " + state._indent + "<" + parser.debugInfo + ">");
+    parser.runF(pureFunc, runMethods); // Result is not used??
   }
-  catch (const std::exception& e)
+  catch (const std::exception &e)
   {
-      auto result = visitor.result;
-      if (isLeft(result))
-      {
-        ParserFailed failed = getParseFailed(result);
-        return ParserFailed{"<" + next.debugInfo + "> exception: " + std::string(e.what()) + ". Msg: " + failed.message, failed.at};
-      }
-      else
-      {
-        ParserSucceeded<Ret> succeeded = getParseSucceeded(result);
-        return ParserFailed{"<" + next.debugInfo + "> impossible " + std::string(e.what()), succeeded.from};
-      }
+    auto result = state.result;
+    if (isLeft(result))
+    {
+      ParserFailed failed = getParseFailed(result);
+      return ParserFailed{"<" + parser.debugInfo + "> exception: " + std::string(e.what()) + ". Msg: " + failed.message, failed.at};
+    }
+    else
+    {
+      ParserSucceeded<Ret> succeeded = getParseSucceeded(result);
+      return ParserFailed{"<" + parser.debugInfo + "> impossible " + std::string(e.what()), succeeded.from};
+    }
   }
 
-  if (isLeft(visitor.result))
+  if (isLeft(state.result))
   {
-    ParserFailed failed = getParseFailed(visitor.result);
-    runtime.pushMessage("[" + paddedTo4Symb + "] " + indent + "<" + next.debugInfo + "> failed: " + failed.message);
+    ParserFailed failed = getParseFailed(state.result);
+    state._runtime.pushMessage("[" + paddedTo4Symb + "] " + state._indent + "<" + parser.debugInfo + "> failed: " + failed.message);
     return failed;
   }
   else
   {
-    ParserSucceeded<Ret> succeeded = getParseSucceeded(visitor.result);
-    succeeded.from = startFrom;
-    runtime.pushMessage("[" + paddedTo4Symb + "] " + indent + "<" + next.debugInfo + "> success " + visitor._successMsg);
+    ParserSucceeded<Ret> succeeded = getParseSucceeded(state.result);
+    succeeded.from = state._parsePosition;
+    state._runtime.pushMessage("[" + paddedTo4Symb + "] " + state._indent + "<" + parser.debugInfo + "> success " + state._successMsg);
     return succeeded;
   }
 }
-
-
-
 
 
 } // namespace church

@@ -1,5 +1,7 @@
 #include "runtime.h"
 
+#include <iostream>
+
 namespace ps
 {
 namespace core

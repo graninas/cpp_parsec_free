@@ -207,8 +207,8 @@ Parser<A> lazy(const std::function<Parser<A>()>& parserFactory)
 
 #ifdef CHURCH
 
-    template <typename A>
-    using Parser = ps::core::church::Parser<A>;
+template <typename A>
+using Parser = ps::core::church::Parser<A>;
 
 
 // TODO: debugInfo is blank by default

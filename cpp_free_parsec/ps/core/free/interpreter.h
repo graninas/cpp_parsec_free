@@ -1,13 +1,22 @@
-#ifndef PS_CORE_INTERPRETER_H
-#define PS_CORE_INTERPRETER_H
+#ifndef PS_CORE_FREE_INTERPRETER_H
+#define PS_CORE_FREE_INTERPRETER_H
 
-#include "runtime.h"
-#include "raw_parsers.h"
-#include "parser/adt.h"
+#include "../types.h"
+#include "../methods/adt.h"
+#include "../methods/functor.h"
+#include "adt.h"
+#include "bind.h"
+#include "functor.h"
+
+#include "../runtime.h"
+#include "../internal/raw_parsers.h"
+
 
 namespace ps
 {
 namespace core
+{
+namespace free
 {
 
 // Forward declaration
@@ -83,7 +92,7 @@ struct InterpretingADTVisitor
     {
     }
 
-    void operator()(const ParseSymbolCond<Parser<Ret>>& method)
+    void operator()(const ParseSymbolCond<Parser<Ret>, Parser>& method)
     {
         ParserResult<Char> r = ParserFailed{"Fail", _startFrom};
 
@@ -117,7 +126,7 @@ struct InterpretingADTVisitor
         }
     }
 
-    void operator()(const ParseLit<Parser<Ret>> &method)
+    void operator()(const ParseLit<Parser<Ret>, Parser>& method)
     {
       ParserResult<std::string> r = ParserFailed{"Fail", _startFrom};
 
@@ -150,7 +159,7 @@ struct InterpretingADTVisitor
       }
     }
 
-    void operator()(const ParseMany<Parser<Ret>>& method)
+    void operator()(const ParseMany<Parser<Ret>, Parser>& method)
     {
       if (method.rawParser == nullptr)
       {
@@ -165,38 +174,21 @@ struct InterpretingADTVisitor
       Pos currentPos = _startFrom;
       int iteration = 0;
 
-      // _runtime.pushMessage( "ParseMany: starting first at: " + std::to_string(currentPos));
-
-      ParserRuntime tempRuntime = _runtime;
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = _runtime.cloneClean();
       ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, currentPos, _indent);
-
-      auto messages = tempRuntime.getMessages(); // Get messages from the temporary runtime and push them to the original runtime, so that we have the messages from all iterations of the loop.
-      for (const auto &msg : messages)
-      {
-          _runtime.pushMessage(msg);
-      }
-
-      // if (isRight(r))
-      //   _runtime.pushMessage("ParseMany: entering loop.");
+      _runtime.adoptMessages(tempRuntime);
 
       while (isRight(r))
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-        acc.push_back(succeeded.parsed);    // Result will be converted when fmapped
+        acc.push_back(succeeded.parsed);
 
         currentPos = succeeded.to;
-        // _runtime.pushMessage("ParseMany: starting next attempt. Current position: " + std::to_string(currentPos) + ".");
         iteration++;
 
         tempRuntime.clearMessages();
         r = runParser<Any>(tempRuntime, *method.rawParser, currentPos, _indent);
-
-        messages = tempRuntime.getMessages();
-        for (const auto &msg : messages)
-        {
-            _runtime.pushMessage(msg);
-        }
+        _runtime.adoptMessages(tempRuntime);
 
         if (iteration > _runtime.getManyCombinatorThreshold())   // Safety check to prevent infinite loops, in case of a bug in the raw parser or something like that. In a real implementation we might want to handle this differently, maybe by throwing an exception or something like that.
         {
@@ -205,14 +197,10 @@ struct InterpretingADTVisitor
         }
       }
 
-      // if (iteration > 0)
-      //   _runtime.pushMessage("ParseMany: loop ended after " + std::to_string(iteration) + " iterations.");
-
-      // _runtime.pushMessage("ParseMany: finished.");
       result = runParser<Ret>(_runtime, method.next(acc), currentPos, _indent);
     }
 
-    void operator()(const TryOrErrorParser<Parser<Ret>>& method)
+    void operator()(const TryOrErrorParser<Parser<Ret>, Parser> &method)
     {
       if (method.rawParser == nullptr)
       {
@@ -222,15 +210,9 @@ struct InterpretingADTVisitor
 
       // Create a temporary runtime to run the raw parser, so that we don't modify the original runtime's state and messages during the loop.
       // N.B. For now, the source string is copied. It is highly suboptimal.
-      ParserRuntime tempRuntime = _runtime;
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = _runtime.cloneClean();
       ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, _startFrom, _indent);
-
-      auto messages = tempRuntime.getMessages(); // Get messages from the temporary runtime and push them to the original runtime, so that we have the messages from all iterations of the loop.
-      for (const auto &msg : messages)
-      {
-        _runtime.pushMessage(msg);
-      }
+      _runtime.adoptMessages(tempRuntime);
 
       if (isRight(r))
       {
@@ -245,7 +227,7 @@ struct InterpretingADTVisitor
       }
     }
 
-    void operator()(const AltParser<Parser<Ret>>& method)
+    void operator()(const AltParser<Parser<Ret>, Parser> &method)
     {
       if (method.p == nullptr)
       {
@@ -258,22 +240,13 @@ struct InterpretingADTVisitor
         return;
       }
 
-      ParserRuntime tempRuntime = _runtime;
-      // _runtime.pushMessage("AltParser: starting first parser. Current position: " + std::to_string(_startFrom) + ".");
-
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = _runtime.cloneClean();
       ParserResult<Any> r = runParser<Any>(tempRuntime, *method.p, _startFrom, _indent);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-          _runtime.pushMessage(msg);
-      }
+      _runtime.adoptMessages(tempRuntime);
 
       if (isRight(r))
       {
         ParserSucceeded<Any> succeeded = getParseSucceeded(r);
-        // _runtime.pushMessage("AltParser: first parser succeeded. From: " + std::to_string(succeeded.from) + ", To: " + std::to_string(succeeded.to) + ".");
         result = runParser<Ret>(_runtime, method.next(succeeded.parsed), succeeded.to, _indent);
         return;
       }
@@ -286,20 +259,13 @@ struct InterpretingADTVisitor
         return;
       }
 
-      // _runtime.pushMessage("AltParser: first parser failed without consumption. Starting second parser. Current position: " + std::to_string(_startFrom) + ".");
       tempRuntime.clearMessages();
       ParserResult<Any> r2 = runParser<Any>(tempRuntime, *method.q, _startFrom, _indent);
-
-      auto messages2 = tempRuntime.getMessages();
-      for (const auto &msg : messages2)
-      {
-          _runtime.pushMessage(msg);
-      }
+      _runtime.adoptMessages(tempRuntime);
 
       if (isRight(r2))
       {
         ParserSucceeded<Any> succeeded2 = getParseSucceeded(r2);
-        // _runtime.pushMessage("AltParser: second parser succeeded. From: " + std::to_string(_startFrom) + ", To: " + std::to_string(succeeded2.to) + ".");
         result = runParser<Ret>(_runtime, method.next(succeeded2.parsed), succeeded2.to, _indent);
       }
       else
@@ -309,10 +275,12 @@ struct InterpretingADTVisitor
       }
     }
 
-    void operator()(const LazyParser<Parser<Ret>> &method)
+    void operator()(const LazyParser<Parser<Ret>, Parser> &method)
     {
       Parser<Any> actualParser = method.parserFactory();
-      ParserResult<Any> r = runParser<Any>(_runtime, actualParser, _startFrom, _indent);
+      ParserRuntime tempRuntime = _runtime.cloneClean();
+      ParserResult<Any> r = runParser<Any>(tempRuntime, actualParser, _startFrom, _indent);
+      _runtime.adoptMessages(tempRuntime);
 
       if (isLeft(r))
       {
@@ -326,13 +294,13 @@ struct InterpretingADTVisitor
       }
     }
 
-    void operator()(const GetSt<Parser<Ret>> &method)
+    void operator()(const GetSt<Parser<Ret>, Parser> &method)
     {
       auto rNext = method.next(_runtime.getState());
       result = runParser<Ret>(_runtime, rNext, _startFrom, _indent);
     }
 
-    void operator()(const PutSt<Parser<Ret>> &method)
+    void operator()(const PutSt<Parser<Ret>, Parser> &method)
     {
       _runtime.putState(method.st);
       auto rNext = method.next(unit);
@@ -374,7 +342,9 @@ struct InterpretingVisitor
     }
 };
 
+
+} // namespace free
 } // namespace core
 } // namespace ps
 
-#endif // PS_CORE_INTERPRETER_H
+#endif // PS_CORE_FREE_INTERPRETER_H

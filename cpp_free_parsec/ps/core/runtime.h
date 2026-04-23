@@ -14,7 +14,7 @@ namespace core
 class ParserRuntime
 {
 private:
-    const std::string _source;      // TODO: investigate if we can avoid copying the source string, maybe by using a shared_ptr or something similar. For now we just keep it simple with a copy.
+    const std::string& _source;
     State _state;
 
     int _manyCombinatorThreshold;   // Safety check to prevent infinite loops in the ParseMany combinator, in case of a bug in the raw parser or something like that. In a real implementation we might want to handle this differently, maybe by throwing an exception or something like that.
@@ -34,7 +34,10 @@ public:
 
     void pushMessage(const std::string& message);
     const std::vector<std::string>& getMessages() const;
+    void adoptMessages(const ParserRuntime& other);
     void clearMessages();
+
+    ParserRuntime cloneClean() const;
 
     int getManyCombinatorThreshold() const
     {

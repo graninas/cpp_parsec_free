@@ -1,5 +1,7 @@
 #include "runtime.h"
 
+#include <iostream>
+
 namespace ps
 {
 namespace core
@@ -33,7 +35,21 @@ const std::vector<std::string>& ParserRuntime::getMessages() const
 
 void ParserRuntime::clearMessages()
 {
-    _messages.clear();
+  _messages.clear();
+}
+
+void ParserRuntime::adoptMessages(const ParserRuntime &other)
+{
+  auto messages = other.getMessages();
+  for (const auto &msg : messages)
+  {
+    pushMessage(msg);
+  }
+}
+
+ParserRuntime ParserRuntime::cloneClean() const
+{
+  return ParserRuntime(_source, _state, _manyCombinatorThreshold);
 }
 
 } // namespace core

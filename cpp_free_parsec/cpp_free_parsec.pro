@@ -12,16 +12,19 @@ SOURCES += \
 HEADERS += \
     ps/core/types.h \
     ps/core/runtime.h \
-    ps/core/parser/adt.h \
-    ps/core/parser/functor.h \
-    ps/core/parser/bind.h \
+    ps/core/internal/raw_parsers.h \
+    ps/core/free/adt.h \
+    ps/core/free/functor.h \
+    ps/core/free/bind.h \
+    ps/core/free/interpreter.h \
+    ps/core/church/adt.h \
+    ps/core/church/functor.h \
+    ps/core/church/bind.h \
     ps/core/conds.h \
-    ps/core/interpreter.h \
-    ps/core/raw_parsers.h \
+    ps/core/engine.h \
     ps/core/parser.h \
-    ps/core/merge.h \
-    ps/core/choice.h \
-    ps/free_parsec.h
+    ps/free_parsec.h \
+    ps/core/runner.h
 
 unix {
     target.path = /usr/lib

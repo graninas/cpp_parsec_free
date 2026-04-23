@@ -174,15 +174,9 @@ struct InterpretingADTVisitor
       Pos currentPos = _startFrom;
       int iteration = 0;
 
-      ParserRuntime tempRuntime = _runtime;
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = _runtime.cloneClean();
       ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, currentPos, _indent);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-          _runtime.pushMessage(msg);
-      }
+      _runtime.adoptMessages(tempRuntime);
 
       while (isRight(r))
       {
@@ -194,12 +188,7 @@ struct InterpretingADTVisitor
 
         tempRuntime.clearMessages();
         r = runParser<Any>(tempRuntime, *method.rawParser, currentPos, _indent);
-
-        messages = tempRuntime.getMessages();
-        for (const auto &msg : messages)
-        {
-            _runtime.pushMessage(msg);
-        }
+        _runtime.adoptMessages(tempRuntime);
 
         if (iteration > _runtime.getManyCombinatorThreshold())   // Safety check to prevent infinite loops, in case of a bug in the raw parser or something like that. In a real implementation we might want to handle this differently, maybe by throwing an exception or something like that.
         {
@@ -221,15 +210,9 @@ struct InterpretingADTVisitor
 
       // Create a temporary runtime to run the raw parser, so that we don't modify the original runtime's state and messages during the loop.
       // N.B. For now, the source string is copied. It is highly suboptimal.
-      ParserRuntime tempRuntime = _runtime;
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = _runtime.cloneClean();
       ParserResult<Any> r = runParser<Any>(tempRuntime, *method.rawParser, _startFrom, _indent);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-        _runtime.pushMessage(msg);
-      }
+      _runtime.adoptMessages(tempRuntime);
 
       if (isRight(r))
       {
@@ -257,16 +240,9 @@ struct InterpretingADTVisitor
         return;
       }
 
-      ParserRuntime tempRuntime = _runtime;
-
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = _runtime.cloneClean();
       ParserResult<Any> r = runParser<Any>(tempRuntime, *method.p, _startFrom, _indent);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-          _runtime.pushMessage(msg);
-      }
+      _runtime.adoptMessages(tempRuntime);
 
       if (isRight(r))
       {
@@ -285,12 +261,7 @@ struct InterpretingADTVisitor
 
       tempRuntime.clearMessages();
       ParserResult<Any> r2 = runParser<Any>(tempRuntime, *method.q, _startFrom, _indent);
-
-      auto messages2 = tempRuntime.getMessages();
-      for (const auto &msg : messages2)
-      {
-          _runtime.pushMessage(msg);
-      }
+      _runtime.adoptMessages(tempRuntime);
 
       if (isRight(r2))
       {
@@ -307,15 +278,9 @@ struct InterpretingADTVisitor
     void operator()(const LazyParser<Parser<Ret>, Parser> &method)
     {
       Parser<Any> actualParser = method.parserFactory();
-      ParserRuntime tempRuntime = _runtime;
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = _runtime.cloneClean();
       ParserResult<Any> r = runParser<Any>(tempRuntime, actualParser, _startFrom, _indent);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-        _runtime.pushMessage(msg);
-      }
+      _runtime.adoptMessages(tempRuntime);
 
       if (isLeft(r))
       {

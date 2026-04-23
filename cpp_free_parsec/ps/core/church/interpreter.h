@@ -137,16 +137,10 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       // Pos currentPos = state._parsePosition;
       int iteration = 0;
 
-      ParserRuntime tempRuntime = state._runtime;
+      ParserRuntime tempRuntime = state._runtime.cloneClean();
       State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", method.rawParser->debugInfo);
-      tempRuntime.clearMessages();
       ParserResult<Any> rr = runParser<Any>(tempState, *method.rawParser);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-        state._runtime.pushMessage(msg);
-      }
+      state._runtime.adoptMessages(tempRuntime);
 
       while (isRight(rr))
       {
@@ -159,11 +153,7 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
         tempState._parsePosition = succeeded.to;
         rr = runParser<Any>(tempState, *method.rawParser);
 
-        messages = tempRuntime.getMessages();
-        for (const auto &msg : messages)
-        {
-          state._runtime.pushMessage(msg);
-        }
+        state._runtime.adoptMessages(tempRuntime);
 
         if (iteration > state._runtime.getManyCombinatorThreshold())
         {
@@ -184,16 +174,10 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
         return;
       }
 
-      ParserRuntime tempRuntime = state._runtime;
+      ParserRuntime tempRuntime = state._runtime.cloneClean();
       State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", method.rawParser->debugInfo);
-      tempRuntime.clearMessages();
       ParserResult<Any> r = runParser<Any>(tempState, *method.rawParser);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-        state._runtime.pushMessage(msg);
-      }
+      state._runtime.adoptMessages(tempRuntime);
 
       if (isRight(r))
       {
@@ -221,16 +205,10 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
         return;
       }
 
-      ParserRuntime tempRuntime = state._runtime;
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = state._runtime.cloneClean();
       State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", method.p->debugInfo);
       ParserResult<Any> r = runParser<Any>(tempState, *method.p);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-        state._runtime.pushMessage(msg);
-      }
+      state._runtime.adoptMessages(tempRuntime);
 
       if (isRight(r))
       {
@@ -251,12 +229,7 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
       tempRuntime.clearMessages();
       tempState._parsePosition = state._parsePosition;
       ParserResult<Any> r2 = runParser<Any>(tempState, *method.q);
-
-      auto messages2 = tempRuntime.getMessages();
-      for (const auto &msg : messages2)
-      {
-        state._runtime.pushMessage(msg);
-      }
+      state._runtime.adoptMessages(tempRuntime);
 
       if (isRight(r2))
       {
@@ -276,16 +249,10 @@ ParserResult<Ret> runParser(State<Ret>& state, const Parser<Ret>& parser);
     {
       Parser<Any> actualParser = method.parserFactory();
 
-      ParserRuntime tempRuntime = state._runtime;
-      tempRuntime.clearMessages();
+      ParserRuntime tempRuntime = state._runtime.cloneClean();
       State<Any> tempState(tempRuntime, state._parsePosition, state._indent + "  ", actualParser.debugInfo);
       ParserResult<Any> r = runParser<Any>(tempState, actualParser);
-
-      auto messages = tempRuntime.getMessages();
-      for (const auto &msg : messages)
-      {
-        state._runtime.pushMessage(msg);
-      }
+      state._runtime.adoptMessages(tempRuntime);
 
       if (isLeft(r))
       {

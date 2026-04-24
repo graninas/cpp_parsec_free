@@ -20,7 +20,9 @@ Examples
 Parse a single digit:
 ```cpp
 using namespace ps;
-ParserRuntime runtime("1", State{});
+
+std::string src = "1";
+ParserRuntime runtime(src, State{});
 ParserResult<Char> result = parseWithRuntime<Char>(runtime, digit);
 if (isRight(result)) {
     Char c = getParseSucceeded(result).parsed; // c == '1'
@@ -36,15 +38,27 @@ auto parser = merge(seqp);
 ```
 
 Parse a person info line:
+
+`"John,    Doe,30,123-45-6789}"`
+
 ```cpp
-struct PersonInfo { std::string firstName, lastName; int age; std::string ssn; };
+
+struct PersonInfo
+{
+    std::string firstName,
+    lastName;
+    int age;
+    std::string ssn;
+};
+
 auto seqp = sequence(
-    firstNameParser(), skip(comma),
-    lastNameParser(), skip(comma),
-    ageParser(), skip(comma),
-    ssnParser()
+      firstNameParser(), skip(comma), skip(many(space)),
+      lastNameParser(), skip(comma), skip(many(space)),
+      ageParser(), skip(comma), skip(many(space)),
+      ssnParser()
 );
-auto parser = as<PersonInfo>(seqp);
+ps::Parser<PersonInfo> p = as<PersonInfo>(seqp);
+
 ```
 
 Architecture Overview
